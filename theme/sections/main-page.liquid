@@ -1,0 +1,29 @@
+<section class="section main-page-section">
+  <div class="container container--narrow">
+    {%- if section.settings.show_title -%}
+      <header class="section-header">
+        <h1 class="hazard-underline">{{ page.title | escape }}</h1>
+      </header>
+    {%- endif -%}
+
+    {%- if page.content != blank -%}
+      <div class="rte">
+        {{ page.content }}
+      </div>
+    {%- endif -%}
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "עמוד תוכן",
+  "settings": [
+    {
+      "type": "checkbox",
+      "id": "show_title",
+      "label": "הצגת כותרת העמוד",
+      "default": true
+    }
+  ]
+}
+{% endschema %}

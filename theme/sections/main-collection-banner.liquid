@@ -1,0 +1,158 @@
+{{ 'section-collection.css' | asset_url | stylesheet_tag }}
+<script src="{{ 'facets.js' | asset_url }}" defer="defer"></script>
+
+{%- liquid
+  assign has_image = false
+  if section.settings.show_image and collection.image != blank
+    assign has_image = true
+  endif
+
+  assign is_ink = false
+  if has_image and section.settings.image_style == 'backdrop'
+    assign is_ink = true
+  endif
+
+  assign is_side = false
+  if has_image and section.settings.image_style == 'side'
+    assign is_side = true
+  endif
+
+  assign overlay_alpha = section.settings.overlay_opacity | divided_by: 100.0
+-%}
+
+<div class="collection-banner{% if is_ink %} collection-banner--ink{% else %} collection-banner--light{% endif %}">
+  {%- if is_ink -%}
+    <div class="collection-banner__bg" aria-hidden="true">
+      <img
+        srcset="{{ collection.image | image_url: width: 750 }} 750w, {{ collection.image | image_url: width: 1100 }} 1100w, {{ collection.image | image_url: width: 1500 }} 1500w, {{ collection.image | image_url: width: 2000 }} 2000w"
+        src="{{ collection.image | image_url: width: 1500 }}"
+        sizes="100vw"
+        alt=""
+        loading="eager"
+        fetchpriority="high"
+        width="{{ collection.image.width }}"
+        height="{{ collection.image.height }}"
+      >
+      <span class="collection-banner__scrim" style="--overlay-opacity: {{ overlay_alpha }};"></span>
+    </div>
+  {%- endif -%}
+
+  <div class="container collection-banner__inner{% if is_side %} collection-banner__inner--side{% endif %}">
+    <div class="collection-banner__content">
+      {%- if section.settings.show_breadcrumbs -%}
+        <nav class="breadcrumbs collection-banner__breadcrumbs" aria-label="מיקום באתר"><!-- TODO-i18n: general.breadcrumbs.label -->
+          <a href="{{ routes.root_url }}">{{ 'general.breadcrumbs.home' | t }}</a>
+          <span class="breadcrumbs__sep">{% render 'icon', name: 'chevron-right', size: 14, class: 'icon--dir' %}</span>
+          <a href="{{ routes.collections_url }}">כל הקטגוריות</a><!-- TODO-i18n: general.breadcrumbs.collections -->
+          <span class="breadcrumbs__sep">{% render 'icon', name: 'chevron-right', size: 14, class: 'icon--dir' %}</span>
+          <span class="breadcrumbs__current" aria-current="page">{{ collection.title | escape }}</span>
+        </nav>
+      {%- endif -%}
+
+      <h1 class="collection-banner__title">{{ collection.title | escape }}</h1>
+
+      {%- if section.settings.show_product_count -%}
+        <p class="collection-banner__count">
+          {{ 'products.facets.product_count' | t: count: collection.all_products_count }}
+        </p>
+      {%- endif -%}
+
+      {%- if section.settings.show_description and collection.description != blank -%}
+        <div class="collection-banner__desc" data-collapsible-desc>
+          <div class="collection-banner__desc-content rte" data-desc-content>
+            {{ collection.description }}
+          </div>
+          <button type="button" class="collection-banner__desc-toggle" data-desc-toggle aria-expanded="false" hidden>
+            <span data-more>{{ 'products.facets.show_more' | t }}</span>
+            <span data-less hidden>{{ 'products.facets.show_less' | t }}</span>
+            {% render 'icon', name: 'chevron-down', size: 16, class: 'collection-banner__desc-chevron' %}
+          </button>
+        </div>
+      {%- endif -%}
+    </div>
+
+    {%- if is_side -%}
+      <div class="collection-banner__side">
+        <div class="media media--landscape">
+          <img
+            srcset="{{ collection.image | image_url: width: 400 }} 400w, {{ collection.image | image_url: width: 600 }} 600w, {{ collection.image | image_url: width: 800 }} 800w, {{ collection.image | image_url: width: 1200 }} 1200w"
+            src="{{ collection.image | image_url: width: 800 }}"
+            sizes="(min-width: 990px) 380px, (min-width: 750px) 40vw, 100vw"
+            alt="{{ collection.image.alt | default: collection.title | escape }}"
+            loading="eager"
+            width="{{ collection.image.width }}"
+            height="{{ collection.image.height }}"
+          >
+        </div>
+      </div>
+    {%- endif -%}
+  </div>
+
+  {%- if is_ink -%}
+    <div class="hazard-divider" aria-hidden="true"></div>
+  {%- endif -%}
+</div>
+
+{% schema %}
+{
+  "name": "באנר קטגוריה",
+  "settings": [
+    {
+      "type": "checkbox",
+      "id": "show_breadcrumbs",
+      "label": "הצגת פירורי לחם",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_product_count",
+      "label": "הצגת מספר המוצרים",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_description",
+      "label": "הצגת תיאור הקטגוריה",
+      "info": "תיאור ארוך יקוצר אוטומטית עם כפתור \"הצגת עוד\".",
+      "default": true
+    },
+    {
+      "type": "header",
+      "content": "תמונת הקטגוריה"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_image",
+      "label": "הצגת תמונת הקטגוריה",
+      "info": "התמונה מוגדרת בעמוד הקטגוריה בממשק הניהול.",
+      "default": true
+    },
+    {
+      "type": "select",
+      "id": "image_style",
+      "label": "סגנון התמונה",
+      "options": [
+        {
+          "value": "backdrop",
+          "label": "רקע כהה מלא"
+        },
+        {
+          "value": "side",
+          "label": "תמונה בצד"
+        }
+      ],
+      "default": "backdrop"
+    },
+    {
+      "type": "range",
+      "id": "overlay_opacity",
+      "label": "עוצמת הכהיית הרקע",
+      "min": 30,
+      "max": 90,
+      "step": 5,
+      "unit": "%",
+      "default": 65
+    }
+  ]
+}
+{% endschema %}

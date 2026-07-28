@@ -1,0 +1,120 @@
+/* =========================================================
+   Shilo Pro — 404 page (main-404)
+   ========================================================= */
+
+.error-404 {
+  text-align: center;
+  padding-block: clamp(3.5rem, 9vw, 7rem);
+}
+
+/* ---------- Giant digits ---------- */
+.error-404__digits {
+  display: flex;
+  justify-content: center;
+  gap: 0.04em;
+  font-family: var(--font-heading-family);
+  font-weight: var(--font-heading-weight);
+  font-size: clamp(6.5rem, 24vw, 12rem);
+  line-height: 0.95;
+  color: var(--color-ink);
+  margin: 0;
+  user-select: none;
+}
+
+/* Hazard-striped zero — the brand motif */
+.error-404__zero { color: var(--color-accent); }
+
+@supports ((-webkit-background-clip: text) or (background-clip: text)) {
+  .error-404__zero {
+    background-image: repeating-linear-gradient(
+      -45deg,
+      var(--color-accent) 0 16px,
+      var(--color-ink) 16px 32px
+    );
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+}
+
+/* ---------- Title & subtitle ---------- */
+.error-404__title {
+  margin-block-start: clamp(1rem, 3vw, 1.75rem);
+}
+
+/* Center the hazard underline beneath the centered title */
+.error-404__title.hazard-underline::after {
+  inset-inline: 0;
+  margin-inline: auto;
+}
+
+.error-404__subtitle {
+  color: var(--color-text-muted);
+  max-inline-size: 480px;
+  margin-inline: auto;
+  margin-block-start: 1rem;
+}
+
+/* ---------- Actions ---------- */
+.error-404__actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.75rem;
+  margin-block-start: clamp(1.75rem, 4vw, 2.5rem);
+}
+
+@media (max-width: 479px) {
+  .error-404__actions { flex-direction: column; align-items: stretch; }
+}
+
+/* ---------- Mini search ---------- */
+.error-404__search {
+  max-inline-size: 460px;
+  margin-inline: auto;
+  margin-block-start: clamp(2rem, 5vw, 3rem);
+}
+
+.error-404__search-bar {
+  display: flex;
+  align-items: stretch;
+  background: var(--color-surface);
+  border: 1.5px solid var(--color-border);
+  border-radius: var(--radius-pill);
+  overflow: hidden;
+  transition: border-color var(--duration-fast) ease, box-shadow var(--duration-fast) ease;
+}
+
+.error-404__search-bar:focus-within {
+  border-color: var(--color-accent);
+  box-shadow: 0 0 0 4px rgba(var(--color-accent-rgb), 0.16);
+}
+
+.error-404__search-input {
+  flex: 1;
+  min-inline-size: 0;
+  border: none;
+  background: transparent;
+  padding-inline: 1.25rem;
+  min-block-size: 50px;
+  font-size: 1rem;
+}
+
+.error-404__search-input:focus { outline: none; }
+.error-404__search-input::-webkit-search-cancel-button { -webkit-appearance: none; }
+
+.error-404__search-submit {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin: 5px;
+  inline-size: 44px;
+  border: none;
+  border-radius: var(--radius-pill);
+  background: var(--color-ink);
+  color: var(--color-on-ink);
+  cursor: pointer;
+  transition: background-color var(--duration-fast) ease;
+}
+
+.error-404__search-submit:hover { background: var(--color-accent); }

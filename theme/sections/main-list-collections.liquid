@@ -1,0 +1,138 @@
+{{ 'section-collection.css' | asset_url | stylesheet_tag }}
+
+{%- liquid
+  assign columns = section.settings.columns | default: 3
+  case columns
+    when 2
+      assign grid_class = 'grid--2-desktop'
+    when 4
+      assign grid_class = 'grid--4'
+    else
+      assign grid_class = 'grid--3'
+  endcase
+
+  assign heading = section.settings.heading | default: 'כל הקטגוריות'
+-%}
+
+<section class="section list-collections">
+  <div class="container">
+    <nav class="breadcrumbs" aria-label="מיקום באתר"><!-- TODO-i18n: general.breadcrumbs.label -->
+      <a href="{{ routes.root_url }}">{{ 'general.breadcrumbs.home' | t }}</a>
+      <span class="breadcrumbs__sep">{% render 'icon', name: 'chevron-right', size: 14, class: 'icon--dir' %}</span>
+      <span class="breadcrumbs__current" aria-current="page">{{ heading | escape }}</span>
+    </nav>
+
+    <header class="list-collections__head">
+      <h1 class="list-collections__title hazard-underline">{{ heading | escape }}</h1>
+      {%- if section.settings.subheading != blank -%}
+        <p class="list-collections__sub text-muted">{{ section.settings.subheading | escape }}</p>
+      {%- endif -%}
+    </header>
+
+    {%- paginate collections by 24 -%}
+      {%- if collections.size > 0 -%}
+        <ul class="grid {{ grid_class }} list-collections__grid" role="list">
+          {%- for collection in collections -%}
+            {%- liquid
+              assign tile_image = collection.image | default: collection.featured_image
+              assign tile_loading = 'lazy'
+              if forloop.index <= 3
+                assign tile_loading = 'eager'
+              endif
+            -%}
+            <li class="list-collections__item reveal">
+              <a
+                href="{{ collection.url }}"
+                class="cat-tile"
+                aria-label="{{ 'sections.collection_list.view_collection' | t }} — {{ collection.title | escape }}"
+              >
+                <div class="cat-tile__media" aria-hidden="true">
+                  {%- if tile_image != blank -%}
+                    <img
+                      srcset="{{ tile_image | image_url: width: 400 }} 400w, {{ tile_image | image_url: width: 600 }} 600w, {{ tile_image | image_url: width: 800 }} 800w"
+                      src="{{ tile_image | image_url: width: 600 }}"
+                      sizes="(min-width: 990px) 33vw, 50vw"
+                      alt=""
+                      loading="{{ tile_loading }}"
+                      width="{{ tile_image.width }}"
+                      height="{{ tile_image.height }}"
+                    >
+                  {%- else -%}
+                    <span class="cat-tile__letter">{{ collection.title | slice: 0, 1 }}</span>
+                  {%- endif -%}
+                </div>
+
+                <span class="cat-tile__overlay" aria-hidden="true"></span>
+
+                <div class="cat-tile__content">
+                  <div class="cat-tile__text">
+                    <h2 class="cat-tile__title">{{ collection.title | escape }}</h2>
+                    <span class="cat-tile__count">
+                      {{- 'products.facets.product_count' | t: count: collection.all_products_count -}}
+                    </span>
+                  </div>
+                  <span class="cat-tile__arrow" aria-hidden="true">
+                    {% render 'icon', name: 'arrow-right', size: 20, class: 'icon--dir' %}
+                  </span>
+                </div>
+              </a>
+            </li>
+          {%- endfor -%}
+        </ul>
+
+        {% render 'pagination', paginate: paginate %}
+      {%- else -%}
+        {%- comment -%} No collections yet — premium placeholder tiles {%- endcomment -%}
+        <!-- TODO-i18n: sections.list_collections.placeholder_titles -->
+        {%- assign fallback_titles = 'כלי עבודה,צבע וחומרי גמר,חשמל ותאורה,עץ ולוחות,ברזל ופרזול,גינה וחוץ' | split: ',' -%}
+        <ul class="grid {{ grid_class }} list-collections__grid" role="list">
+          {%- for title in fallback_titles -%}
+            <li class="list-collections__item reveal">
+              <div class="cat-tile cat-tile--static">
+                <div class="cat-tile__media" aria-hidden="true">
+                  {%- assign ph_name = 'collection-' | append: forloop.index -%}
+                  {{ ph_name | placeholder_svg_tag: 'placeholder-svg' }}
+                </div>
+                <span class="cat-tile__overlay" aria-hidden="true"></span>
+                <div class="cat-tile__content">
+                  <div class="cat-tile__text">
+                    <h2 class="cat-tile__title">{{ title }}</h2>
+                  </div>
+                </div>
+              </div>
+            </li>
+          {%- endfor -%}
+        </ul>
+      {%- endif -%}
+    {%- endpaginate -%}
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "רשימת כל הקטגוריות",
+  "settings": [
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "כותרת",
+      "default": "כל הקטגוריות"
+    },
+    {
+      "type": "text",
+      "id": "subheading",
+      "label": "כותרת משנה",
+      "default": "כל מה שצריך לבנייה, לשיפוץ ולעבודה — מסודר לפי מחלקות"
+    },
+    {
+      "type": "range",
+      "id": "columns",
+      "label": "עמודות במחשב",
+      "min": 2,
+      "max": 4,
+      "step": 1,
+      "default": 3
+    }
+  ]
+}
+{% endschema %}

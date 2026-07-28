@@ -1,0 +1,224 @@
+{{ 'section-collection.css' | asset_url | stylesheet_tag }}
+<script src="{{ 'facets.js' | asset_url }}" defer="defer"></script>
+
+{%- liquid
+  assign base_url = collection.url | default: routes.all_products_collection_url
+  assign sort_by = collection.sort_by | default: collection.default_sort_by
+  assign per_page = section.settings.products_per_page | default: 24
+  assign results_url = base_url | append: '?sort_by=' | append: sort_by
+
+  assign has_filters = false
+  if section.settings.enable_filtering and collection.filters.size > 0
+    assign has_filters = true
+  endif
+
+  assign show_sort = section.settings.enable_sorting
+
+  comment
+    sort_by travels inside FacetFiltersForm: as the toolbar <select form="FacetFiltersForm">
+    when sorting is enabled, or as a hidden input otherwise.
+  endcomment
+  assign sort_hidden = true
+  if show_sort and has_filters
+    assign sort_hidden = false
+  endif
+
+  assign active_count = 0
+  for filter in collection.filters
+    if filter.type == 'price_range'
+      if filter.min_value.value != nil or filter.max_value.value != nil
+        assign active_count = active_count | plus: 1
+      endif
+    else
+      assign active_count = active_count | plus: filter.active_values.size
+    endif
+  endfor
+-%}
+
+{%- paginate collection.products by per_page -%}
+  <section class="collection-grid" id="CollectionGrid-{{ section.id }}">
+    <div class="container">
+      <div id="ProductGridContainer" data-facets-container data-section-id="{{ section.id }}">
+        {%- comment -%} ---------- Toolbar ---------- {%- endcomment -%}
+        <div class="collection-toolbar">
+          {%- if has_filters -%}
+            <button
+              type="button"
+              class="btn btn--ghost collection-toolbar__filter-btn"
+              data-drawer-open="FacetsDrawer"
+              aria-haspopup="dialog"
+            >
+              {% render 'icon', name: 'filter', size: 18 %}
+              <span>{{ 'products.facets.filter_button' | t }}</span>
+              <span class="collection-toolbar__filter-count"{% if active_count == 0 %} hidden{% endif %}>{{ active_count }}</span>
+            </button>
+          {%- endif -%}
+
+          <p class="collection-toolbar__count" role="status">
+            {{ 'products.facets.product_count' | t: count: collection.products_count }}
+          </p>
+
+          {%- if show_sort -%}
+            <div class="collection-toolbar__sort">
+              {%- unless has_filters -%}
+                <form method="get" action="{{ base_url }}" class="collection-toolbar__sort-form">
+              {%- endunless -%}
+
+              <label class="collection-toolbar__sort-label" for="SortBy">{{ 'products.facets.sort_by_label' | t }}</label>
+              <div class="select-wrap">
+                <select
+                  id="SortBy"
+                  class="field__select collection-toolbar__select"
+                  name="sort_by"
+                  {% if has_filters %}form="FacetFiltersForm"{% endif %}
+                  data-sort-select
+                >
+                  {%- for option in collection.sort_options -%}
+                    <option value="{{ option.value | escape }}"{% if option.value == sort_by %} selected="selected"{% endif %}>
+                      {{- option.name | escape -}}
+                    </option>
+                  {%- endfor -%}
+                </select>
+                {% render 'icon', name: 'chevron-down', size: 16 %}
+              </div>
+
+              {%- unless has_filters -%}
+                  <noscript>
+                    <button type="submit" class="btn btn--ghost btn--sm">{{ 'products.facets.sort_button' | t }}</button>
+                  </noscript>
+                </form>
+              {%- endunless -%}
+            </div>
+          {%- endif -%}
+        </div>
+
+        {%- comment -%} ---------- Sidebar + results ---------- {%- endcomment -%}
+        <div class="collection-layout{% if has_filters %} collection-layout--with-sidebar{% endif %}">
+          {%- if has_filters -%}
+            <aside class="collection-layout__sidebar">
+              {% render 'facets',
+                results: collection,
+                results_url: results_url,
+                form_action: base_url,
+                sort_by: sort_by,
+                sort_hidden: sort_hidden,
+                active_count: active_count
+              %}
+            </aside>
+          {%- endif -%}
+
+          <div class="collection-layout__main">
+            <div class="facets-loading skeleton" aria-hidden="true">
+              <span class="spinner"></span>
+              <span class="visually-hidden">{{ 'general.accessibility.loading' | t }}</span>
+            </div>
+
+            {%- comment -%} Active filter chips {%- endcomment -%}
+            {%- if active_count > 0 -%}
+              <div class="active-facets">
+                {%- for filter in collection.filters -%}
+                  {%- if filter.type == 'price_range' -%}
+                    {%- if filter.min_value.value != nil or filter.max_value.value != nil -%}
+                      {%- liquid
+                        assign min_val = filter.min_value.value | default: 0
+                        assign max_val = filter.max_value.value | default: filter.range_max
+                      -%}
+                      <a
+                        class="chip chip--active active-facets__chip"
+                        href="{{ filter.url_to_remove }}"
+                        data-facet-remove
+                        aria-label="{{ 'products.facets.remove_filter' | t: name: filter.label }}"
+                      >
+                        <span>{{ filter.label | escape }}: {{ min_val | money }}&ndash;{{ max_val | money }}</span>
+                        {% render 'icon', name: 'close', size: 14 %}
+                      </a>
+                    {%- endif -%}
+                  {%- else -%}
+                    {%- for value in filter.active_values -%}
+                      <a
+                        class="chip chip--active active-facets__chip"
+                        href="{{ value.url_to_remove }}"
+                        data-facet-remove
+                        aria-label="{{ 'products.facets.remove_filter' | t: name: value.label }}"
+                      >
+                        <span>{{ value.label | escape }}</span>
+                        {% render 'icon', name: 'close', size: 14 %}
+                      </a>
+                    {%- endfor -%}
+                  {%- endif -%}
+                {%- endfor -%}
+                <a class="active-facets__clear link" href="{{ results_url }}" data-facets-clear>
+                  {{ 'products.facets.clear_all' | t }}
+                </a>
+              </div>
+            {%- endif -%}
+
+            {%- if collection.products.size > 0 -%}
+              <ul class="grid grid--4 collection-products" role="list">
+                {%- for product in collection.products -%}
+                  {%- liquid
+                    assign lazy_flag = true
+                    if forloop.index < 5
+                      assign lazy_flag = false
+                    endif
+                  -%}
+                  <li class="collection-products__item">
+                    {% render 'product-card', product: product, lazy: lazy_flag, class: 'reveal' %}
+                  </li>
+                {%- endfor -%}
+              </ul>
+
+              {% render 'pagination', paginate: paginate %}
+            {%- elsif collection.all_products_count == 0 -%}
+              <div class="empty-state">
+                {% render 'icon', name: 'package', size: 48 %}
+                <h2 class="empty-state__title">בקרוב יגיעו לכאן מוצרים</h2><!-- TODO-i18n: sections.collection.empty_title -->
+                <p class="empty-state__text">הקטגוריה הזו עדיין בהכנה. בינתיים, שווה להציץ בשאר הקטלוג שלנו.</p><!-- TODO-i18n: sections.collection.empty_body -->
+                <a href="{{ routes.all_products_collection_url }}" class="btn">{{ 'general.continue_shopping' | t }}</a>
+              </div>
+            {%- else -%}
+              <div class="empty-state">
+                {% render 'icon', name: 'search', size: 48 %}
+                <h2 class="empty-state__title">{{ 'products.facets.no_results_title' | t }}</h2>
+                <p class="empty-state__text">{{ 'products.facets.no_results_body' | t }}</p>
+                <a href="{{ results_url }}" class="btn btn--outline" data-facets-clear>
+                  {{ 'products.facets.reset' | t }}
+                </a>
+              </div>
+            {%- endif -%}
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+{%- endpaginate -%}
+
+{% schema %}
+{
+  "name": "רשת מוצרי קטגוריה",
+  "settings": [
+    {
+      "type": "range",
+      "id": "products_per_page",
+      "label": "מוצרים בעמוד",
+      "min": 8,
+      "max": 36,
+      "step": 4,
+      "default": 24
+    },
+    {
+      "type": "checkbox",
+      "id": "enable_filtering",
+      "label": "הפעלת סינון",
+      "info": "המסננים מוגדרים באפליקציית Search & Discovery של Shopify.",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "enable_sorting",
+      "label": "הפעלת מיון",
+      "default": true
+    }
+  ]
+}
+{% endschema %}

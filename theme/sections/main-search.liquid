@@ -1,0 +1,215 @@
+{{ 'section-search.css' | asset_url | stylesheet_tag }}
+
+{%- liquid
+  assign terms_escaped = search.terms | escape
+  assign terms_url = search.terms | url_param_escape
+  assign per_page = section.settings.results_per_page | default: 24
+
+  assign active_type = 'all'
+  if search.performed and search.types.size == 1
+    assign active_type = search.types.first
+  endif
+-%}
+
+{%- capture popular_chips -%}
+  {%- if section.settings.show_popular and settings.popular_searches != blank -%}
+    <div class="search-popular">
+      <p class="search-popular__title">{{ 'general.search.popular' | t }}</p>
+      <div class="search-popular__chips">
+        {%- assign popular_terms = settings.popular_searches | split: ',' -%}
+        {%- for term in popular_terms -%}
+          {%- assign term_clean = term | strip -%}
+          {%- if term_clean != blank -%}
+            <a class="chip" href="{{ routes.search_url }}?q={{ term_clean | url_param_escape }}">
+              {% render 'icon', name: 'search', size: 14 %}
+              {{ term_clean }}
+            </a>
+          {%- endif -%}
+        {%- endfor -%}
+      </div>
+    </div>
+  {%- endif -%}
+{%- endcapture -%}
+
+<section class="search-page">
+  <div class="search-hero{% if search.performed %} search-hero--results{% endif %}">
+    <div class="container">
+      <span class="section-header__eyebrow search-hero__eyebrow">{{ 'general.search.title' | t }}</span>
+
+      {%- if search.performed -%}
+        <h1 class="search-hero__heading">
+          {%- if search.results_count > 0 -%}
+            {{ 'general.search.results_with_count' | t: count: search.results_count, terms: terms_escaped }}
+          {%- else -%}
+            {{ 'general.search.no_results' | t: terms: terms_escaped }}
+          {%- endif -%}
+        </h1>
+      {%- else -%}
+        <h1 class="search-hero__heading">{{ 'general.search.title' | t }}</h1>
+        <!-- TODO-i18n: general.search.prompt -->
+        <p class="search-hero__hint">הקלידו שם מוצר, מותג או מק"ט — ונמצא לכם את זה.</p>
+      {%- endif -%}
+
+      <form action="{{ routes.search_url }}" method="get" role="search" class="search-hero__form">
+        <div class="search-bar">
+          <label for="SearchPageInput" class="visually-hidden">{{ 'general.search.title' | t }}</label>
+          <input
+            id="SearchPageInput"
+            class="search-bar__input"
+            type="search"
+            name="q"
+            value="{{ search.terms | escape }}"
+            placeholder="{{ 'general.search.placeholder' | t }}"
+            autocomplete="off"
+            autocorrect="off"
+            autocapitalize="off"
+            spellcheck="false"
+            {% unless search.performed %}autofocus{% endunless %}
+          >
+          <button type="submit" class="search-bar__submit">
+            {% render 'icon', name: 'search', size: 20 %}
+            <span class="search-bar__submit-text">{{ 'general.search.submit' | t }}</span>
+          </button>
+        </div>
+      </form>
+
+      {%- if search.performed and section.settings.show_type_filters -%}
+        <nav class="search-filters" aria-label="{{ 'products.facets.filter_by_label' | t }}">
+          <!-- TODO-i18n: general.search.all -->
+          <a
+            class="chip{% if active_type == 'all' %} chip--active{% endif %}"
+            href="{{ routes.search_url }}?q={{ terms_url }}"
+            {% if active_type == 'all' %}aria-current="true"{% endif %}
+          >הכל</a>
+          <a
+            class="chip{% if active_type == 'product' %} chip--active{% endif %}"
+            href="{{ routes.search_url }}?q={{ terms_url }}&type=product"
+            {% if active_type == 'product' %}aria-current="true"{% endif %}
+          >{{ 'general.search.products' | t }}</a>
+          <a
+            class="chip{% if active_type == 'article' %} chip--active{% endif %}"
+            href="{{ routes.search_url }}?q={{ terms_url }}&type=article"
+            {% if active_type == 'article' %}aria-current="true"{% endif %}
+          >{{ 'general.search.articles' | t }}</a>
+          <a
+            class="chip{% if active_type == 'page' %} chip--active{% endif %}"
+            href="{{ routes.search_url }}?q={{ terms_url }}&type=page"
+            {% if active_type == 'page' %}aria-current="true"{% endif %}
+          >{{ 'general.search.pages' | t }}</a>
+        </nav>
+      {%- endif -%}
+
+      {%- unless search.performed -%}
+        {{ popular_chips }}
+      {%- endunless -%}
+    </div>
+  </div>
+
+  {%- if search.performed -%}
+    <div class="container search-results" id="SearchResults">
+      {%- paginate search.results by per_page -%}
+        {%- if search.results_count > 0 -%}
+          <ul class="grid grid--4 search-grid" role="list">
+            {%- for item in search.results -%}
+              {%- case item.object_type -%}
+                {%- when 'product' -%}
+                  <li class="search-grid__item">
+                    {% render 'product-card', product: item, lazy: true, class: 'reveal' %}
+                  </li>
+                {%- when 'article' -%}
+                  <li class="search-grid__item search-grid__item--content">
+                    <article class="search-card reveal">
+                      <div class="search-card__type">
+                        <!-- TODO-i18n: general.search.article -->
+                        <span class="badge badge--outline">
+                          {% render 'icon', name: 'tag', size: 13 %}
+                          כתבה
+                        </span>
+                      </div>
+                      <h3 class="search-card__title">
+                        <a href="{{ item.url }}">{{ item.title | escape }}</a>
+                      </h3>
+                      {%- assign excerpt = item.excerpt_or_content | strip_html | truncatewords: 28 -%}
+                      {%- if excerpt != blank -%}
+                        <p class="search-card__excerpt">{{ excerpt }}</p>
+                      {%- endif -%}
+                      <span class="search-card__more" aria-hidden="true">
+                        {{ 'blog.general.read_more' | t }}
+                        {% render 'icon', name: 'arrow-right', size: 15, class: 'icon--dir' %}
+                      </span>
+                    </article>
+                  </li>
+                {%- when 'page' -%}
+                  <li class="search-grid__item search-grid__item--content">
+                    <article class="search-card reveal">
+                      <div class="search-card__type">
+                        <!-- TODO-i18n: general.search.page -->
+                        <span class="badge badge--outline">
+                          {% render 'icon', name: 'info', size: 13 %}
+                          עמוד
+                        </span>
+                      </div>
+                      <h3 class="search-card__title">
+                        <a href="{{ item.url }}">{{ item.title | escape }}</a>
+                      </h3>
+                      {%- assign excerpt = item.content | strip_html | truncatewords: 28 -%}
+                      {%- if excerpt != blank -%}
+                        <p class="search-card__excerpt">{{ excerpt }}</p>
+                      {%- endif -%}
+                      <span class="search-card__more" aria-hidden="true">
+                        {{ 'blog.general.read_more' | t }}
+                        {% render 'icon', name: 'arrow-right', size: 15, class: 'icon--dir' %}
+                      </span>
+                    </article>
+                  </li>
+              {%- endcase -%}
+            {%- endfor -%}
+          </ul>
+
+          {% render 'pagination', paginate: paginate %}
+        {%- else -%}
+          <div class="empty-state">
+            {% render 'icon', name: 'search', size: 48 %}
+            <h2 class="empty-state__title h3">{{ 'general.search.no_results' | t: terms: terms_escaped }}</h2>
+            <p class="empty-state__text">{{ 'general.search.no_results_hint' | t }}</p>
+            {{ popular_chips }}
+            <a href="{{ routes.all_products_collection_url }}" class="btn btn--outline search-results__catalog-link">
+              {{ 'general.error_404.button' | t }}
+              {% render 'icon', name: 'arrow-right', size: 17, class: 'icon--dir' %}
+            </a>
+          </div>
+        {%- endif -%}
+      {%- endpaginate -%}
+    </div>
+  {%- endif -%}
+</section>
+
+{% schema %}
+{
+  "name": "עמוד חיפוש",
+  "settings": [
+    {
+      "type": "range",
+      "id": "results_per_page",
+      "label": "תוצאות בעמוד",
+      "min": 12,
+      "max": 36,
+      "step": 4,
+      "default": 24
+    },
+    {
+      "type": "checkbox",
+      "id": "show_type_filters",
+      "label": "הצגת סינון לפי סוג תוכן",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_popular",
+      "label": "הצגת חיפושים פופולריים",
+      "info": "רשימת החיפושים מוגדרת בהגדרות התבנית, תחת \"חיפוש\".",
+      "default": true
+    }
+  ]
+}
+{% endschema %}

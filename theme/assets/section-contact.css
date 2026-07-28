@@ -1,0 +1,184 @@
+/* =========================================================
+   Shilo Pro — Contact page (main-contact)
+   ========================================================= */
+
+/* ---------- Header ---------- */
+.contact-section__header {
+  margin-block-end: clamp(1.75rem, 4vw, 3rem);
+  max-inline-size: 640px;
+}
+
+.contact-section__subheading {
+  color: var(--color-text-muted);
+  margin-block-start: 1rem;
+  font-size: 1.05rem;
+}
+
+/* ---------- Layout ---------- */
+.contact-layout {
+  display: grid;
+  gap: clamp(1.5rem, 3vw, 2.5rem);
+  align-items: start;
+}
+
+@media (min-width: 990px) {
+  .contact-layout {
+    grid-template-columns: minmax(0, 1.2fr) minmax(0, 0.8fr);
+  }
+}
+
+/* ---------- Form ---------- */
+.contact-form .form__success {
+  margin-block-end: 1.25rem;
+}
+
+.contact-form__submit {
+  margin-block-start: 1.5rem;
+}
+
+@media (max-width: 749px) {
+  .contact-form__submit .btn { inline-size: 100%; }
+}
+
+/* ---------- Info card (dark, premium) ---------- */
+.contact-card {
+  background: var(--color-ink);
+  color: var(--color-on-ink);
+  border-radius: var(--radius-card);
+  padding: clamp(1.5rem, 3vw, 2.25rem);
+  display: flex;
+  flex-direction: column;
+  gap: 1.4rem;
+  box-shadow: var(--shadow-card);
+  position: relative;
+  overflow: hidden;
+}
+
+/* Hazard accent strip on the card's top edge */
+.contact-card::before {
+  content: "";
+  position: absolute;
+  inset-block-start: 0;
+  inset-inline: 0;
+  block-size: 5px;
+  background-image: repeating-linear-gradient(
+    -45deg,
+    var(--color-accent) 0 12px,
+    rgba(255, 255, 255, 0.14) 12px 24px
+  );
+}
+
+@media (min-width: 990px) {
+  .contact-card {
+    position: sticky;
+    inset-block-start: 110px;
+  }
+}
+
+.contact-card__heading {
+  color: #fff;
+  margin: 0;
+}
+
+.contact-card__list {
+  display: flex;
+  flex-direction: column;
+  gap: 1.15rem;
+  margin: 0;
+}
+
+.contact-card__row {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.9rem;
+}
+
+.contact-card__icon {
+  display: inline-grid;
+  place-items: center;
+  inline-size: 42px;
+  block-size: 42px;
+  flex-shrink: 0;
+  border-radius: var(--radius-base);
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--color-accent);
+}
+
+.contact-card__info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  min-inline-size: 0;
+}
+
+.contact-card__label {
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  color: rgba(255, 255, 255, 0.55);
+}
+
+.contact-card__value {
+  font-weight: 600;
+  color: var(--color-on-ink);
+  text-decoration: none;
+  overflow-wrap: anywhere;
+  transition: color var(--duration-fast) ease;
+}
+
+a.contact-card__value:hover { color: var(--color-accent); }
+
+/* Phone / email values render LTR inside the RTL card */
+.contact-card__value[dir="ltr"] { text-align: end; align-self: flex-start; }
+
+.contact-card__hours { line-height: 1.7; font-weight: 500; }
+
+.contact-card__whatsapp { margin-block-start: 0.25rem; }
+
+/* ---------- Social row ---------- */
+.contact-card__social {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  padding-block-start: 1.25rem;
+  border-block-start: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.contact-card__social-icons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.contact-card__social-link {
+  display: inline-grid;
+  place-items: center;
+  inline-size: 44px;
+  block-size: 44px;
+  border-radius: var(--radius-base);
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--color-on-ink);
+  transition: background-color var(--duration-fast) ease, color var(--duration-fast) ease, transform var(--duration-fast) ease;
+}
+
+.contact-card__social-link:hover {
+  background: var(--color-accent);
+  color: var(--color-on-accent);
+  transform: translateY(-2px);
+}
+
+/* ---------- Map embed ---------- */
+.contact-map {
+  margin-block-start: clamp(1.5rem, 3vw, 2.5rem);
+  border-radius: var(--radius-card);
+  overflow: hidden;
+  border: 1px solid var(--color-border);
+  background: var(--color-surface-alt);
+}
+
+.contact-map iframe {
+  display: block;
+  inline-size: 100%;
+  min-block-size: 340px;
+  border: 0;
+}

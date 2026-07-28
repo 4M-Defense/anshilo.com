@@ -1,0 +1,60 @@
+{{ 'section-404.css' | asset_url | stylesheet_tag }}
+
+<section class="error-404">
+  <div class="container">
+    <p class="error-404__digits" aria-hidden="true">
+      <span>4</span><span class="error-404__zero">0</span><span>4</span>
+    </p>
+
+    <h1 class="error-404__title hazard-underline">{{ 'general.error_404.title' | t }}</h1>
+
+    <p class="error-404__subtitle">{{ 'general.error_404.subtitle' | t }}</p>
+
+    <div class="error-404__actions">
+      <a href="{{ routes.all_products_collection_url }}" class="btn btn--lg">
+        {{ 'general.error_404.button' | t }}
+        {% render 'icon', name: 'arrow-right', size: 18, class: 'icon--dir' %}
+      </a>
+      <a href="{{ routes.root_url }}" class="btn btn--ghost btn--lg">
+        {% render 'icon', name: 'home', size: 18 %}
+        {{ 'general.breadcrumbs.home' | t }}
+      </a>
+    </div>
+
+    {%- if section.settings.show_search -%}
+      <form action="{{ routes.search_url }}" method="get" role="search" class="error-404__search">
+        <div class="error-404__search-bar">
+          <label for="Error404SearchInput" class="visually-hidden">{{ 'general.search.title' | t }}</label>
+          <input
+            id="Error404SearchInput"
+            class="error-404__search-input"
+            type="search"
+            name="q"
+            placeholder="{{ 'general.search.placeholder' | t }}"
+            autocomplete="off"
+            autocorrect="off"
+            autocapitalize="off"
+            spellcheck="false"
+          >
+          <button type="submit" class="error-404__search-submit" aria-label="{{ 'general.search.submit' | t }}">
+            {% render 'icon', name: 'search', size: 19 %}
+          </button>
+        </div>
+      </form>
+    {%- endif -%}
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "עמוד 404",
+  "settings": [
+    {
+      "type": "checkbox",
+      "id": "show_search",
+      "label": "הצגת שורת חיפוש",
+      "default": true
+    }
+  ]
+}
+{% endschema %}
