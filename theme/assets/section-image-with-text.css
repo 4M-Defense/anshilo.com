@@ -41,6 +41,9 @@
   max-inline-size: 52ch;
 }
 
+/* The flex gap already spaces the stack; drop the eyebrow's own margin. */
+.image-text__content .text-eyebrow { margin-block-end: 0; }
+
 .image-text__heading {
   margin: 0;
   text-wrap: balance;

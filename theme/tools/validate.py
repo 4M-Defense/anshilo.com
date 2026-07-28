@@ -120,6 +120,49 @@ if len(schema_defaults) > 1:
 # 3. Liquid structure + schema validity + contract rules
 # --------------------------------------------------------------------------
 
+# Every filter Shopify Liquid actually ships (standard + Shopify extensions).
+# A filter outside this set is almost always a Jekyll/Rails habit that fails
+# silently at runtime — `push` and `sort_natural` on a string are classics.
+KNOWN_FILTERS = {
+    # strings
+    "append", "prepend", "camelize", "capitalize", "downcase", "upcase", "escape",
+    "escape_once", "handle", "handleize", "hmac_sha1", "hmac_sha256", "md5", "sha1",
+    "sha256", "base64_encode", "base64_decode", "base64_url_safe_encode",
+    "base64_url_safe_decode", "lstrip", "rstrip", "strip", "strip_html",
+    "strip_newlines", "newline_to_br", "pluralize", "remove", "remove_first",
+    "remove_last", "replace", "replace_first", "replace_last", "slice", "split",
+    "truncate", "truncatewords", "url_encode", "url_decode", "url_escape",
+    "url_param_escape", "encode_url_component", "decode_url_component",
+    "highlight", "highlight_active_tag", "pad_spaces",
+    # numbers / math
+    "abs", "at_least", "at_most", "ceil", "divided_by", "floor", "minus", "modulo",
+    "plus", "round", "times", "money", "money_with_currency",
+    "money_without_currency", "money_without_trailing_zeros", "weight_with_unit",
+    # arrays
+    "compact", "concat", "find", "find_index", "first", "has", "join", "last", "map",
+    "reject", "reverse", "size", "sort", "sort_natural", "sum", "uniq", "where",
+    # dates / misc
+    "date", "default", "json", "t", "inspect", "raw", "default_errors",
+    "default_pagination", "format_address", "time_tag", "translate",
+    "metafield_tag", "metafield_text", "brightness_difference", "color_brightness",
+    "color_contrast", "color_darken", "color_desaturate", "color_difference",
+    "color_extract", "color_lighten", "color_mix", "color_modify", "color_saturate",
+    "color_to_hex", "color_to_hsl", "color_to_rgb", "hex_to_rgba",
+    # urls / assets
+    "asset_url", "asset_img_url", "file_url", "file_img_url", "global_asset_url",
+    "image_url", "img_url", "img_tag", "image_tag", "link_to", "link_to_type",
+    "link_to_tag", "link_to_add_tag", "link_to_remove_tag", "link_to_vendor",
+    "within", "shopify_asset_url", "customer_login_link", "customer_logout_link",
+    "customer_register_link", "payment_type_svg_tag", "payment_button",
+    "payment_terms", "placeholder_svg_tag", "script_tag", "stylesheet_tag",
+    "external_video_tag", "external_video_url", "media_tag", "model_viewer_tag",
+    "video_tag", "article_img_url", "collection_img_url", "product_img_url",
+    "font_face", "font_modify", "font_url", "preload_tag", "structured_data",
+    "class_list", "item_count_for_variant", "line_items_for", "sort_by",
+    "camelcase", "avatar", "url_for_vendor", "url_for_type", "format_code",
+    "currency_selector", "paginate", "default_errors",
+}
+
 BLOCK_TAGS = [
     ("if", "endif"),
     ("unless", "endunless"),
@@ -202,6 +245,12 @@ for path in LIQUID_FILES:
                     warn(name, f"block.settings.{ref} used but not declared in any block schema")
     elif path in SECTION_FILES:
         err(name, "section is missing a {% schema %} block")
+
+    # -- filters must exist in Shopify Liquid
+    # A single pipe only — `||` is JavaScript, not a Liquid filter.
+    for filt in set(re.findall(r"(?<![|!<>=])\|(?!\|)\s*([a-z_][a-z0-9_]*)", src)):
+        if filt not in KNOWN_FILTERS:
+            err(name, f"unknown Liquid filter '| {filt}'")
 
     # -- referenced snippets / icons / assets / locale keys
     for snip in re.findall(r"{%-?\s*render\s+'([a-z0-9_-]+)'", src):
