@@ -21,11 +21,13 @@
   assign hours_lines = settings.store_hours | newline_to_br | strip_newlines | split: '<br />'
   assign hours_first = hours_lines[0] | strip
 
-  assign shipping_note = section.settings.utility_message
+  # The shipping line only makes sense with a threshold behind it — without one
+  # the sentence would end on "מעל", so it is dropped instead.
+  assign shipping_note = ''
   assign shipping_threshold = settings.free_shipping_threshold | plus: 0
-  if shipping_threshold > 0 and shipping_note != blank
+  if shipping_threshold > 0 and section.settings.utility_message != blank
     assign shipping_amount = shipping_threshold | times: 100 | money_without_trailing_zeros
-    assign shipping_note = shipping_note | append: ' ' | append: shipping_amount
+    assign shipping_note = section.settings.utility_message | append: ' ' | append: shipping_amount
   endif
 
   assign root_slash = routes.root_url | append: '/' | replace: '//', '/'
@@ -118,7 +120,6 @@
         <div class="site-header__search">
           <form action="{{ routes.search_url }}" method="get" role="search" class="header-search" data-header-search>
             <div class="header-search__box">
-              <label class="visually-hidden" for="HeaderSearchInput-desktop-{{ section.id }}">{{ 'general.search.title' | t }}</label>
               <span class="header-search__icon" aria-hidden="true">
                 {% render 'icon', name: 'search', size: 19 %}
               </span>
@@ -207,7 +208,6 @@
       <div class="site-header__search-row">
         <form action="{{ routes.search_url }}" method="get" role="search" class="header-search" data-header-search>
           <div class="header-search__box">
-            <label class="visually-hidden" for="HeaderSearchInput-mobile-{{ section.id }}">{{ 'general.search.title' | t }}</label>
             <span class="header-search__icon" aria-hidden="true">
               {% render 'icon', name: 'search', size: 19 %}
             </span>
@@ -520,7 +520,7 @@
         </a>
       {%- endif -%}
       {%- if wa_url != blank -%}
-        <a class="menu-drawer__action menu-drawer__action--whatsapp" href="{{ wa_url }}" target="_blank" rel="noopener">
+        <a class="btn btn--sm menu-drawer__action menu-drawer__action--whatsapp" href="{{ wa_url }}" target="_blank" rel="noopener">
           {% render 'icon', name: 'whatsapp', size: 17 %}
           <span>{{ 'general.social.whatsapp' | t }}</span>
         </a>

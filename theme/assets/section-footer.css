@@ -46,9 +46,14 @@
 .footer__col--brand,
 .footer__col--contact { grid-column: 1 / -1; }
 
+/* Tablet: the brand block becomes a banner row above three equal columns —
+   a 2×2 split leaves a dead corner next to the longest menu. */
 @media (min-width: 750px) {
-  .footer__grid { gap: 2.75rem 3rem; }
-  .footer__col--brand,
+  .footer__grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 2.75rem 2.5rem;
+  }
+  .footer__col--brand { max-inline-size: 620px; }
   .footer__col--contact { grid-column: auto; }
 }
 
@@ -56,6 +61,10 @@
   .footer__grid {
     grid-template-columns: minmax(0, 1.55fr) minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1.4fr);
     gap: 2rem clamp(1.75rem, 3vw, 3.25rem);
+  }
+  .footer__col--brand {
+    grid-column: auto;
+    max-inline-size: none;
   }
 }
 
@@ -206,6 +215,9 @@ a.footer__contact-item:hover .footer__phone { color: #fff; }
   --btn-shadow: none;
   inline-size: 100%;
   margin-block-start: 1.2rem;
+  /* Tighter than a page CTA so the label holds one line inside a footer column. */
+  padding-inline: 1.1rem;
+  font-size: 0.96rem;
 }
 
 .footer__whatsapp:hover {
@@ -368,6 +380,20 @@ a.footer__contact-item:hover .footer__phone { color: #fff; }
    numbers instead of a floating button. */
 @media (min-width: 990px) {
   .contact-dock__btn--phone { display: none; }
+}
+
+/* The phone button is ink-coloured, so it disappears into this ink footer once
+   the page is scrolled to the bottom. A white hairline keeps its silhouette. */
+.contact-dock__btn--phone { border: 1px solid rgba(255, 255, 255, 0.28); }
+
+/* The dock floats over the inline-end edge — exactly where the legal bar ends.
+   Reserve room for it so it never covers a link, and only do so when the dock
+   is actually switched on (browsers without :has() keep the tighter bar). */
+body:has(.contact-dock) .footer__bottom { padding-block-end: 5rem; }
+
+@media (max-width: 989.98px) {
+  /* Two stacked buttons below 990px. */
+  body:has(.contact-dock) .footer__bottom { padding-block-end: 8.5rem; }
 }
 
 /* Keep the dock clear of the iOS home indicator. */

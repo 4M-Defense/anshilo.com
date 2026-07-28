@@ -55,10 +55,22 @@ RGB triplets available for alpha: `--color-accent-rgb`, `--color-ink-rgb`,
 
 ## Type
 
-Loaded from Google Fonts (Hebrew + Latin subsets, `display=swap`):
+Self-hosted variable WOFF2, served from Shopify's CDN as theme assets:
 
-- `--font-heading-family` → **Heebo** 700/800/900 — headings, prices, buttons
-- `--font-body-family` → **Assistant** 400/500/600/700 — everything else
+- `--font-heading-family` → **Heebo** (300–900) — headings, prices, buttons
+- `--font-body-family` → **Assistant** (300–800) — everything else
+
+Shopify's own font library only ships Basic Latin / Latin-1 / Latin Extended-A
+glyph ranges, so **every font in it falls back to a system font for Hebrew**.
+Both families here are SIL Open Font License, so they are bundled directly:
+`assets/{assistant,heebo}-var-{hebrew,latin,latin-ext}.woff2`, declared with
+`unicode-range` in the `<style>` block of `layout/theme.liquid`, with the two
+Hebrew subsets preloaded. A Hebrew visitor downloads ~19KB and gets the full
+weight range; the Latin subsets load only if a page contains those characters.
+
+The `use_shopify_fonts` setting switches to the theme's font pickers. It exists
+for a Latin-only storefront and **will break Hebrew rendering** — do not enable
+it for this store.
 
 Scale (already in `base.css`, do not redeclare): `h1`…`h6`, `.h1`…`.h6`.
 Extra utilities: `.text-eyebrow`, `.text-meta`, `.text-lead`.

@@ -410,9 +410,10 @@
   }
 
   /* ---------- Sticky compression: reserve the collapsing height ----------
-     The utility row and the nav row fold away once the header is stuck. The
-     sticky wrapper hands that height back to the document through an inert
-     spacer so the page never jumps. */
+     Once stuck, the utility row and the nav row fold away and the main row
+     tightens. The spacer next to the header hands that lost height back to
+     the document — recomputed from the header's real height on every layout
+     tick, so the compression animation never shifts the page. */
   function initStickyReserve(scope) {
     var header = scope.querySelector('[data-sticky-header]');
     if (!header) return;
@@ -424,42 +425,34 @@
     if (!reserve || reserve.dataset.initialized === 'true') return;
     reserve.dataset.initialized = 'true';
 
-    var util = header.querySelector('[data-header-util]');
-    var navRow = header.querySelector('[data-header-nav]');
-    if (!util && !navRow) return;
+    if (!('ResizeObserver' in window)) return;
 
-    var measured = 0;
+    var expanded = 0;
+    var lastWidth = window.innerWidth;
 
-    function apply() {
-      /* Only measurable while expanded. */
-      if (header.classList.contains('is-stuck')) return;
-      var height = 0;
-      if (util) height += util.offsetHeight;
-      /* A collapsed nav row keeps its 1px hairline, so it is not part of the
-         height that disappears. */
-      if (navRow && navRow.offsetHeight) height += navRow.offsetHeight - 1;
-      if (height > measured) {
-        measured = height;
-        wrapper.style.setProperty('--header-reserve', height + 'px');
-      }
+    function sync() {
+      var height = header.offsetHeight;
+      if (!header.classList.contains('is-stuck') && height > expanded) expanded = height;
+      var delta = expanded - height;
+      wrapper.style.setProperty('--header-reserve', (delta > 0 ? Math.round(delta) : 0) + 'px');
     }
 
-    apply();
+    new ResizeObserver(sync).observe(header);
 
-    if ('ResizeObserver' in window) {
-      var observer = new ResizeObserver(apply);
-      if (util) observer.observe(util);
-      if (navRow) observer.observe(navRow);
-    }
-
-    window.addEventListener('load', apply);
+    window.addEventListener('load', sync);
     window.addEventListener(
       'resize',
       debounce(function () {
-        measured = 0;
-        apply();
+        if (window.innerWidth === lastWidth) return;
+        lastWidth = window.innerWidth;
+        /* Breakpoint changes change the expanded height — re-learn it, but
+           only from a header that is currently showing all of its rows. */
+        if (!header.classList.contains('is-stuck')) expanded = header.offsetHeight;
+        sync();
       }, 150)
     );
+
+    sync();
   }
 
   /* ---------- Init ---------- */

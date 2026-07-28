@@ -119,15 +119,13 @@ a.announcement-bar__text:hover {
   box-shadow: none;
 }
 
-/* Height given back to the document while the header is compressed, so the
-   collapse of the utility + nav rows never shifts the page. JS measures it. */
+/* Inert spacer that hands the document back exactly the height the header
+   loses while it compresses, so nothing ever shifts. section-header.js keeps
+   --header-reserve in sync with the header's real height, frame by frame. */
 .site-header__reserve {
-  block-size: 0;
+  block-size: var(--header-reserve, 0px);
   pointer-events: none;
-  transition: block-size var(--duration-base) var(--ease-out);
 }
-
-.site-header.is-stuck ~ .site-header__reserve { block-size: var(--header-reserve, 0px); }
 
 /* ---------- Row 1 — utility strip on ink ---------- */
 .site-header__util {
@@ -176,8 +174,16 @@ a.site-header__util-item:hover .icon { color: #fff; }
 }
 
 .site-header__util-secondary > span:last-child {
+  min-inline-size: 0;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+/* Drawn inside — the utility row clips at its own height while collapsing. */
+.site-header__util-item:focus-visible {
+  outline: 2px solid #fff;
+  outline-offset: -2px;
+  border-radius: var(--radius-sm);
 }
 
 .site-header__util-contact {
@@ -201,6 +207,8 @@ a.site-header__util-item:hover .icon { color: #fff; }
   padding-block: 0.5rem;
   transition: padding-block var(--duration-base) var(--ease-out);
 }
+
+.site-header.is-stuck .site-header__main { padding-block: 0.35rem; }
 
 .site-header__row {
   display: flex;
@@ -476,7 +484,7 @@ a.site-header__util-item:hover .icon { color: #fff; }
   min-inline-size: 0;
 }
 
-.site-nav__dropdown { display: flex; }
+.site-nav__dropdown { display: block; block-size: 100%; }
 
 .site-nav__link {
   position: relative;
@@ -486,6 +494,7 @@ a.site-header__util-item:hover .icon { color: #fff; }
   padding-inline: 0.8rem;
   block-size: 100%;
   min-block-size: 44px;
+  min-inline-size: 0;
   font-family: var(--font-heading-family);
   font-weight: 700;
   font-size: 0.96rem;
@@ -498,6 +507,7 @@ a.site-header__util-item:hover .icon { color: #fff; }
 }
 
 .site-nav__link > span {
+  min-inline-size: 0;
   overflow: hidden;
   text-overflow: ellipsis;
 }
@@ -598,9 +608,9 @@ details[open] > .site-nav__link .icon-chevron { transform: rotate(180deg); }
   color: var(--color-accent);
 }
 
-/* Full-width mega panel for 3-level branches */
+/* Full-width mega panel for 3-level branches — the item goes static so the
+   panel resolves against the nav row and can span the whole header. */
 .site-nav__item--mega { position: static; }
-.site-nav__item--mega .site-nav__dropdown { position: static; }
 
 .site-nav__panel--mega {
   position: absolute;
@@ -709,8 +719,10 @@ details[open] > .site-nav__link .icon-chevron { transform: rotate(180deg); }
 .site-nav__mega-all-label { color: var(--color-text-muted); font-weight: 600; }
 .site-nav__mega-all:hover .site-nav__mega-all-label { color: inherit; }
 
+/* Touch devices wide enough for the nav row get full-size tap targets. */
 @media (hover: none) {
   .site-nav__col-list .site-nav__sublink { min-block-size: 44px; }
+  .site-nav__col-title { min-block-size: 44px; }
   .site-nav__col-title .icon { opacity: 1; }
 }
 
@@ -774,6 +786,8 @@ details[open] > .menu-drawer__toggle .icon-chevron { transform: rotate(180deg); 
   margin-inline-start: 0.3rem;
 }
 
+/* Level 2 and 3 share one row style — a chevron is the only thing that marks
+   an expandable branch, so the two levels read as one list. */
 .menu-drawer__sublink {
   display: flex;
   align-items: center;
@@ -782,10 +796,12 @@ details[open] > .menu-drawer__toggle .icon-chevron { transform: rotate(180deg); 
   inline-size: 100%;
   min-block-size: 44px;
   padding-block: 0.4rem;
+  font-family: var(--font-body-family);
   font-size: 0.97rem;
   font-weight: 600;
   color: var(--color-ink);
   text-decoration: none;
+  border-block-end: none;
   cursor: pointer;
   transition: color var(--duration-fast) ease;
 }
@@ -843,6 +859,8 @@ details[open] > .menu-drawer__toggle .icon-chevron { transform: rotate(180deg); 
 }
 
 .menu-drawer__actions:has(> * + *) { grid-template-columns: 1fr 1fr; }
+
+.menu-drawer__action { min-block-size: 46px; }
 
 .menu-drawer__action--whatsapp {
   --btn-bg: #25D366;
