@@ -6,10 +6,16 @@
       "tagged": "Tagged \"{{ tags }}\""
     },
     "breadcrumbs": {
-      "home": "Home"
+      "home": "Home",
+      "label": "Breadcrumbs",
+      "collections": "All categories"
+    },
+    "navigation": {
+      "view_all": "View all"
     },
     "search": {
       "title": "Search",
+      "prompt": "Type a product name, brand or SKU — and we'll find it for you.",
       "placeholder": "What are you looking for? Drill, paint, screws...",
       "submit": "Search",
       "clear": "Clear search",
@@ -20,9 +26,12 @@
         "other": "{{ count }} results for \"{{ terms }}\""
       },
       "suggestions": "Search suggestions",
+      "all": "All",
       "products": "Products",
       "pages": "Pages",
+      "page": "Page",
       "articles": "Articles",
+      "article": "Article",
       "collections": "Collections",
       "view_all": "View all results",
       "popular": "Popular searches"
@@ -48,13 +57,17 @@
       "placeholder": "Your email",
       "button": "Subscribe",
       "success": "Thanks for subscribing! We'll keep you posted on deals and news.",
-      "error": "Something went wrong, please try again"
+      "error": "Something went wrong, please try again",
+      "privacy_note": "No spam. Unsubscribe at any time."
     },
     "contact": {
       "title": "Contact us",
       "name": "Full name",
       "email": "Email",
       "phone": "Phone",
+      "address": "Address",
+      "hours": "Opening hours",
+      "whatsapp_cta": "Chat with us on WhatsApp",
       "message": "Message",
       "send": "Send message",
       "success": "Thanks for reaching out! We'll get back to you soon.",
@@ -105,6 +118,10 @@
     }
   },
   "sections": {
+    "announcement_bar": {
+      "label": "Store announcements",
+      "fallback": "Delivery across the North | 30+ years of experience"
+    },
     "header": {
       "menu": "Menu",
       "cart": "Cart",
@@ -118,14 +135,27 @@
       "empty_hint": "Fill it with the best tools on the market",
       "start_shopping": "Start shopping"
     },
+    "brand_logos": {
+      "default_brand_name": "Your brand"
+    },
+    "collection": {
+      "empty_title": "Products are coming soon",
+      "empty_body": "This category is still in the works. In the meantime, take a look at the rest of our catalog."
+    },
     "collection_list": {
-      "view_collection": "View collection"
+      "view_collection": "View collection",
+      "view_all": "All categories",
+      "default_title": "Category"
     },
     "featured_collection": {
       "view_all": "View all"
     },
     "related_products": {
       "heading": "You may also like"
+    },
+    "footer": {
+      "payment_methods": "Payment methods",
+      "rights": "All rights reserved."
     }
   },
   "products": {
@@ -238,7 +268,9 @@
       "quantity": "Quantity",
       "price": "Price",
       "product": "Product",
-      "each": "each"
+      "each": "each",
+      "secure_checkout": "Secure, encrypted checkout",
+      "payment_methods": "Payment methods"
     },
     "shipping_bar": {
       "free_shipping_reached": "You've earned free shipping! 🎉",
@@ -254,7 +286,14 @@
       "title": "Blog",
       "read_more": "Read more",
       "back_to_blog": "Back to {{ blog }}",
-      "all_posts": "All posts"
+      "all_posts": "All posts",
+      "empty": "Our guides are on the way",
+      "empty_hint": "We're working on professional tips and guides to help you choose right. Check back here soon.",
+      "empty_tag": "No articles found for the topic you chose",
+      "empty_tag_hint": "Try another topic, or go back to the full list of articles.",
+      "latest_post": "Latest article",
+      "onboarding_title": "Sample guide: how to choose the right tool for every job",
+      "onboarding_excerpt": "This is where the article intro will appear — professional tips, product comparisons and recommendations from our team, straight from the Kiryat Ata warehouse."
     },
     "article": {
       "written_by": "By {{ author }}",
@@ -267,6 +306,7 @@
         "one": "1 comment",
         "other": "{{ count }} comments"
       },
+      "no_comments": "No comments on this article yet — we'd love to hear what you think.",
       "comment_form_title": "Leave a comment",
       "name": "Name",
       "email": "Email",
@@ -296,6 +336,7 @@
       "forgot_password": "Forgot your password?",
       "sign_in": "Sign in",
       "create_account": "Create account",
+      "or": "or",
       "guest_title": "Continue as a guest",
       "guest_continue": "Continue"
     },
@@ -387,7 +428,8 @@
       "cancel": "Cancel",
       "edit": "Edit",
       "delete": "Delete",
-      "delete_confirm": "Delete this address?"
+      "delete_confirm": "Delete this address?",
+      "none": "You haven't saved any shipping addresses yet."
     }
   },
   "gift_cards": {

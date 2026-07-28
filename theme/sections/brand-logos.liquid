@@ -27,8 +27,8 @@
                   loading="lazy"
                 >
               {%- else -%}
-                <!-- TODO-i18n: sections.brand_logos.default_brand_name -->
-                <span class="brand-logos__name">{{ block.settings.name | default: 'המותג שלכם' | escape }}</span>
+                {%- assign fallback_brand_name = 'sections.brand_logos.default_brand_name' | t -%}
+                <span class="brand-logos__name">{{ block.settings.name | default: fallback_brand_name | escape }}</span>
               {%- endif -%}
             {%- endcapture -%}
 
@@ -45,7 +45,6 @@
           </li>
         {%- endfor -%}
       {%- else -%}
-        <!-- TODO-i18n: sections.brand_logos.default_brands -->
         {%- assign fallback_brands = 'מקיטה,דיוולט,מילווקי,בוש,טמבור,נירלט' | split: ',' -%}
         {%- for brand in fallback_brands -%}
           <li class="brand-logos__item reveal">

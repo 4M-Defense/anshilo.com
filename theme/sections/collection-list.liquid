@@ -23,8 +23,7 @@
 
         {%- if section.settings.show_view_all -%}
           <a href="{{ routes.collections_url }}" class="section-header__link">
-            <!-- TODO-i18n: sections.collection_list.view_all -->
-            לכל הקטגוריות
+            {{ 'sections.collection_list.view_all' | t }}
             {% render 'icon', name: 'arrow-right', size: 18 %}
           </a>
         {%- endif -%}
@@ -36,6 +35,7 @@
         {%- for block in section.blocks -%}
           {%- liquid
             assign c = block.settings.collection
+            assign default_tile_title = 'sections.collection_list.default_title' | t
             assign tile_title = block.settings.title | default: c.title
             assign tile_image = block.settings.image | default: c.featured_image
             assign is_feature = false
@@ -80,8 +80,7 @@
               <div class="collection-tile__content">
                 <div class="collection-tile__text">
                   <h3 class="collection-tile__title">
-                    <!-- TODO-i18n: sections.collection_list.default_title -->
-                    {{ tile_title | default: 'קטגוריה' | escape }}
+                    {{ tile_title | default: default_tile_title | escape }}
                   </h3>
                   {%- if c != blank -%}
                     <span class="collection-tile__count">
@@ -154,7 +153,6 @@
         {%- endfor -%}
 
       {%- else -%}
-        <!-- TODO-i18n: sections.collection_list.placeholder_titles -->
         {%- assign fallback_titles = 'כלי עבודה,צבע וחומרי גמר,חשמל ותאורה,עץ ולוחות,ברזל ופרזול,גינה וחוץ' | split: ',' -%}
         {%- for title in fallback_titles -%}
           {%- liquid

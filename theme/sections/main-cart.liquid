@@ -241,14 +241,12 @@
               {%- if section.settings.show_trust_badge -%}
                 <div class="trust-row cart-summary__trust">
                   {% render 'icon', name: 'shield-check', size: 18 %}
-                  <!-- TODO-i18n: cart.general.secure_checkout -->
-                  <span>תשלום מאובטח ומוצפן</span>
+                  <span>{{ 'cart.general.secure_checkout' | t }}</span>
                 </div>
               {%- endif -%}
 
               {%- if section.settings.show_payment_icons and shop.enabled_payment_types.size > 0 -%}
-                <!-- TODO-i18n: cart.general.payment_methods -->
-                <ul class="cart-summary__payments" role="list" aria-label="אמצעי תשלום">
+                <ul class="cart-summary__payments" role="list" aria-label="{{ 'cart.general.payment_methods' | t }}">
                   {%- for type in shop.enabled_payment_types -%}
                     <li>{{ type | payment_type_svg_tag: class: 'cart-summary__payment-icon' }}</li>
                   {%- endfor -%}

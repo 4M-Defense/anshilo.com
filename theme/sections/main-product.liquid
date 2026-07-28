@@ -22,7 +22,7 @@
 >
   <div class="container">
     {%- comment -%} Breadcrumbs: home > collection > product {%- endcomment -%}
-    <nav class="breadcrumbs" aria-label="מיקום באתר"><!-- TODO-i18n: general.breadcrumbs.label -->
+    <nav class="breadcrumbs" aria-label="{{ 'general.breadcrumbs.label' | t }}">
       <a href="{{ routes.root_url }}">{{ 'general.breadcrumbs.home' | t }}</a>
       <span class="breadcrumbs__sep">{% render 'icon', name: 'chevron-right', size: 14, class: 'icon--dir' %}</span>
       {%- if bc_collection != blank and bc_collection.handle != 'frontpage' -%}

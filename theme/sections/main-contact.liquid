@@ -133,8 +133,7 @@
             <li class="contact-card__row">
               <span class="contact-card__icon">{% render 'icon', name: 'map-pin', size: 19 %}</span>
               <span class="contact-card__info">
-                <!-- TODO-i18n: general.contact.address -->
-                <span class="contact-card__label">כתובת</span>
+                <span class="contact-card__label">{{ 'general.contact.address' | t }}</span>
                 <a
                   class="contact-card__value"
                   href="https://www.google.com/maps/search/?api=1&query={{ settings.store_address | url_param_escape }}"
@@ -152,8 +151,7 @@
             <li class="contact-card__row">
               <span class="contact-card__icon">{% render 'icon', name: 'clock', size: 19 %}</span>
               <span class="contact-card__info">
-                <!-- TODO-i18n: general.contact.hours -->
-                <span class="contact-card__label">שעות פעילות</span>
+                <span class="contact-card__label">{{ 'general.contact.hours' | t }}</span>
                 <span class="contact-card__value contact-card__hours">{{ settings.store_hours | newline_to_br }}</span>
               </span>
             </li>
@@ -168,8 +166,7 @@
             rel="noopener"
           >
             {% render 'icon', name: 'whatsapp', size: 20 %}
-            <!-- TODO-i18n: general.contact.whatsapp_cta -->
-            דברו איתנו בוואטסאפ
+            {{ 'general.contact.whatsapp_cta' | t }}
             <span class="visually-hidden">{{ 'general.accessibility.link_opens_new_tab' | t }}</span>
           </a>
         {%- endif -%}

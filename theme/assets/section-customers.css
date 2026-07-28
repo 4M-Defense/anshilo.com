@@ -1,0 +1,612 @@
+/* =========================================================
+   Shilo Pro — Customer area
+   Auth cards, account, orders, addresses, password page
+   ========================================================= */
+
+/* ---------- Auth cards (login / register / reset / activate) ---------- */
+.auth-section { padding-block: clamp(3rem, 6vw, 5.5rem); }
+
+.auth-wrap {
+  max-inline-size: 480px;
+  margin-inline: auto;
+}
+
+.auth-card {
+  position: relative;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-card);
+  padding: clamp(1.75rem, 5vw, 2.75rem);
+  overflow: hidden;
+}
+
+.auth-card::before {
+  content: "";
+  position: absolute;
+  inset-block-start: 0;
+  inset-inline: 0;
+  block-size: 5px;
+  background-image: repeating-linear-gradient(
+    -45deg,
+    var(--color-accent) 0 10px,
+    var(--color-ink) 10px 20px
+  );
+}
+
+.auth-card__head {
+  text-align: center;
+  margin-block-end: 1.75rem;
+}
+
+.auth-card__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  inline-size: 58px;
+  block-size: 58px;
+  border-radius: 50%;
+  background: rgba(var(--color-accent-rgb), 0.14);
+  color: var(--color-accent);
+  margin-block-end: 1rem;
+}
+
+.auth-card__title { margin: 0; }
+
+.auth-card__subtext {
+  margin-block-start: 0.6rem;
+  color: var(--color-text-muted);
+  font-size: 0.95rem;
+}
+
+.auth-card .form__success {
+  margin-block-end: 1.25rem;
+  font-size: 0.95rem;
+}
+
+/* Vertical rhythm inside customer forms */
+.customer-form > * + * { margin-block-start: 1rem; }
+.customer-form > .auth-meta { margin-block-start: 0.6rem; }
+.customer-form > .auth-submit { margin-block-start: 1.5rem; }
+
+.auth-meta {
+  display: flex;
+  justify-content: flex-end;
+  font-size: 0.9rem;
+}
+.auth-meta--center { justify-content: center; }
+
+.auth-divider {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-block: 1.6rem;
+  color: var(--color-text-muted);
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+.auth-divider::before,
+.auth-divider::after {
+  content: "";
+  flex: 1;
+  block-size: 1px;
+  background: var(--color-border);
+}
+
+.auth-alt {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.auth-guest {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  text-align: center;
+  padding: 1.1rem 1.25rem;
+  background: var(--color-surface-alt);
+  border-radius: var(--radius-base);
+}
+
+.auth-guest__title {
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--color-text-muted);
+}
+
+.auth-footer {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-block-start: 1.5rem;
+  font-size: 0.95rem;
+  color: var(--color-text-muted);
+  text-align: center;
+}
+
+/* Login <-> recover panel switching */
+.auth-wrap[data-active-panel="login"] .auth-panel--recover { display: none; }
+.auth-wrap[data-active-panel="recover"] .auth-panel--login { display: none; }
+
+/* No-JS fallback via :target (JS prevents the hash change, so no conflict) */
+.auth-wrap[data-active-panel="login"]:has(#recover:target) .auth-panel--recover { display: block; }
+.auth-wrap[data-active-panel="login"]:has(#recover:target) .auth-panel--login { display: none; }
+.auth-wrap[data-active-panel="recover"]:has(#login:target) .auth-panel--login { display: block; }
+.auth-wrap[data-active-panel="recover"]:has(#login:target) .auth-panel--recover { display: none; }
+
+/* ---------- Account shared ---------- */
+.account-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin-block-end: 1.25rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--color-text-muted);
+  text-decoration: none;
+  transition: color var(--duration-fast) ease;
+}
+.account-back:hover { color: var(--color-accent); }
+
+.account-header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin-block-end: clamp(1.5rem, 3vw, 2.5rem);
+}
+.account-header h1 { margin: 0; }
+
+.account-layout {
+  display: grid;
+  gap: clamp(1.25rem, 2.5vw, 2rem);
+  align-items: start;
+}
+@media (min-width: 990px) {
+  .account-layout { grid-template-columns: 320px minmax(0, 1fr); }
+}
+
+.account-card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-card);
+  padding: 1.5rem;
+}
+
+.account-card__title {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0 0 0.5rem;
+  font-size: 1.05rem;
+}
+.account-card__title .icon { color: var(--color-accent); }
+
+.account-card__row {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  padding-block: 0.85rem;
+  border-block-end: 1px solid var(--color-border);
+}
+.account-card__row:last-of-type { border-block-end: none; }
+
+.account-card__label {
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+}
+
+.account-card__value {
+  font-weight: 600;
+  color: var(--color-ink);
+  overflow-wrap: anywhere;
+}
+.account-card__value address {
+  font-style: normal;
+  font-weight: 500;
+  color: var(--color-text);
+  line-height: 1.7;
+}
+
+.account-card .btn { margin-block-start: 1.25rem; }
+
+.account-orders__head {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin-block-end: 1.25rem;
+}
+.account-orders__head h2 { margin: 0; }
+
+/* ---------- Status pills ---------- */
+.status-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.25rem 0.7rem;
+  border-radius: var(--radius-pill);
+  font-size: 0.8rem;
+  font-weight: 700;
+  line-height: 1.5;
+  white-space: nowrap;
+  background: var(--color-surface-alt);
+  color: var(--color-text-muted);
+}
+.status-pill::before {
+  content: "";
+  inline-size: 7px;
+  block-size: 7px;
+  border-radius: 50%;
+  background: currentColor;
+  opacity: 0.75;
+}
+.status-pill--success { background: rgba(23, 138, 80, 0.1); color: var(--color-success); }
+.status-pill--pending { background: rgba(180, 83, 9, 0.12); color: #b45309; }
+.status-pill--danger { background: rgba(217, 48, 37, 0.08); color: var(--color-danger); }
+
+/* ---------- Orders table ---------- */
+.orders-table__link {
+  font-weight: 700;
+  color: var(--color-accent);
+  text-decoration: none;
+}
+.orders-table__link:hover { text-decoration: underline; text-underline-offset: 3px; }
+
+.orders-table__total {
+  font-weight: 700;
+  color: var(--color-ink);
+  white-space: nowrap;
+}
+
+/* Stacked cards on mobile */
+@media (max-width: 749px) {
+  .table--stack,
+  .table--stack tbody { display: block; }
+  .table--stack thead { display: none; }
+  .table--stack tr {
+    display: block;
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-card);
+    box-shadow: var(--shadow-card);
+    padding: 0.4rem 1.1rem;
+  }
+  .table--stack tr + tr { margin-block-start: 0.9rem; }
+  .table--stack td {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 0.7rem 0;
+    border-block-end: 1px dashed var(--color-border);
+    text-align: end;
+  }
+  .table--stack td:last-child { border-block-end: none; }
+  .table--stack td::before {
+    content: attr(data-label);
+    flex-shrink: 0;
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: var(--color-text-muted);
+    text-align: start;
+  }
+  .table--stack td.cell-product {
+    flex-direction: column;
+    align-items: stretch;
+    text-align: start;
+  }
+  .table--stack td.cell-product::before { display: none; }
+}
+
+/* ---------- Order detail ---------- */
+.order-header {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  margin-block-end: clamp(1.5rem, 3vw, 2rem);
+}
+.order-header h1 { margin: 0; }
+
+.order-header__meta {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  color: var(--color-text-muted);
+  font-size: 0.95rem;
+}
+
+.order-cancelled {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.6rem;
+  padding: 1rem 1.2rem;
+  margin-block-end: clamp(1.25rem, 2.5vw, 1.75rem);
+  border-radius: var(--radius-base);
+  background: rgba(217, 48, 37, 0.07);
+  border: 1px solid rgba(217, 48, 37, 0.25);
+  color: var(--color-danger);
+}
+.order-cancelled p { margin: 0; }
+.order-cancelled .icon { flex-shrink: 0; margin-block-start: 0.15rem; }
+
+.order-layout {
+  display: grid;
+  gap: clamp(1.25rem, 2.5vw, 2rem);
+  align-items: start;
+}
+@media (min-width: 990px) {
+  .order-layout { grid-template-columns: minmax(0, 1fr) 340px; }
+}
+
+.order-line {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.9rem;
+}
+
+.order-line__media {
+  inline-size: 64px;
+  flex-shrink: 0;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-base);
+  background: #fff;
+}
+
+.order-line__info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  min-inline-size: 0;
+}
+
+.order-line__title {
+  font-weight: 600;
+  color: var(--color-ink);
+  text-decoration: none;
+}
+a.order-line__title:hover { color: var(--color-accent); }
+
+.order-line__discount {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--color-success);
+}
+
+.order-line__tracking {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.25rem;
+  margin-block-start: 0.35rem;
+  padding: 0.6rem 0.8rem;
+  background: var(--color-surface-alt);
+  border-radius: var(--radius-base);
+  font-size: 0.85rem;
+}
+.order-line__tracking-row {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+.order-line__tracking .link { font-weight: 600; }
+
+.order-totals {
+  max-inline-size: 420px;
+  margin-block-start: 1.25rem;
+  margin-inline-start: auto;
+}
+@media (max-width: 749px) {
+  .order-totals { max-inline-size: none; }
+}
+
+.order-totals__row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+  padding-block: 0.55rem;
+  font-size: 0.95rem;
+  border-block-end: 1px dashed var(--color-border);
+}
+.order-totals__value { font-weight: 600; white-space: nowrap; }
+.order-totals__row--discount { color: var(--color-success); }
+.order-totals__row--grand {
+  border-block-end: none;
+  border-block-start: 2px solid var(--color-ink);
+  margin-block-start: 0.4rem;
+  padding-block: 0.9rem;
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: var(--color-ink);
+}
+
+.order-side {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+/* ---------- Address cards ---------- */
+.addresses-grid {
+  display: grid;
+  gap: clamp(1rem, 2vw, 1.5rem);
+  grid-template-columns: 1fr;
+  padding: 0;
+  margin: 0;
+}
+@media (min-width: 750px) {
+  .addresses-grid { grid-template-columns: repeat(2, 1fr); }
+}
+@media (min-width: 1200px) {
+  .addresses-grid { grid-template-columns: repeat(3, 1fr); }
+}
+
+.address-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-card);
+  padding: 1.4rem;
+}
+
+.address-card--default {
+  border-color: var(--color-accent);
+  box-shadow: 0 0 0 1px var(--color-accent), var(--shadow-card);
+}
+
+.address-card__badge {
+  align-self: flex-start;
+  background: rgba(var(--color-accent-rgb), 0.16);
+  color: var(--color-ink);
+}
+
+.address-card__title {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0;
+  font-size: 1rem;
+}
+.address-card__title .icon { color: var(--color-accent); }
+
+.address-card address,
+.order-address address {
+  font-style: normal;
+  line-height: 1.75;
+  color: var(--color-text);
+}
+
+.address-card__actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  margin-block-start: auto;
+  padding-block-start: 0.85rem;
+  border-block-start: 1px solid var(--color-border);
+}
+
+.address-card__delete { --btn-color: var(--color-danger); }
+.address-card__delete:hover {
+  --btn-bg: rgba(217, 48, 37, 0.07);
+  --btn-color: var(--color-danger);
+  --btn-border: rgba(217, 48, 37, 0.35);
+}
+
+.address-card__edit {
+  padding-block-start: 1rem;
+  border-block-start: 1px dashed var(--color-border);
+}
+.address-card__edit-title { margin: 0 0 1rem; }
+
+.address-form-panel {
+  max-inline-size: 720px;
+  margin-block-end: clamp(1.5rem, 3vw, 2rem);
+}
+.address-form-panel__title { margin: 0 0 1.25rem; }
+
+.address-form__actions {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  margin-block-start: 1.5rem;
+}
+
+.addresses-empty { grid-column: 1 / -1; }
+
+/* ---------- Password page ---------- */
+.password-page {
+  min-block-size: 100dvh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(1.5rem, 3vw, 2.25rem);
+  padding: clamp(1.5rem, 5vw, 3rem);
+  padding-block-start: calc(clamp(1.5rem, 5vw, 3rem) + 6px);
+  text-align: center;
+  background:
+    radial-gradient(56rem 32rem at 85% -6%, rgba(var(--color-accent-rgb), 0.22), transparent 62%),
+    radial-gradient(40rem 26rem at -10% 110%, rgba(var(--color-accent-rgb), 0.1), transparent 55%),
+    linear-gradient(168deg, #1b2129 0%, #12161c 55%, #0d1015 100%);
+}
+
+.password-page__stripe {
+  position: fixed;
+  inset-block-start: 0;
+  inset-inline: 0;
+  z-index: 2;
+}
+
+.password-head {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+}
+
+.password-logo {
+  max-inline-size: min(220px, 60vw);
+  block-size: auto;
+  filter: drop-shadow(0 2px 12px rgba(0, 0, 0, 0.45));
+}
+
+.password-shopname {
+  font-family: var(--font-heading-family);
+  font-weight: 800;
+  font-size: clamp(1.4rem, 4vw, 1.9rem);
+  letter-spacing: 0.02em;
+  color: #fff;
+}
+
+.password-title {
+  margin: 0;
+  color: #fff;
+}
+
+.password-subtitle {
+  max-inline-size: 460px;
+  margin: 0.75rem auto 0;
+  color: rgba(244, 245, 247, 0.72);
+}
+
+.password-card {
+  inline-size: min(440px, 100%);
+  margin-inline: auto;
+  text-align: start;
+  border: none;
+}
+
+.password-card__heading {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0 0 1.25rem;
+}
+.password-card__heading .icon { color: var(--color-accent); }
+
+.password-footer {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  font-size: 0.9rem;
+  color: rgba(244, 245, 247, 0.6);
+}
+.password-footer p { margin: 0; }
+.password-footer a { color: var(--color-accent); }

@@ -31,7 +31,6 @@
           </li>
         {%- endfor -%}
       {%- else -%}
-        <!-- TODO-i18n: sections.services_bar.default_items -->
         {%- assign fallback_items = 'truck|משלוחים לכל הצפון|אספקה מהירה עד האתר או העסק;;store|איסוף עצמי מהמחסן|ההזמנה מחכה לכם בקרית אתא;;headset|ייעוץ מקצועי|צוות עם ניסיון אמיתי מהשטח;;shield-check|מותגים מקוריים בלבד|אחריות מלאה מיבואן רשמי' | split: ';;' -%}
         {%- for item in fallback_items -%}
           {%- assign parts = item | split: '|' -%}

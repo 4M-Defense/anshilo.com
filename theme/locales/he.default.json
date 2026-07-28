@@ -6,10 +6,16 @@
       "tagged": "מסונן לפי: {{ tags }}"
     },
     "breadcrumbs": {
-      "home": "דף הבית"
+      "home": "דף הבית",
+      "label": "מיקום באתר",
+      "collections": "כל הקטגוריות"
+    },
+    "navigation": {
+      "view_all": "הצגת הכל"
     },
     "search": {
       "title": "חיפוש",
+      "prompt": "הקלידו שם מוצר, מותג או מק\"ט — ונמצא לכם את זה.",
       "placeholder": "מה מחפשים? מקדחה, צבע, ברגים...",
       "submit": "חיפוש",
       "clear": "ניקוי חיפוש",
@@ -20,9 +26,12 @@
         "other": "{{ count }} תוצאות עבור \"{{ terms }}\""
       },
       "suggestions": "הצעות חיפוש",
+      "all": "הכל",
       "products": "מוצרים",
       "pages": "עמודים",
+      "page": "עמוד",
       "articles": "כתבות",
+      "article": "כתבה",
       "collections": "קטגוריות",
       "view_all": "לכל התוצאות",
       "popular": "חיפושים פופולריים"
@@ -48,13 +57,17 @@
       "placeholder": "המייל שלכם",
       "button": "הרשמה",
       "success": "תודה שנרשמתם! נעדכן אתכם במבצעים ובחידושים.",
-      "error": "אירעה שגיאה, נסו שוב"
+      "error": "אירעה שגיאה, נסו שוב",
+      "privacy_note": "בלי ספאם. אפשר לבטל את ההרשמה בכל רגע."
     },
     "contact": {
       "title": "צרו קשר",
       "name": "שם מלא",
       "email": "אימייל",
       "phone": "טלפון",
+      "address": "כתובת",
+      "hours": "שעות פעילות",
+      "whatsapp_cta": "דברו איתנו בוואטסאפ",
       "message": "הודעה",
       "send": "שליחת הודעה",
       "success": "תודה על פנייתכם! נחזור אליכם בהקדם.",
@@ -105,6 +118,10 @@
     }
   },
   "sections": {
+    "announcement_bar": {
+      "label": "הודעות החנות",
+      "fallback": "משלוחים לכל הצפון | 30+ שנות ניסיון"
+    },
     "header": {
       "menu": "תפריט",
       "cart": "עגלת קניות",
@@ -118,14 +135,27 @@
       "empty_hint": "מלאו אותה בכלים הטובים בשוק",
       "start_shopping": "התחילו לקנות"
     },
+    "brand_logos": {
+      "default_brand_name": "המותג שלכם"
+    },
+    "collection": {
+      "empty_title": "בקרוב יגיעו לכאן מוצרים",
+      "empty_body": "הקטגוריה הזו עדיין בהכנה. בינתיים, שווה להציץ בשאר הקטלוג שלנו."
+    },
     "collection_list": {
-      "view_collection": "לצפייה בקטגוריה"
+      "view_collection": "לצפייה בקטגוריה",
+      "view_all": "לכל הקטגוריות",
+      "default_title": "קטגוריה"
     },
     "featured_collection": {
       "view_all": "לכל המוצרים"
     },
     "related_products": {
       "heading": "אולי יעניין אתכם גם"
+    },
+    "footer": {
+      "payment_methods": "אמצעי תשלום",
+      "rights": "כל הזכויות שמורות."
     }
   },
   "products": {
@@ -238,7 +268,9 @@
       "quantity": "כמות",
       "price": "מחיר",
       "product": "מוצר",
-      "each": "ליחידה"
+      "each": "ליחידה",
+      "secure_checkout": "תשלום מאובטח ומוצפן",
+      "payment_methods": "אמצעי תשלום"
     },
     "shipping_bar": {
       "free_shipping_reached": "מגיע לכם משלוח חינם! 🎉",
@@ -254,7 +286,14 @@
       "title": "בלוג",
       "read_more": "להמשך קריאה",
       "back_to_blog": "חזרה ל{{ blog }}",
-      "all_posts": "כל הכתבות"
+      "all_posts": "כל הכתבות",
+      "empty": "המדריכים שלנו בדרך",
+      "empty_hint": "אנחנו עובדים על טיפים ומדריכים מקצועיים שיעזרו לכם לבחור נכון. שווה לחזור לכאן בקרוב.",
+      "empty_tag": "לא נמצאו כתבות בנושא שבחרתם",
+      "empty_tag_hint": "נסו נושא אחר, או חזרו לרשימת הכתבות המלאה.",
+      "latest_post": "הכתבה האחרונה",
+      "onboarding_title": "מדריך לדוגמה: כך בוחרים את הכלי הנכון לכל עבודה",
+      "onboarding_excerpt": "כאן תופיע פתיחת הכתבה — טיפים מקצועיים, השוואות מוצרים והמלצות מהצוות שלנו, ישר מהמחסן בקרית אתא."
     },
     "article": {
       "written_by": "מאת {{ author }}",
@@ -267,6 +306,7 @@
         "one": "תגובה אחת",
         "other": "{{ count }} תגובות"
       },
+      "no_comments": "עדיין אין תגובות לכתבה הזו — נשמח לשמוע מה דעתכם.",
       "comment_form_title": "כתיבת תגובה",
       "name": "שם",
       "email": "אימייל",
@@ -296,6 +336,7 @@
       "forgot_password": "שכחתם סיסמה?",
       "sign_in": "התחברות",
       "create_account": "פתיחת חשבון חדש",
+      "or": "או",
       "guest_title": "המשך כאורח",
       "guest_continue": "המשך"
     },
@@ -387,7 +428,8 @@
       "cancel": "ביטול",
       "edit": "עריכה",
       "delete": "מחיקה",
-      "delete_confirm": "האם למחוק את הכתובת הזו?"
+      "delete_confirm": "האם למחוק את הכתובת הזו?",
+      "none": "עדיין לא שמרתם כתובות למשלוח."
     }
   },
   "gift_cards": {

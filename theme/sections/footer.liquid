@@ -288,8 +288,7 @@
   <div class="footer__bottom">
     <div class="container footer__bottom-inner">
       {%- if section.settings.show_payment_icons and shop.enabled_payment_types.size > 0 -%}
-        <!-- TODO-i18n: sections.footer.payment_methods -->
-        <ul class="footer__payments" role="list" aria-label="אמצעי תשלום">
+        <ul class="footer__payments" role="list" aria-label="{{ 'sections.footer.payment_methods' | t }}">
           {%- for type in shop.enabled_payment_types -%}
             <li>{{ type | payment_type_svg_tag: class: 'footer__payment-icon' }}</li>
           {%- endfor -%}
@@ -297,8 +296,7 @@
       {%- endif -%}
 
       <div class="footer__legal">
-        <!-- TODO-i18n: sections.footer.rights -->
-        <span class="footer__copyright">&copy; {{ 'now' | date: '%Y' }} {{ shop.name }}. כל הזכויות שמורות.</span>
+        <span class="footer__copyright">&copy; {{ 'now' | date: '%Y' }} {{ shop.name }}. {{ 'sections.footer.rights' | t }}</span>
         <span class="footer__powered">{{ powered_by_link }}</span>
       </div>
     </div>

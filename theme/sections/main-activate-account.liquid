@@ -1,0 +1,78 @@
+{{ 'section-customers.css' | asset_url | stylesheet_tag }}
+
+<section class="section section--alt auth-section">
+  <div class="container">
+    <div class="auth-wrap">
+      <div class="auth-card">
+        <header class="auth-card__head">
+          <span class="auth-card__icon">{% render 'icon', name: 'check-circle', size: 26 %}</span>
+          <h1 class="auth-card__title h2">{{ 'customer.activate_account.title' | t }}</h1>
+          <p class="auth-card__subtext">{{ 'customer.activate_account.subtext' | t }}</p>
+        </header>
+
+        {%- form 'activate_customer_password', class: 'customer-form' -%}
+          {%- if form.errors -%}
+            <div class="errors" role="alert" tabindex="-1">
+              <ul>
+                {%- for field in form.errors -%}
+                  <li>
+                    {%- if field == 'form' -%}
+                      {{ form.errors.messages[field] }}
+                    {%- else -%}
+                      {{ form.errors.translated_fields[field] }} — {{ form.errors.messages[field] }}
+                    {%- endif -%}
+                  </li>
+                {%- endfor -%}
+              </ul>
+            </div>
+          {%- endif -%}
+
+          <div class="field">
+            <label class="field__label" for="ActivatePassword">
+              {{ 'customer.activate_account.password' | t }} <span class="required" aria-hidden="true">*</span>
+            </label>
+            <input
+              class="field__input"
+              type="password"
+              id="ActivatePassword"
+              name="customer[password]"
+              autocomplete="new-password"
+              required
+              {% if form.errors contains 'password' %}aria-invalid="true"{% endif %}
+            >
+          </div>
+
+          <div class="field">
+            <label class="field__label" for="ActivatePasswordConfirm">
+              {{ 'customer.activate_account.password_confirm' | t }} <span class="required" aria-hidden="true">*</span>
+            </label>
+            <input
+              class="field__input"
+              type="password"
+              id="ActivatePasswordConfirm"
+              name="customer[password_confirmation]"
+              autocomplete="new-password"
+              required
+              {% if form.errors contains 'password_confirmation' %}aria-invalid="true"{% endif %}
+            >
+          </div>
+
+          <button type="submit" class="btn btn--full auth-submit">
+            {{ 'customer.activate_account.submit' | t }}
+          </button>
+
+          <button type="submit" name="decline" class="btn btn--ghost btn--full">
+            {{ 'customer.activate_account.cancel' | t }}
+          </button>
+        {%- endform -%}
+      </div>
+    </div>
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "הפעלת חשבון",
+  "settings": []
+}
+{% endschema %}

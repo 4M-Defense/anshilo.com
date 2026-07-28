@@ -172,8 +172,8 @@
             {%- elsif collection.all_products_count == 0 -%}
               <div class="empty-state">
                 {% render 'icon', name: 'package', size: 48 %}
-                <h2 class="empty-state__title">בקרוב יגיעו לכאן מוצרים</h2><!-- TODO-i18n: sections.collection.empty_title -->
-                <p class="empty-state__text">הקטגוריה הזו עדיין בהכנה. בינתיים, שווה להציץ בשאר הקטלוג שלנו.</p><!-- TODO-i18n: sections.collection.empty_body -->
+                <h2 class="empty-state__title">{{ 'sections.collection.empty_title' | t }}</h2>
+                <p class="empty-state__text">{{ 'sections.collection.empty_body' | t }}</p>
                 <a href="{{ routes.all_products_collection_url }}" class="btn">{{ 'general.continue_shopping' | t }}</a>
               </div>
             {%- else -%}

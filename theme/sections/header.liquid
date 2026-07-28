@@ -199,7 +199,7 @@
                       {%- endfor -%}
                       {%- if link.url != '#' and link.url != blank -%}
                         <a class="site-nav__sublink site-nav__sublink--all site-nav__mega-all" href="{{ link.url }}">
-                          הצגת הכל<!-- TODO-i18n: general.navigation.view_all -->
+                          {{ 'general.navigation.view_all' | t }}
                           {% render 'icon', name: 'arrow-right', size: 14, class: 'icon--dir' %}
                         </a>
                       {%- endif -%}
@@ -208,7 +208,7 @@
                         {%- if link.url != '#' and link.url != blank -%}
                           <li>
                             <a class="site-nav__sublink site-nav__sublink--all" href="{{ link.url }}">
-                              הצגת הכל<!-- TODO-i18n: general.navigation.view_all -->
+                              {{ 'general.navigation.view_all' | t }}
                               {% render 'icon', name: 'arrow-right', size: 14, class: 'icon--dir' %}
                             </a>
                           </li>
@@ -279,7 +279,7 @@
                     {%- if link.url != '#' and link.url != blank -%}
                       <li>
                         <a class="menu-drawer__sublink menu-drawer__sublink--all" href="{{ link.url }}">
-                          הצגת הכל<!-- TODO-i18n: general.navigation.view_all -->
+                          {{ 'general.navigation.view_all' | t }}
                           {% render 'icon', name: 'arrow-right', size: 14, class: 'icon--dir' %}
                         </a>
                       </li>
@@ -296,7 +296,7 @@
                               {%- if child.url != '#' and child.url != blank -%}
                                 <li>
                                   <a class="menu-drawer__sublink menu-drawer__sublink--all" href="{{ child.url }}">
-                                    הצגת הכל<!-- TODO-i18n: general.navigation.view_all -->
+                                    {{ 'general.navigation.view_all' | t }}
                                   </a>
                                 </li>
                               {%- endif -%}

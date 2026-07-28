@@ -61,8 +61,7 @@
       {%- if section.settings.show_privacy_note -%}
         <p class="newsletter-card__note">
           {% render 'icon', name: 'shield-check', size: 15 %}
-          <!-- TODO-i18n: general.newsletter.privacy_note -->
-          <span>בלי ספאם. אפשר לבטל את ההרשמה בכל רגע.</span>
+          <span>{{ 'general.newsletter.privacy_note' | t }}</span>
         </p>
       {%- endif -%}
     </div>
