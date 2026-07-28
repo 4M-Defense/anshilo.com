@@ -4,43 +4,46 @@
   "sections": {
     "announcement-bar": {
       "type": "announcement-bar",
+      "settings": {
+        "show_whatsapp": true,
+        "rotate_speed": 6
+      },
       "blocks": {
-        "delivery": {
+        "a1": {
           "type": "announcement",
           "settings": {
-            "text": "אספקה לירושלים והסביבה — או איסוף עצמי מהמחסן בקרית ענבים",
-            "icon": "truck"
+            "text": "משלוח חינם בהזמנה מעל ₪399 · איסוף עצמי מהחנות בקרית ענבים ללא עלות",
+            "icon": "truck",
+            "link": ""
           }
         },
-        "experience": {
+        "a2": {
           "type": "announcement",
           "settings": {
-            "text": "למעלה מ-30 שנה מספקים לקבלנים, מוסדות ולקוחות פרטיים",
-            "icon": "shield-check"
+            "text": "יותר מ־30 שנה בענף הבנייה — ייעוץ מקצועי בטלפון 02-534-3422",
+            "icon": "headset",
+            "link": "/pages/contact"
           }
         },
-        "timber": {
+        "a3": {
           "type": "announcement",
           "settings": {
-            "text": "מחסן עצים בקרית ענבים — ניסור וחיתוך למידה",
-            "icon": "ruler"
+            "text": "אנשי מקצוע? הזמינו רשימת מקטים שלמה בלחיצה אחת",
+            "icon": "list",
+            "link": "/pages/quick-order"
           }
         }
       },
-      "block_order": ["delivery", "experience", "timber"],
-      "settings": {
-        "show_whatsapp": true,
-        "rotate_speed": 5
-      }
+      "block_order": ["a1", "a2", "a3"]
     },
     "header": {
       "type": "header",
       "settings": {
-        "menu": "main-menu",
+        "menu": "shilo-2026-main",
         "enable_sticky": true,
         "show_account": true,
         "show_utility_bar": true,
-        "utility_message": "משלוח חינם בקנייה מעל",
+        "utility_message": "משלוח חינם בהזמנה מעל ₪399",
         "contact_page": "contact",
         "mega_all_label": "לכל הקטגוריה"
       }
