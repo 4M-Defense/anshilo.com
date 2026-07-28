@@ -1,0 +1,53 @@
+{%- comment -%}
+  Renders a product price block.
+  Usage: {% render 'price', product: product %}
+         {% render 'price', variant: variant, large: true %}
+  Params:
+    product {Object}  product (price range aware, shows "from" when varied)
+    variant {Object}  a specific variant (takes precedence over product)
+    large   {Boolean} bigger typography for product page
+    class   {String}  extra classes
+{%- endcomment -%}
+{%- liquid
+  assign target = variant | default: product
+  assign compare_at = target.compare_at_price
+  assign price = target.price | default: 1999
+  assign on_sale = false
+  if compare_at > price
+    assign on_sale = true
+  endif
+
+  assign show_from = false
+  if variant == null and product and product.price_varies
+    assign show_from = true
+  endif
+
+  assign money_price = price | money
+  assign money_compare = compare_at | money
+-%}
+<div class="price{% if on_sale %} price--on-sale{% endif %}{% if large %} price--large{% endif %} {{ class }}">
+  {%- if show_from -%}
+    <span class="price__from">{{ 'products.price.from_price_html' | t: price: money_price }}</span>
+  {%- else -%}
+    <span class="price__current">
+      <span class="visually-hidden">{% if on_sale %}{{ 'products.price.sale_price' | t }}{% else %}{{ 'products.price.regular_price' | t }}{% endif %}</span>
+      {{ money_price }}
+    </span>
+    {%- if on_sale -%}
+      <s class="price__compare">
+        <span class="visually-hidden">{{ 'products.price.regular_price' | t }}</span>
+        {{ money_compare }}
+      </s>
+    {%- endif -%}
+  {%- endif -%}
+  {%- if target.unit_price_measurement -%}
+    <span class="price__unit">
+      {{ target.unit_price | money }}
+      {{ 'products.price.unit_price_separator' | t }}
+      {%- if target.unit_price_measurement.reference_value != 1 -%}
+        {{- target.unit_price_measurement.reference_value -}}
+      {%- endif -%}
+      {{ target.unit_price_measurement.reference_unit }}
+    </span>
+  {%- endif -%}
+</div>

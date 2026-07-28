@@ -1,0 +1,165 @@
+{%- comment -%}
+  Renders a product card.
+  Usage: {% render 'product-card', product: product, lazy: true %}
+  Params:
+    product        {Object}  product object (required; renders placeholder when blank)
+    lazy           {Boolean} lazy-load images (default true — pass false above the fold)
+    show_vendor    {Boolean} override settings.card_show_vendor
+    show_quick_add {Boolean} override settings.card_show_quick_add
+    class          {String}  extra classes
+    placeholder_index {Number} 1-6, varies the placeholder image
+{%- endcomment -%}
+{%- liquid
+  assign ratio_class = 'media--square'
+  if settings.card_image_ratio == 'portrait'
+    assign ratio_class = 'media--portrait'
+  elsif settings.card_image_ratio == 'adapt'
+    assign ratio_class = 'media--square'
+  endif
+
+  assign loading_attr = 'lazy'
+  if lazy == false
+    assign loading_attr = 'eager'
+  endif
+
+  assign vendor_enabled = settings.card_show_vendor
+  unless show_vendor == nil
+    assign vendor_enabled = show_vendor
+  endunless
+
+  assign quick_add_enabled = settings.card_show_quick_add
+  unless show_quick_add == nil
+    assign quick_add_enabled = show_quick_add
+  endunless
+-%}
+{%- if product != blank -%}
+  {%- liquid
+    assign on_sale = false
+    if product.compare_at_price > product.price
+      assign on_sale = true
+    endif
+
+    assign is_new = false
+    if settings.new_badge_days > 0
+      assign seconds_ago = 'now' | date: '%s' | minus: 0
+      assign created = product.created_at | date: '%s' | minus: 0
+      assign age_days = seconds_ago | minus: created | divided_by: 86400
+      if age_days <= settings.new_badge_days
+        assign is_new = true
+      endif
+    endif
+
+    assign has_second_image = false
+    if settings.card_show_second_image and product.media.size > 1
+      assign has_second_image = true
+    endif
+  -%}
+  <article class="product-card {{ class }}">
+    <div class="product-card__media-wrap">
+      <div class="media {{ ratio_class }} media--contain product-card__media{% if has_second_image %} product-card__media--has-secondary{% endif %}">
+        {%- if product.featured_media -%}
+          <img
+            class="product-card__img--primary"
+            srcset="{{ product.featured_media | image_url: width: 360 }} 360w, {{ product.featured_media | image_url: width: 540 }} 540w, {{ product.featured_media | image_url: width: 720 }} 720w"
+            src="{{ product.featured_media | image_url: width: 540 }}"
+            sizes="(min-width: 1200px) 280px, (min-width: 750px) 33vw, 50vw"
+            alt="{{ product.featured_media.alt | default: product.title | escape }}"
+            loading="{{ loading_attr }}"
+            width="{{ product.featured_media.width }}"
+            height="{{ product.featured_media.height }}"
+          >
+          {%- if has_second_image -%}
+            <img
+              class="product-card__img--secondary"
+              src="{{ product.media[1] | image_url: width: 540 }}"
+              alt=""
+              loading="lazy"
+              width="{{ product.media[1].width }}"
+              height="{{ product.media[1].height }}"
+              aria-hidden="true"
+            >
+          {%- endif -%}
+        {%- else -%}
+          {{ 'product-1' | placeholder_svg_tag: 'placeholder-svg' }}
+        {%- endif -%}
+      </div>
+
+      <div class="product-card__badges">
+        {%- if product.available == false -%}
+          <span class="badge badge--soldout">{{ 'products.product.sold_out' | t }}</span>
+        {%- elsif on_sale -%}
+          <span class="badge badge--sale">
+            {%- if settings.show_sale_badge_percent -%}
+              {%- assign discount = product.compare_at_price | minus: product.price | times: 100.0 | divided_by: product.compare_at_price | round -%}
+              {{ discount }}%-
+            {%- else -%}
+              {{ 'products.product.on_sale' | t }}
+            {%- endif -%}
+          </span>
+        {%- elsif is_new -%}
+          <span class="badge badge--new">{{ 'products.product.new' | t }}</span>
+        {%- endif -%}
+      </div>
+
+      {%- if quick_add_enabled and product.available -%}
+        <div class="product-card__quick-add">
+          {%- if product.variants.size == 1 and product.selling_plan_groups.size == 0 -%}
+            <product-form>
+              <form method="post" action="{{ routes.cart_add_url }}" accept-charset="UTF-8" enctype="multipart/form-data">
+                <input type="hidden" name="form_type" value="product">
+                <input type="hidden" name="utf8" value="✓">
+                <input type="hidden" name="id" value="{{ product.selected_or_first_available_variant.id }}">
+                <input type="hidden" name="quantity" value="1">
+                <button type="submit" class="btn btn--secondary btn--sm btn--full">
+                  {% render 'icon', name: 'cart-add', size: 17 %}
+                  {{ 'products.product.add_to_cart' | t }}
+                </button>
+              </form>
+            </product-form>
+          {%- else -%}
+            <a href="{{ product.url }}" class="btn btn--secondary btn--sm btn--full">
+              {{ 'products.product.choose_options' | t }}
+            </a>
+          {%- endif -%}
+        </div>
+      {%- endif -%}
+    </div>
+
+    <div class="product-card__content">
+      {%- if vendor_enabled and product.vendor != blank -%}
+        <span class="product-card__vendor">{{ product.vendor }}</span>
+      {%- endif -%}
+      <h3 class="product-card__title">
+        <a href="{{ product.url }}">{{ product.title | escape }}</a>
+      </h3>
+      <div class="product-card__footer">
+        {% render 'price', product: product %}
+        {%- if settings.card_show_stock -%}
+          {%- if product.available -%}
+            <span class="stock-dot">{{ 'products.product.in_stock' | t }}</span>
+          {%- else -%}
+            <span class="stock-dot stock-dot--out">{{ 'products.product.out_of_stock' | t }}</span>
+          {%- endif -%}
+        {%- endif -%}
+      </div>
+    </div>
+  </article>
+{%- else -%}
+  {%- liquid
+    assign ph = placeholder_index | default: 1
+    assign ph_name = 'product-' | append: ph
+  -%}
+  <article class="product-card {{ class }}">
+    <div class="product-card__media-wrap">
+      <div class="media {{ ratio_class }} product-card__media">
+        {{ ph_name | placeholder_svg_tag: 'placeholder-svg' }}
+      </div>
+    </div>
+    <div class="product-card__content">
+      <h3 class="product-card__title">מוצר לדוגמה</h3>
+      <div class="product-card__footer">
+        <div class="price"><span class="price__current">₪149</span></div>
+      </div>
+    </div>
+  </article>
+{%- endif -%}

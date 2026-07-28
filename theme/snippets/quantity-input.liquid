@@ -1,0 +1,31 @@
+{%- comment -%}
+  Renders a quantity selector.
+  Usage: {% render 'quantity-input', id: 'Quantity-1', name: 'quantity', value: 1, min: 1, max: 10, small: true, product_title: 'X', line: 2 %}
+{%- endcomment -%}
+{%- liquid
+  assign qty_value = value | default: 1
+  assign qty_min = min | default: 1
+  assign input_name = name | default: 'quantity'
+  assign title_for_a11y = product_title | default: ''
+-%}
+<quantity-input class="qty{% if small %} qty--sm{% endif %}" {% if line %}data-line="{{ line }}"{% endif %}>
+  <button type="button" name="minus" class="qty__btn" aria-label="{{ 'general.accessibility.decrease_quantity' | t: product: title_for_a11y }}">
+    {% render 'icon', name: 'minus', size: 16 %}
+  </button>
+  <input
+    type="number"
+    class="qty__input"
+    {% if id %}id="{{ id }}"{% endif %}
+    name="{{ input_name }}"
+    value="{{ qty_value }}"
+    min="{{ qty_min }}"
+    {% if max %}max="{{ max }}"{% endif %}
+    step="1"
+    inputmode="numeric"
+    autocomplete="off"
+    aria-label="{{ 'products.product.quantity_label' | t }}"
+  >
+  <button type="button" name="plus" class="qty__btn" aria-label="{{ 'general.accessibility.increase_quantity' | t: product: title_for_a11y }}">
+    {% render 'icon', name: 'plus', size: 16 %}
+  </button>
+</quantity-input>
