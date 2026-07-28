@@ -1,0 +1,110 @@
+{{ 'section-brand-logos.css' | asset_url | stylesheet_tag }}
+
+<section
+  id="BrandLogos-{{ section.id }}"
+  class="brand-logos{% if section.settings.alt_background %} brand-logos--alt{% endif %}"
+>
+  <div class="container">
+    {%- if section.settings.heading != blank -%}
+      <h2 class="brand-logos__heading">
+        <span>{{ section.settings.heading | escape }}</span>
+      </h2>
+    {%- endif -%}
+
+    <ul class="brand-logos__row" role="list">
+      {%- if section.blocks.size > 0 -%}
+        {%- for block in section.blocks -%}
+          <li class="brand-logos__item reveal" {{ block.shopify_attributes }}>
+            {%- capture brand_inner -%}
+              {%- if block.settings.logo != blank -%}
+                <img
+                  class="brand-logos__img"
+                  src="{{ block.settings.logo | image_url: width: 320 }}"
+                  srcset="{{ block.settings.logo | image_url: width: 160 }} 160w, {{ block.settings.logo | image_url: width: 320 }} 320w"
+                  width="{{ block.settings.logo.width }}"
+                  height="{{ block.settings.logo.height }}"
+                  alt="{{ block.settings.name | default: block.settings.logo.alt | escape }}"
+                  loading="lazy"
+                >
+              {%- else -%}
+                <!-- TODO-i18n: sections.brand_logos.default_brand_name -->
+                <span class="brand-logos__name">{{ block.settings.name | default: 'המותג שלכם' | escape }}</span>
+              {%- endif -%}
+            {%- endcapture -%}
+
+            {%- assign cell_class = 'brand-logos__cell' -%}
+            {%- if block.settings.logo == blank -%}
+              {%- assign cell_class = 'brand-logos__cell brand-logos__cell--chip' -%}
+            {%- endif -%}
+
+            {%- if block.settings.link != blank -%}
+              <a href="{{ block.settings.link }}" class="{{ cell_class }}">{{ brand_inner }}</a>
+            {%- else -%}
+              <span class="{{ cell_class }}">{{ brand_inner }}</span>
+            {%- endif -%}
+          </li>
+        {%- endfor -%}
+      {%- else -%}
+        <!-- TODO-i18n: sections.brand_logos.default_brands -->
+        {%- assign fallback_brands = 'מקיטה,דיוולט,מילווקי,בוש,טמבור,נירלט' | split: ',' -%}
+        {%- for brand in fallback_brands -%}
+          <li class="brand-logos__item reveal">
+            <span class="brand-logos__cell brand-logos__cell--chip">
+              <span class="brand-logos__name">{{ brand }}</span>
+            </span>
+          </li>
+        {%- endfor -%}
+      {%- endif -%}
+    </ul>
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "רצועת מותגים",
+  "max_blocks": 12,
+  "settings": [
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "כותרת",
+      "default": "המותגים שלנו"
+    },
+    {
+      "type": "checkbox",
+      "id": "alt_background",
+      "label": "רקע אפור בהיר",
+      "default": false
+    }
+  ],
+  "blocks": [
+    {
+      "type": "brand",
+      "name": "מותג",
+      "settings": [
+        {
+          "type": "image_picker",
+          "id": "logo",
+          "label": "לוגו",
+          "info": "מומלץ PNG שקוף ברוחב 320px לפחות"
+        },
+        {
+          "type": "text",
+          "id": "name",
+          "label": "שם המותג (אם אין לוגו)"
+        },
+        {
+          "type": "url",
+          "id": "link",
+          "label": "קישור (אופציונלי)"
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "רצועת מותגים"
+    }
+  ]
+}
+{% endschema %}

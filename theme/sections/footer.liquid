@@ -1,0 +1,391 @@
+{{ 'section-footer.css' | asset_url | stylesheet_tag }}
+
+{%- liquid
+  assign menu_1 = section.settings.menu_1
+  assign menu_2 = section.settings.menu_2
+
+  assign heading_1 = section.settings.heading_1
+  if heading_1 == blank and menu_1 != blank
+    assign heading_1 = menu_1.title
+  endif
+  if heading_1 == blank
+    assign heading_1 = 'ניווט מהיר'
+  endif
+
+  assign heading_2 = section.settings.heading_2
+  if heading_2 == blank and menu_2 != blank
+    assign heading_2 = menu_2.title
+  endif
+  if heading_2 == blank
+    assign heading_2 = 'שירות לקוחות'
+  endif
+
+  assign has_social = false
+  if settings.social_facebook != blank or settings.social_instagram != blank or settings.social_tiktok != blank or settings.social_youtube != blank
+    assign has_social = true
+  endif
+
+  assign contact_email = settings.store_email
+  if contact_email == blank
+    assign contact_email = shop.email
+  endif
+-%}
+
+{%- comment -%} Column content captured once, rendered for desktop columns AND mobile accordions {%- endcomment -%}
+
+{%- capture links_col_1 -%}
+  <ul class="footer__links" role="list">
+    {%- if menu_1 != blank and menu_1.links.size > 0 -%}
+      {%- for link in menu_1.links -%}
+        <li><a href="{{ link.url }}" class="footer__link">{{ link.title | escape }}</a></li>
+      {%- endfor -%}
+    {%- else -%}
+      <li><a href="{{ routes.root_url }}" class="footer__link">{{ 'general.breadcrumbs.home' | t }}</a></li>
+      <li><a href="{{ routes.all_products_collection_url }}" class="footer__link">{{ 'general.error_404.button' | t }}</a></li>
+      <li><a href="{{ routes.search_url }}" class="footer__link">{{ 'general.search.title' | t }}</a></li>
+      <li><a href="{{ routes.cart_url }}" class="footer__link">{{ 'cart.general.title' | t }}</a></li>
+    {%- endif -%}
+  </ul>
+{%- endcapture -%}
+
+{%- capture links_col_2 -%}
+  <ul class="footer__links" role="list">
+    {%- if menu_2 != blank and menu_2.links.size > 0 -%}
+      {%- for link in menu_2.links -%}
+        <li><a href="{{ link.url }}" class="footer__link">{{ link.title | escape }}</a></li>
+      {%- endfor -%}
+    {%- else -%}
+      <li><a href="{{ routes.account_login_url }}" class="footer__link">{{ 'customer.log_in' | t }}</a></li>
+      <li><a href="{{ routes.account_register_url }}" class="footer__link">{{ 'customer.register.title' | t }}</a></li>
+      {%- for policy in shop.policies -%}
+        {%- if policy != blank -%}
+          <li><a href="{{ policy.url }}" class="footer__link">{{ policy.title | escape }}</a></li>
+        {%- endif -%}
+      {%- endfor -%}
+    {%- endif -%}
+  </ul>
+{%- endcapture -%}
+
+{%- capture contact_col -%}
+  <ul class="footer__contact" role="list">
+    {%- if settings.store_phone != blank -%}
+      {%- assign phone_digits = settings.store_phone | replace: '-', '' | replace: ' ', '' -%}
+      <li>
+        <a class="footer__contact-link footer__contact-link--phone" href="tel:{{ phone_digits }}">
+          {% render 'icon', name: 'phone', size: 18, class: 'footer__contact-icon' %}
+          <span>{{ settings.store_phone }}</span>
+        </a>
+      </li>
+    {%- endif -%}
+    {%- if settings.store_whatsapp != blank -%}
+      {%- assign wa_digits = settings.store_whatsapp | replace: '+', '' | replace: '-', '' | replace: ' ', '' -%}
+      <li>
+        <a class="footer__contact-link" href="https://wa.me/{{ wa_digits }}" target="_blank" rel="noopener">
+          {% render 'icon', name: 'whatsapp', size: 18, class: 'footer__contact-icon' %}
+          <span>{{ 'general.social.whatsapp' | t }}</span>
+        </a>
+      </li>
+    {%- endif -%}
+    {%- if contact_email != blank -%}
+      <li>
+        <a class="footer__contact-link" href="mailto:{{ contact_email }}">
+          {% render 'icon', name: 'mail', size: 18, class: 'footer__contact-icon' %}
+          <span>{{ contact_email }}</span>
+        </a>
+      </li>
+    {%- endif -%}
+    {%- if settings.store_address != blank -%}
+      <li>
+        <a class="footer__contact-link" href="https://maps.google.com/?q={{ settings.store_address | url_encode }}" target="_blank" rel="noopener">
+          {% render 'icon', name: 'map-pin', size: 18, class: 'footer__contact-icon' %}
+          <span>{{ settings.store_address }}</span>
+        </a>
+      </li>
+    {%- endif -%}
+    {%- if settings.store_hours != blank -%}
+      <li class="footer__contact-row">
+        {% render 'icon', name: 'clock', size: 18, class: 'footer__contact-icon' %}
+        <span class="footer__hours">{{ settings.store_hours | escape | newline_to_br }}</span>
+      </li>
+    {%- endif -%}
+  </ul>
+{%- endcapture -%}
+
+<footer class="footer section--ink" role="contentinfo">
+  <div class="hazard-divider" aria-hidden="true"></div>
+
+  <div class="footer__main">
+    <div class="container">
+      <div class="footer__grid">
+
+        {%- comment -%} Brand column {%- endcomment -%}
+        <div class="footer__brand">
+          {%- if settings.logo != blank -%}
+            {%- liquid
+              assign logo_width = settings.logo_width | default: 160
+              assign logo_width_2x = logo_width | times: 2
+              assign logo_ratio = settings.logo.aspect_ratio | default: 2.5
+              assign logo_height = logo_width | divided_by: logo_ratio | round
+            -%}
+            <a href="{{ routes.root_url }}" class="footer__logo" aria-label="{{ shop.name | escape }}">
+              <img
+                src="{{ settings.logo | image_url: width: logo_width_2x }}"
+                srcset="{{ settings.logo | image_url: width: logo_width }} 1x, {{ settings.logo | image_url: width: logo_width_2x }} 2x"
+                alt="{{ settings.logo.alt | default: shop.name | escape }}"
+                width="{{ logo_width }}"
+                height="{{ logo_height }}"
+                loading="lazy"
+                class="footer__logo-img">
+            </a>
+          {%- else -%}
+            <a href="{{ routes.root_url }}" class="footer__logo footer__logo--text">
+              <span class="footer__brand-name">{{ shop.name }}</span>
+            </a>
+          {%- endif -%}
+
+          {%- if section.settings.about_text != blank -%}
+            <div class="footer__about rte">{{ section.settings.about_text }}</div>
+          {%- endif -%}
+
+          {%- if section.settings.show_social and has_social -%}
+            <ul class="footer__social" role="list" aria-label="{{ 'general.social.follow_title' | t }}">
+              {%- if settings.social_facebook != blank -%}
+                <li>
+                  <a class="footer__social-link" href="{{ settings.social_facebook }}" target="_blank" rel="noopener" aria-label="{{ 'general.social.facebook' | t }}">
+                    {% render 'icon', name: 'facebook', size: 18 %}
+                  </a>
+                </li>
+              {%- endif -%}
+              {%- if settings.social_instagram != blank -%}
+                <li>
+                  <a class="footer__social-link" href="{{ settings.social_instagram }}" target="_blank" rel="noopener" aria-label="{{ 'general.social.instagram' | t }}">
+                    {% render 'icon', name: 'instagram', size: 18 %}
+                  </a>
+                </li>
+              {%- endif -%}
+              {%- if settings.social_tiktok != blank -%}
+                <li>
+                  <a class="footer__social-link" href="{{ settings.social_tiktok }}" target="_blank" rel="noopener" aria-label="{{ 'general.social.tiktok' | t }}">
+                    {% render 'icon', name: 'tiktok', size: 18 %}
+                  </a>
+                </li>
+              {%- endif -%}
+              {%- if settings.social_youtube != blank -%}
+                <li>
+                  <a class="footer__social-link" href="{{ settings.social_youtube }}" target="_blank" rel="noopener" aria-label="{{ 'general.social.youtube' | t }}">
+                    {% render 'icon', name: 'youtube', size: 18 %}
+                  </a>
+                </li>
+              {%- endif -%}
+            </ul>
+          {%- endif -%}
+        </div>
+
+        {%- comment -%} Desktop columns {%- endcomment -%}
+        <div class="footer__col footer__col--desktop">
+          <h3 class="footer__title">{{ heading_1 }}</h3>
+          {{ links_col_1 }}
+        </div>
+
+        <div class="footer__col footer__col--desktop">
+          <h3 class="footer__title">{{ heading_2 }}</h3>
+          {{ links_col_2 }}
+        </div>
+
+        <div class="footer__col footer__col--desktop">
+          <h3 class="footer__title">{{ 'general.contact.title' | t }}</h3>
+          {{ contact_col }}
+        </div>
+
+        {%- comment -%} Mobile accordions (same content) {%- endcomment -%}
+        <div class="footer__accordions">
+          <details class="footer__acc">
+            <summary class="footer__acc-summary">
+              <span>{{ heading_1 }}</span>
+              {% render 'icon', name: 'chevron-down', size: 18, class: 'footer__acc-chevron' %}
+            </summary>
+            <div class="footer__acc-content">{{ links_col_1 }}</div>
+          </details>
+          <details class="footer__acc">
+            <summary class="footer__acc-summary">
+              <span>{{ heading_2 }}</span>
+              {% render 'icon', name: 'chevron-down', size: 18, class: 'footer__acc-chevron' %}
+            </summary>
+            <div class="footer__acc-content">{{ links_col_2 }}</div>
+          </details>
+          <details class="footer__acc" open>
+            <summary class="footer__acc-summary">
+              <span>{{ 'general.contact.title' | t }}</span>
+              {% render 'icon', name: 'chevron-down', size: 18, class: 'footer__acc-chevron' %}
+            </summary>
+            <div class="footer__acc-content">{{ contact_col }}</div>
+          </details>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  {%- comment -%} Newsletter inline row {%- endcomment -%}
+  {%- if section.settings.show_newsletter -%}
+    <div class="footer__newsletter">
+      <div class="container">
+        <div class="footer__newsletter-inner">
+          <div class="footer__newsletter-copy">
+            {%- if section.settings.newsletter_heading != blank -%}
+              <h2 class="footer__newsletter-heading">{{ section.settings.newsletter_heading }}</h2>
+            {%- endif -%}
+            {%- if section.settings.newsletter_text != blank -%}
+              <p class="footer__newsletter-text">{{ section.settings.newsletter_text }}</p>
+            {%- endif -%}
+          </div>
+
+          {%- assign footer_form_id = 'FooterNewsletterForm-' | append: section.id -%}
+          {% form 'customer', id: footer_form_id, class: 'footer__newsletter-form' %}
+            <input type="hidden" name="contact[tags]" value="newsletter">
+
+            {%- if form.posted_successfully? -%}
+              <div class="form__success footer__newsletter-success" role="status" tabindex="-1">
+                {% render 'icon', name: 'check-circle', size: 20 %}
+                <span>{{ 'general.newsletter.success' | t }}</span>
+              </div>
+            {%- else -%}
+              {%- if form.errors -%}
+                <div class="errors footer__newsletter-errors" role="alert">
+                  <p>
+                    {%- assign email_error = form.errors.messages['email'] -%}
+                    {%- if email_error != blank -%}
+                      {{ form.errors.translated_fields['email'] }} {{ email_error }}
+                    {%- else -%}
+                      {{ 'general.newsletter.error' | t }}
+                    {%- endif -%}
+                  </p>
+                </div>
+              {%- endif -%}
+              <div class="footer__newsletter-row">
+                <label class="visually-hidden" for="FooterNewsletterEmail-{{ section.id }}">{{ 'general.newsletter.label' | t }}</label>
+                <input
+                  id="FooterNewsletterEmail-{{ section.id }}"
+                  type="email"
+                  name="contact[email]"
+                  class="field__input footer__newsletter-input"
+                  value="{{ form.email }}"
+                  placeholder="{{ 'general.newsletter.placeholder' | t }}"
+                  autocomplete="email"
+                  autocorrect="off"
+                  autocapitalize="off"
+                  required>
+                <button type="submit" class="btn footer__newsletter-btn">{{ 'general.newsletter.button' | t }}</button>
+              </div>
+            {%- endif -%}
+          {% endform %}
+        </div>
+      </div>
+    </div>
+  {%- endif -%}
+
+  {%- comment -%} Bottom bar {%- endcomment -%}
+  <div class="footer__bottom">
+    <div class="container footer__bottom-inner">
+      {%- if section.settings.show_payment_icons and shop.enabled_payment_types.size > 0 -%}
+        <!-- TODO-i18n: sections.footer.payment_methods -->
+        <ul class="footer__payments" role="list" aria-label="אמצעי תשלום">
+          {%- for type in shop.enabled_payment_types -%}
+            <li>{{ type | payment_type_svg_tag: class: 'footer__payment-icon' }}</li>
+          {%- endfor -%}
+        </ul>
+      {%- endif -%}
+
+      <div class="footer__legal">
+        <!-- TODO-i18n: sections.footer.rights -->
+        <span class="footer__copyright">&copy; {{ 'now' | date: '%Y' }} {{ shop.name }}. כל הזכויות שמורות.</span>
+        <span class="footer__powered">{{ powered_by_link }}</span>
+      </div>
+    </div>
+  </div>
+</footer>
+
+{% schema %}
+{
+  "name": "פוטר",
+  "settings": [
+    {
+      "type": "header",
+      "content": "אודות החנות"
+    },
+    {
+      "type": "richtext",
+      "id": "about_text",
+      "label": "טקסט קצר על החנות",
+      "default": "<p>א.נ. שילו — חומרי בניין, כלי עבודה וצבע במקום אחד. מעל 30 שנות ניסיון, שירות מקצועי ומלאי זמין בקרית אתא.</p>"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_social",
+      "label": "הצגת רשתות חברתיות",
+      "info": "הקישורים מוגדרים בהגדרות התבנית תחת \"רשתות חברתיות\"",
+      "default": true
+    },
+    {
+      "type": "header",
+      "content": "תפריטים"
+    },
+    {
+      "type": "text",
+      "id": "heading_1",
+      "label": "כותרת תפריט ראשון",
+      "default": "ניווט מהיר"
+    },
+    {
+      "type": "link_list",
+      "id": "menu_1",
+      "label": "תפריט ראשון",
+      "default": "footer"
+    },
+    {
+      "type": "text",
+      "id": "heading_2",
+      "label": "כותרת תפריט שני",
+      "default": "שירות לקוחות"
+    },
+    {
+      "type": "link_list",
+      "id": "menu_2",
+      "label": "תפריט שני",
+      "default": "footer"
+    },
+    {
+      "type": "header",
+      "content": "ניוזלטר"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_newsletter",
+      "label": "הצגת הרשמה לניוזלטר",
+      "default": true
+    },
+    {
+      "type": "text",
+      "id": "newsletter_heading",
+      "label": "כותרת",
+      "default": "נשארים מעודכנים"
+    },
+    {
+      "type": "text",
+      "id": "newsletter_text",
+      "label": "טקסט",
+      "default": "מבצעים, חידושים וטיפים של מקצוענים — ישירות למייל."
+    },
+    {
+      "type": "header",
+      "content": "שורה תחתונה"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_payment_icons",
+      "label": "הצגת אמצעי תשלום",
+      "default": true
+    }
+  ]
+}
+{% endschema %}

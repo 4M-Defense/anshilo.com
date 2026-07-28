@@ -1,0 +1,104 @@
+/* =========================================================
+   Shilo Pro — Newsletter section
+   Centered signup card on an alternate background
+   ========================================================= */
+
+.newsletter-card {
+  position: relative;
+  overflow: hidden;
+  max-inline-size: 760px;
+  margin-inline: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.9rem;
+  text-align: center;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-card);
+  padding: clamp(2.1rem, 5vw, 3.5rem) clamp(1.25rem, 5vw, 3.5rem) clamp(1.9rem, 4vw, 3rem);
+}
+
+/* Hazard-stripe brand motif along the top edge of the card */
+.newsletter-card__hazard {
+  position: absolute;
+  inset-block-start: 0;
+  inset-inline: 0;
+  block-size: 6px;
+  background-image: repeating-linear-gradient(
+    -45deg,
+    var(--color-accent) 0 12px,
+    var(--color-ink) 12px 24px
+  );
+}
+
+.newsletter-card__icon {
+  display: grid;
+  place-items: center;
+  inline-size: 58px;
+  block-size: 58px;
+  border-radius: 50%;
+  background: rgba(var(--color-accent-rgb), 0.12);
+  color: var(--color-accent);
+}
+
+.newsletter-card__heading {
+  margin: 0;
+  font-size: calc(clamp(1.4rem, 1.15rem + 1vw, 1.8rem) * var(--font-heading-scale));
+}
+
+.newsletter-card__text {
+  margin: 0;
+  color: var(--color-text-muted);
+  max-inline-size: 52ch;
+  line-height: 1.7;
+}
+
+.newsletter-card__form {
+  inline-size: 100%;
+  max-inline-size: 500px;
+  margin-block-start: 0.6rem;
+}
+
+.newsletter-card__row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+}
+
+.newsletter-card__input {
+  flex: 1 1 200px;
+  min-inline-size: 0;
+}
+
+.newsletter-card__btn { flex-shrink: 0; }
+
+.newsletter-card__errors {
+  margin-block-end: 0.75rem;
+  text-align: start;
+}
+
+.newsletter-card__errors p { margin: 0; }
+
+.newsletter-card__success {
+  justify-content: center;
+}
+
+.newsletter-card__note {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin: 0.35rem 0 0;
+  font-size: 0.82rem;
+  color: var(--color-text-muted);
+}
+
+.newsletter-card__note .icon {
+  color: var(--color-success);
+  flex-shrink: 0;
+}
+
+@media (max-width: 400px) {
+  .newsletter-card__btn { inline-size: 100%; }
+}

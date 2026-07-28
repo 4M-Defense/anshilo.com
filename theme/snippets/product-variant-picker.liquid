@@ -1,0 +1,42 @@
+{%- comment -%}
+  Renders the variant option picker (pill radios per option) + variant JSON.
+  Usage: {% render 'product-variant-picker', product: product, section_id: section.id %}
+  Params:
+    product    {Object} product (required)
+    section_id {String} section id (required, for unique input names/ids)
+  Notes:
+    - Renders nothing for products with only the default variant —
+      single-variant products need no client-side variant logic.
+    - section-main-product.js reads [data-variant-json], listens to the radio
+      inputs, and updates price / availability / URL / gallery / sku.
+{%- endcomment -%}
+{%- unless product.has_only_default_variant -%}
+  <div class="product-variants" data-variant-picker data-section-id="{{ section_id }}">
+    {%- for option in product.options_with_values -%}
+      <fieldset class="product-variants__option">
+        <legend class="field__label">
+          {{ option.name | escape }}:
+          <span data-selected-value>{{ option.selected_value | escape }}</span>
+        </legend>
+        <div class="variant-pills">
+          {%- for value in option.values -%}
+            {%- assign input_id = 'Option-' | append: section_id | append: '-' | append: option.position | append: '-' | append: forloop.index -%}
+            <label class="variant-pill" for="{{ input_id }}">
+              <input
+                type="radio"
+                id="{{ input_id }}"
+                name="options-{{ section_id }}-{{ option.position }}"
+                value="{{ value | escape }}"
+                data-option-position="{{ option.position }}"
+                {% if option.selected_value == value %}checked{% endif %}
+              >
+              <span>{{ value }}</span>
+            </label>
+          {%- endfor -%}
+        </div>
+      </fieldset>
+    {%- endfor -%}
+
+    <script type="application/json" data-variant-json>{{ product.variants | json }}</script>
+  </div>
+{%- endunless -%}

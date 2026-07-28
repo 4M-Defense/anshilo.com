@@ -1,0 +1,55 @@
+{
+  "sections": {
+    "hero": {
+      "type": "image-banner",
+      "settings": {}
+    },
+    "services": {
+      "type": "services-bar",
+      "settings": {}
+    },
+    "categories": {
+      "type": "collection-list",
+      "settings": {}
+    },
+    "bestsellers": {
+      "type": "featured-collection",
+      "settings": {}
+    },
+    "story": {
+      "type": "image-with-text",
+      "settings": {}
+    },
+    "new_arrivals": {
+      "type": "featured-collection",
+      "settings": {
+        "eyebrow": "הגיעו עכשיו",
+        "heading": "חדש על המדף",
+        "alt_background": true
+      }
+    },
+    "brands": {
+      "type": "brand-logos",
+      "settings": {}
+    },
+    "about": {
+      "type": "rich-text",
+      "settings": {}
+    },
+    "newsletter_signup": {
+      "type": "newsletter",
+      "settings": {}
+    }
+  },
+  "order": [
+    "hero",
+    "services",
+    "categories",
+    "bestsellers",
+    "story",
+    "new_arrivals",
+    "brands",
+    "about",
+    "newsletter_signup"
+  ]
+}

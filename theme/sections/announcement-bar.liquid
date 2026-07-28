@@ -1,0 +1,110 @@
+{{ 'section-header.css' | asset_url | stylesheet_tag }}
+<script src="{{ 'section-header.js' | asset_url }}" defer="defer"></script>
+
+{%- liquid
+  assign rotate_ms = section.settings.rotate_speed | default: 5 | times: 1000
+-%}
+
+<div class="util-bar announcement-bar" role="region" aria-label="הודעות החנות"><!-- TODO-i18n: sections.announcement_bar.label -->
+  <div class="container announcement-bar__inner">
+    <div class="announcement-bar__track" data-announcements data-rotate-interval="{{ rotate_ms }}">
+      {%- if section.blocks.size > 0 -%}
+        {%- for block in section.blocks -%}
+          <div
+            class="announcement-bar__item{% if forloop.first %} is-active{% endif %}"
+            data-announcement
+            {% unless forloop.first %}aria-hidden="true"{% endunless %}
+            {{ block.shopify_attributes }}
+          >
+            {%- if block.settings.icon != 'none' -%}
+              {% render 'icon', name: block.settings.icon, size: 15, class: 'announcement-bar__icon' %}
+            {%- endif -%}
+            {%- if block.settings.link != blank -%}
+              <a class="announcement-bar__text announcement-bar__text--link" href="{{ block.settings.link }}">{{ block.settings.text | escape }}</a>
+            {%- else -%}
+              <span class="announcement-bar__text">{{ block.settings.text | escape }}</span>
+            {%- endif -%}
+          </div>
+        {%- endfor -%}
+      {%- else -%}
+        <div class="announcement-bar__item is-active" data-announcement>
+          {% render 'icon', name: 'truck', size: 15, class: 'announcement-bar__icon' %}
+          <span class="announcement-bar__text">משלוחים לכל הצפון | 30+ שנות ניסיון</span><!-- TODO-i18n: sections.announcement_bar.fallback -->
+        </div>
+      {%- endif -%}
+    </div>
+
+    {%- if section.settings.show_phone and settings.store_phone != blank -%}
+      <a
+        class="announcement-bar__phone"
+        href="tel:{{ settings.store_phone | replace: '-', '' | replace: ' ', '' }}"
+        aria-label="{{ 'general.contact.phone' | t }}: {{ settings.store_phone }}"
+      >
+        {% render 'icon', name: 'phone', size: 14 %}
+        <span dir="ltr">{{ settings.store_phone }}</span>
+      </a>
+    {%- endif -%}
+  </div>
+</div>
+
+{% schema %}
+{
+  "name": "פס הודעות עליון",
+  "max_blocks": 3,
+  "settings": [
+    {
+      "type": "checkbox",
+      "id": "show_phone",
+      "label": "הצגת טלפון החנות בצד (בדסקטופ)",
+      "default": true
+    },
+    {
+      "type": "range",
+      "id": "rotate_speed",
+      "min": 3,
+      "max": 10,
+      "step": 1,
+      "unit": "שנ'",
+      "label": "משך הצגת כל הודעה",
+      "default": 5
+    }
+  ],
+  "blocks": [
+    {
+      "type": "announcement",
+      "name": "הודעה",
+      "settings": [
+        {
+          "type": "text",
+          "id": "text",
+          "label": "טקסט ההודעה",
+          "default": "משלוחים מהירים לכל הצפון"
+        },
+        {
+          "type": "url",
+          "id": "link",
+          "label": "קישור (אופציונלי)"
+        },
+        {
+          "type": "select",
+          "id": "icon",
+          "label": "אייקון",
+          "default": "truck",
+          "options": [
+            { "value": "none", "label": "ללא" },
+            { "value": "truck", "label": "משאית משלוחים" },
+            { "value": "tag", "label": "תווית מחיר" },
+            { "value": "percent", "label": "אחוזי הנחה" },
+            { "value": "shield-check", "label": "מגן אמינות" },
+            { "value": "clock", "label": "שעון" },
+            { "value": "phone", "label": "טלפון" },
+            { "value": "store", "label": "חנות" },
+            { "value": "headset", "label": "שירות לקוחות" },
+            { "value": "check-circle", "label": "סימן אישור" }
+          ]
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}

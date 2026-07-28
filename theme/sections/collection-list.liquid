@@ -1,0 +1,270 @@
+{{ 'section-collection-list.css' | asset_url | stylesheet_tag }}
+
+{%- liquid
+  assign columns = section.settings.columns
+  assign feature_first = section.settings.feature_first
+-%}
+
+<section
+  id="CollectionList-{{ section.id }}"
+  class="section collection-list{% if section.settings.alt_background %} section--alt{% endif %}"
+>
+  <div class="container">
+    {%- if section.settings.eyebrow != blank or section.settings.heading != blank or section.settings.show_view_all -%}
+      <div class="section-header">
+        <div class="section-header__titles">
+          {%- if section.settings.eyebrow != blank -%}
+            <span class="section-header__eyebrow">{{ section.settings.eyebrow | escape }}</span>
+          {%- endif -%}
+          {%- if section.settings.heading != blank -%}
+            <h2 class="collection-list__heading">{{ section.settings.heading | escape }}</h2>
+          {%- endif -%}
+        </div>
+
+        {%- if section.settings.show_view_all -%}
+          <a href="{{ routes.collections_url }}" class="section-header__link">
+            <!-- TODO-i18n: sections.collection_list.view_all -->
+            לכל הקטגוריות
+            {% render 'icon', name: 'arrow-right', size: 18 %}
+          </a>
+        {%- endif -%}
+      </div>
+    {%- endif -%}
+
+    <ul class="grid collection-list__grid" style="--cl-columns: {{ columns }};" role="list">
+      {%- if section.blocks.size > 0 -%}
+        {%- for block in section.blocks -%}
+          {%- liquid
+            assign c = block.settings.collection
+            assign tile_title = block.settings.title | default: c.title
+            assign tile_image = block.settings.image | default: c.featured_image
+            assign is_feature = false
+            if feature_first and forloop.first
+              assign is_feature = true
+            endif
+            assign ph_index = forloop.index0 | modulo: 6 | plus: 1
+          -%}
+          <li
+            class="collection-list__item reveal{% if is_feature %} collection-list__item--feature{% endif %}"
+            {{ block.shopify_attributes }}
+          >
+            {%- if c != blank -%}
+              <a href="{{ c.url }}" class="collection-tile" aria-label="{{ 'sections.collection_list.view_collection' | t }} — {{ tile_title | escape }}">
+            {%- else -%}
+              <div class="collection-tile">
+            {%- endif -%}
+
+              <div class="collection-tile__media" aria-hidden="true">
+                {%- if tile_image != blank -%}
+                  <img
+                    src="{{ tile_image | image_url: width: 800 }}"
+                    srcset="{{ tile_image | image_url: width: 400 }} 400w, {{ tile_image | image_url: width: 600 }} 600w, {{ tile_image | image_url: width: 800 }} 800w, {{ tile_image | image_url: width: 1200 }} 1200w"
+                    {%- if is_feature %}
+                    sizes="(min-width: 990px) 66vw, 100vw"
+                    {%- else %}
+                    sizes="(min-width: 990px) 33vw, 50vw"
+                    {%- endif %}
+                    alt=""
+                    loading="lazy"
+                    width="{{ tile_image.width }}"
+                    height="{{ tile_image.height }}"
+                  >
+                {%- else -%}
+                  {%- assign ph_name = 'collection-' | append: ph_index -%}
+                  {{ ph_name | placeholder_svg_tag: 'placeholder-svg' }}
+                {%- endif -%}
+              </div>
+
+              <span class="collection-tile__overlay" aria-hidden="true"></span>
+
+              <div class="collection-tile__content">
+                <div class="collection-tile__text">
+                  <h3 class="collection-tile__title">
+                    <!-- TODO-i18n: sections.collection_list.default_title -->
+                    {{ tile_title | default: 'קטגוריה' | escape }}
+                  </h3>
+                  {%- if c != blank -%}
+                    <span class="collection-tile__count">
+                      {{- 'products.facets.product_count' | t: count: c.products_count -}}
+                    </span>
+                  {%- endif -%}
+                </div>
+                {%- if c != blank -%}
+                  <span class="collection-tile__arrow" aria-hidden="true">
+                    {% render 'icon', name: 'arrow-right', size: 20, class: 'icon--dir' %}
+                  </span>
+                {%- endif -%}
+              </div>
+
+            {%- if c != blank -%}
+              </a>
+            {%- else -%}
+              </div>
+            {%- endif -%}
+          </li>
+        {%- endfor -%}
+
+      {%- elsif collections.size > 0 -%}
+        {%- for c in collections limit: 6 -%}
+          {%- liquid
+            assign is_feature = false
+            if feature_first and forloop.first
+              assign is_feature = true
+            endif
+            assign ph_index = forloop.index0 | modulo: 6 | plus: 1
+          -%}
+          <li class="collection-list__item reveal{% if is_feature %} collection-list__item--feature{% endif %}">
+            <a href="{{ c.url }}" class="collection-tile" aria-label="{{ 'sections.collection_list.view_collection' | t }} — {{ c.title | escape }}">
+              <div class="collection-tile__media" aria-hidden="true">
+                {%- if c.featured_image != blank -%}
+                  <img
+                    src="{{ c.featured_image | image_url: width: 800 }}"
+                    srcset="{{ c.featured_image | image_url: width: 400 }} 400w, {{ c.featured_image | image_url: width: 600 }} 600w, {{ c.featured_image | image_url: width: 800 }} 800w, {{ c.featured_image | image_url: width: 1200 }} 1200w"
+                    {%- if is_feature %}
+                    sizes="(min-width: 990px) 66vw, 100vw"
+                    {%- else %}
+                    sizes="(min-width: 990px) 33vw, 50vw"
+                    {%- endif %}
+                    alt=""
+                    loading="lazy"
+                    width="{{ c.featured_image.width }}"
+                    height="{{ c.featured_image.height }}"
+                  >
+                {%- else -%}
+                  {%- assign ph_name = 'collection-' | append: ph_index -%}
+                  {{ ph_name | placeholder_svg_tag: 'placeholder-svg' }}
+                {%- endif -%}
+              </div>
+
+              <span class="collection-tile__overlay" aria-hidden="true"></span>
+
+              <div class="collection-tile__content">
+                <div class="collection-tile__text">
+                  <h3 class="collection-tile__title">{{ c.title | escape }}</h3>
+                  <span class="collection-tile__count">
+                    {{- 'products.facets.product_count' | t: count: c.products_count -}}
+                  </span>
+                </div>
+                <span class="collection-tile__arrow" aria-hidden="true">
+                  {% render 'icon', name: 'arrow-right', size: 20, class: 'icon--dir' %}
+                </span>
+              </div>
+            </a>
+          </li>
+        {%- endfor -%}
+
+      {%- else -%}
+        <!-- TODO-i18n: sections.collection_list.placeholder_titles -->
+        {%- assign fallback_titles = 'כלי עבודה,צבע וחומרי גמר,חשמל ותאורה,עץ ולוחות,ברזל ופרזול,גינה וחוץ' | split: ',' -%}
+        {%- for title in fallback_titles -%}
+          {%- liquid
+            assign is_feature = false
+            if feature_first and forloop.first
+              assign is_feature = true
+            endif
+          -%}
+          <li class="collection-list__item reveal{% if is_feature %} collection-list__item--feature{% endif %}">
+            <div class="collection-tile">
+              <div class="collection-tile__media" aria-hidden="true">
+                {%- assign ph_name = 'collection-' | append: forloop.index -%}
+                {{ ph_name | placeholder_svg_tag: 'placeholder-svg' }}
+              </div>
+              <span class="collection-tile__overlay" aria-hidden="true"></span>
+              <div class="collection-tile__content">
+                <div class="collection-tile__text">
+                  <h3 class="collection-tile__title">{{ title }}</h3>
+                </div>
+              </div>
+            </div>
+          </li>
+        {%- endfor -%}
+      {%- endif -%}
+    </ul>
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "רשימת קטגוריות",
+  "max_blocks": 12,
+  "settings": [
+    {
+      "type": "header",
+      "content": "כותרת"
+    },
+    {
+      "type": "text",
+      "id": "eyebrow",
+      "label": "שורת פתיחה קטנה",
+      "default": "מחלקות החנות"
+    },
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "כותרת",
+      "default": "קונים לפי קטגוריה"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_view_all",
+      "label": "הצגת קישור \"לכל הקטגוריות\"",
+      "default": false
+    },
+    {
+      "type": "header",
+      "content": "פריסה"
+    },
+    {
+      "type": "range",
+      "id": "columns",
+      "label": "עמודות במחשב",
+      "min": 2,
+      "max": 4,
+      "step": 1,
+      "default": 3
+    },
+    {
+      "type": "checkbox",
+      "id": "feature_first",
+      "label": "הבלטת האריח הראשון",
+      "info": "האריח הראשון יתפרש על שתי עמודות.",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "alt_background",
+      "label": "רקע אפור בהיר",
+      "default": false
+    }
+  ],
+  "blocks": [
+    {
+      "type": "collection",
+      "name": "קטגוריה",
+      "settings": [
+        {
+          "type": "collection",
+          "id": "collection",
+          "label": "קטגוריה"
+        },
+        {
+          "type": "image_picker",
+          "id": "image",
+          "label": "תמונה מותאמת (אופציונלי)",
+          "info": "אם לא נבחרה — תוצג תמונת הקטגוריה."
+        },
+        {
+          "type": "text",
+          "id": "title",
+          "label": "כותרת מותאמת (אופציונלי)"
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "רשימת קטגוריות"
+    }
+  ]
+}
+{% endschema %}

@@ -1,0 +1,101 @@
+{{ 'section-newsletter.css' | asset_url | stylesheet_tag }}
+
+<div class="section section--alt newsletter-section" id="Newsletter-{{ section.id }}">
+  <div class="container">
+    <div class="newsletter-card reveal">
+      <span class="newsletter-card__hazard" aria-hidden="true"></span>
+
+      <div class="newsletter-card__icon" aria-hidden="true">
+        {% render 'icon', name: 'mail', size: 26 %}
+      </div>
+
+      {%- if section.settings.heading != blank -%}
+        <h2 class="newsletter-card__heading">{{ section.settings.heading }}</h2>
+      {%- endif -%}
+
+      {%- if section.settings.text != blank -%}
+        <p class="newsletter-card__text">{{ section.settings.text }}</p>
+      {%- endif -%}
+
+      {%- assign newsletter_form_id = 'NewsletterSectionForm-' | append: section.id -%}
+      {% form 'customer', id: newsletter_form_id, class: 'newsletter-card__form' %}
+        <input type="hidden" name="contact[tags]" value="newsletter">
+
+        {%- if form.posted_successfully? -%}
+          <div class="form__success newsletter-card__success" role="status" tabindex="-1">
+            {% render 'icon', name: 'check-circle', size: 20 %}
+            <span>{{ 'general.newsletter.success' | t }}</span>
+          </div>
+        {%- else -%}
+          {%- if form.errors -%}
+            <div class="errors newsletter-card__errors" role="alert">
+              <p>
+                {%- assign email_error = form.errors.messages['email'] -%}
+                {%- if email_error != blank -%}
+                  {{ form.errors.translated_fields['email'] }} {{ email_error }}
+                {%- else -%}
+                  {{ 'general.newsletter.error' | t }}
+                {%- endif -%}
+              </p>
+            </div>
+          {%- endif -%}
+
+          <div class="newsletter-card__row">
+            <label class="visually-hidden" for="NewsletterSectionEmail-{{ section.id }}">{{ 'general.newsletter.label' | t }}</label>
+            <input
+              id="NewsletterSectionEmail-{{ section.id }}"
+              type="email"
+              name="contact[email]"
+              class="field__input newsletter-card__input"
+              value="{{ form.email }}"
+              placeholder="{{ 'general.newsletter.placeholder' | t }}"
+              autocomplete="email"
+              autocorrect="off"
+              autocapitalize="off"
+              required>
+            <button type="submit" class="btn newsletter-card__btn">{{ 'general.newsletter.button' | t }}</button>
+          </div>
+        {%- endif -%}
+      {% endform %}
+
+      {%- if section.settings.show_privacy_note -%}
+        <p class="newsletter-card__note">
+          {% render 'icon', name: 'shield-check', size: 15 %}
+          <!-- TODO-i18n: general.newsletter.privacy_note -->
+          <span>בלי ספאם. אפשר לבטל את ההרשמה בכל רגע.</span>
+        </p>
+      {%- endif -%}
+    </div>
+  </div>
+</div>
+
+{% schema %}
+{
+  "name": "הרשמה לניוזלטר",
+  "settings": [
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "כותרת",
+      "default": "מצטרפים למועדון של שילו"
+    },
+    {
+      "type": "textarea",
+      "id": "text",
+      "label": "טקסט",
+      "default": "מבצעים בלעדיים, חידושים בקטלוג וטיפים של אנשי מקצוע — ישירות למייל."
+    },
+    {
+      "type": "checkbox",
+      "id": "show_privacy_note",
+      "label": "הצגת שורת פרטיות קטנה",
+      "default": true
+    }
+  ],
+  "presets": [
+    {
+      "name": "הרשמה לניוזלטר"
+    }
+  ]
+}
+{% endschema %}

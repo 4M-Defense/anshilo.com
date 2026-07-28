@@ -1,0 +1,131 @@
+{{ 'section-main-product.css' | asset_url | stylesheet_tag }}
+
+{%- liquid
+  assign heading = section.settings.heading
+  if heading == blank
+    assign heading = 'sections.related_products.heading' | t
+  endif
+  assign limit = section.settings.products_to_show | default: 4
+-%}
+
+<related-products
+  class="related-products section section--alt"
+  data-url="{{ routes.product_recommendations_url }}?section_id={{ section.id }}&product_id={{ product.id }}&limit={{ limit }}"
+>
+  {%- if recommendations.performed -%}
+    {%- if recommendations.products_count > 0 -%}
+      <div class="container">
+        <div class="section-header">
+          <div>
+            {%- if section.settings.eyebrow != blank -%}
+              <span class="section-header__eyebrow">{{ section.settings.eyebrow | escape }}</span>
+            {%- endif -%}
+            <h2 class="h2">{{ heading | escape }}</h2>
+          </div>
+        </div>
+        <div class="grid grid--4">
+          {%- for rec_product in recommendations.products -%}
+            {% render 'product-card', product: rec_product, lazy: true %}
+          {%- endfor -%}
+        </div>
+      </div>
+    {%- endif -%}
+  {%- else -%}
+    {%- comment -%} Initial render: skeleton until the Section Rendering API responds {%- endcomment -%}
+    <div class="container">
+      <div class="section-header">
+        <div>
+          {%- if section.settings.eyebrow != blank -%}
+            <span class="section-header__eyebrow">{{ section.settings.eyebrow | escape }}</span>
+          {%- endif -%}
+          <h2 class="h2">{{ heading | escape }}</h2>
+        </div>
+      </div>
+      <div class="grid grid--4">
+        {%- for i in (1..limit) -%}
+          <div class="related-skeleton" aria-hidden="true">
+            <div class="skeleton related-skeleton__media"></div>
+            <div class="skeleton related-skeleton__line"></div>
+            <div class="skeleton related-skeleton__line related-skeleton__line--short"></div>
+          </div>
+        {%- endfor -%}
+      </div>
+    </div>
+  {%- endif -%}
+</related-products>
+
+<script>
+  (function () {
+    if (customElements.get('related-products')) return;
+    customElements.define(
+      'related-products',
+      class RelatedProducts extends HTMLElement {
+        connectedCallback() {
+          const url = this.dataset.url;
+          if (!url || this.dataset.loaded) return;
+
+          const load = () => {
+            this.dataset.loaded = 'true';
+            fetch(url)
+              .then((res) => res.text())
+              .then((text) => {
+                const doc = new DOMParser().parseFromString(text, 'text/html');
+                const fresh = doc.querySelector('related-products');
+                if (fresh && fresh.querySelector('.product-card')) {
+                  this.innerHTML = fresh.innerHTML;
+                  this.classList.add('is-loaded');
+                } else {
+                  this.hidden = true;
+                }
+              })
+              .catch(() => {
+                this.hidden = true;
+              });
+          };
+
+          if ('IntersectionObserver' in window) {
+            new IntersectionObserver(
+              (entries, observer) => {
+                if (!entries[0].isIntersecting) return;
+                observer.disconnect();
+                load();
+              },
+              { rootMargin: '0px 0px 400px 0px' }
+            ).observe(this);
+          } else {
+            load();
+          }
+        }
+      }
+    );
+  })();
+</script>
+
+{% schema %}
+{
+  "name": "מוצרים דומים",
+  "settings": [
+    {
+      "type": "text",
+      "id": "eyebrow",
+      "label": "שורת פתיחה קטנה",
+      "default": "משלימים את הפרויקט"
+    },
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "כותרת",
+      "default": "אולי יעניין אתכם גם"
+    },
+    {
+      "type": "range",
+      "id": "products_to_show",
+      "label": "מספר מוצרים להצגה",
+      "min": 2,
+      "max": 8,
+      "step": 1,
+      "default": 4
+    }
+  ]
+}
+{% endschema %}

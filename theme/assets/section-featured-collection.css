@@ -1,0 +1,92 @@
+/* =========================================================
+   Shilo Pro — Featured Collection section
+   Mobile: horizontal snap scroll-row (always).
+   Desktop: grid (default) or scroll-row via setting.
+   ========================================================= */
+
+.featured-collection__heading {
+  margin: 0;
+}
+
+.featured-collection .section-header__titles {
+  min-inline-size: 0;
+}
+
+/* ---------- Product list ---------- */
+.featured-collection__row {
+  list-style: none;
+  margin: 0;
+  padding-inline-start: 0;
+}
+
+/* Let cards stretch to equal heights inside grid/scroll cells */
+.featured-collection__item {
+  display: flex;
+  min-inline-size: 0;
+}
+
+.featured-collection__item .product-card {
+  flex: 1 1 auto;
+  inline-size: 100%;
+}
+
+/* Bleed the scroll row to the screen edge on mobile so cards
+   peek naturally and the scrollbar hugs the viewport */
+@media (max-width: 989px) {
+  .featured-collection__row {
+    margin-inline: calc(-1 * var(--page-gutter));
+    padding-inline: var(--page-gutter);
+    scroll-padding-inline: var(--page-gutter);
+  }
+}
+
+/* ---------- Desktop: grid mode ---------- */
+@media (min-width: 990px) {
+  .featured-collection__row--grid {
+    grid-auto-flow: row;
+    grid-auto-columns: unset;
+    grid-template-columns: repeat(var(--fc-columns, 4), minmax(0, 1fr));
+    gap: clamp(1rem, 1.5vw, 1.5rem);
+    overflow: visible;
+    scroll-snap-type: none;
+    padding-block-end: 0;
+  }
+}
+
+/* ---------- Desktop: scroll mode ---------- */
+@media (min-width: 990px) {
+  .featured-collection__row--scroll {
+    --fc-gap: 1.25rem;
+    gap: var(--fc-gap);
+    /* N cards fit, the next one peeks in to invite scrolling */
+    grid-auto-columns: calc(
+      (100% - (var(--fc-columns, 4) - 1) * var(--fc-gap) - 3.25rem) / var(--fc-columns, 4)
+    );
+  }
+}
+
+/* ---------- View-all: inline link on desktop, button on mobile ---------- */
+.featured-collection__footer {
+  display: flex;
+  justify-content: center;
+  margin-block-start: 1.25rem;
+}
+
+.featured-collection__footer .btn {
+  inline-size: 100%;
+  max-inline-size: 360px;
+}
+
+.featured-collection .section-header__link {
+  display: none;
+}
+
+@media (min-width: 750px) {
+  .featured-collection .section-header__link {
+    display: inline-flex;
+  }
+
+  .featured-collection__footer {
+    display: none;
+  }
+}

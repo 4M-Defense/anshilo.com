@@ -1,0 +1,134 @@
+{%- comment -%}
+  Renders the product page media gallery: main stage + thumbnail strip.
+  Usage: {% render 'product-media-gallery', product: product, section_id: section.id %}
+  Params:
+    product    {Object} product (required)
+    section_id {String} section id (required, for unique ids)
+  Behavior:
+    - Main stage: square, contain, white background. Supports image / video /
+      external_video / model (via media_tag fallback).
+    - Sale / sold-out badge overlaid on the main image.
+    - Thumbnails: horizontal scroll strip, RTL aware, keyboard accessible.
+    - JS (section-main-product.js) switches the active media and jumps to a
+      variant's featured media on variant change.
+{%- endcomment -%}
+{%- liquid
+  assign current_variant = product.selected_or_first_available_variant
+  assign featured_media = current_variant.featured_media | default: product.featured_media
+
+  assign on_sale = false
+  if product.compare_at_price > product.price
+    assign on_sale = true
+  endif
+-%}
+
+<div class="product-gallery" data-product-gallery id="MediaGallery-{{ section_id }}">
+  <div
+    class="product-gallery__stage"
+    role="region"
+    aria-label="{{ 'products.product.media.gallery_viewer' | t }}"
+  >
+    <div class="product-gallery__badges">
+      {%- if product.available == false -%}
+        <span class="badge badge--soldout">{{ 'products.product.sold_out' | t }}</span>
+      {%- elsif on_sale -%}
+        <span class="badge badge--sale">
+          {%- if settings.show_sale_badge_percent -%}
+            {%- assign discount = product.compare_at_price | minus: product.price | times: 100.0 | divided_by: product.compare_at_price | round -%}
+            {{ discount }}%-
+          {%- else -%}
+            {{ 'products.product.on_sale' | t }}
+          {%- endif -%}
+        </span>
+      {%- endif -%}
+    </div>
+
+    {%- if product.media.size > 0 -%}
+      {%- for media in product.media -%}
+        {%- liquid
+          assign is_active = false
+          if media.id == featured_media.id
+            assign is_active = true
+          elsif featured_media == blank and forloop.first
+            assign is_active = true
+          endif
+        -%}
+        <div
+          class="product-gallery__item{% if is_active %} is-active{% endif %}"
+          data-media-id="{{ media.id }}"
+          data-media-type="{{ media.media_type }}"
+          {% unless is_active %}aria-hidden="true"{% endunless %}
+        >
+          {%- case media.media_type -%}
+            {%- when 'image' -%}
+              <img
+                srcset="
+                  {{ media.preview_image | image_url: width: 480 }} 480w,
+                  {{ media.preview_image | image_url: width: 720 }} 720w,
+                  {{ media.preview_image | image_url: width: 960 }} 960w,
+                  {{ media.preview_image | image_url: width: 1200 }} 1200w,
+                  {{ media.preview_image | image_url: width: 1600 }} 1600w
+                "
+                src="{{ media.preview_image | image_url: width: 960 }}"
+                sizes="(min-width: 1200px) 700px, (min-width: 990px) 55vw, 100vw"
+                alt="{{ media.alt | default: product.title | escape }}"
+                width="{{ media.preview_image.width }}"
+                height="{{ media.preview_image.height }}"
+                loading="{% if is_active %}eager{% else %}lazy{% endif %}"
+                {% if is_active %}fetchpriority="high"{% endif %}
+              >
+            {%- else -%}
+              {{ media | media_tag: image_size: '1024x', class: 'product-gallery__media-el' }}
+          {%- endcase -%}
+        </div>
+      {%- endfor -%}
+    {%- else -%}
+      <div class="product-gallery__item product-gallery__item--placeholder is-active" data-media-id="placeholder">
+        {{ 'product-1' | placeholder_svg_tag: 'placeholder-svg' }}
+      </div>
+    {%- endif -%}
+  </div>
+
+  {%- if product.media.size > 1 -%}
+    <div
+      class="product-gallery__thumbs"
+      data-gallery-thumbs
+      role="group"
+      aria-label="{{ 'products.product.media.gallery_viewer' | t }}"
+    >
+      {%- for media in product.media -%}
+        {%- liquid
+          assign is_active = false
+          if media.id == featured_media.id
+            assign is_active = true
+          elsif featured_media == blank and forloop.first
+            assign is_active = true
+          endif
+        -%}
+        <button
+          type="button"
+          class="product-gallery__thumb{% if is_active %} is-active{% endif %}"
+          data-thumb
+          data-media-id="{{ media.id }}"
+          aria-label="{{ 'products.product.media.load_image' | t: index: forloop.index }}"
+          aria-current="{% if is_active %}true{% else %}false{% endif %}"
+        >
+          <img
+            src="{{ media.preview_image | image_url: width: 160 }}"
+            srcset="{{ media.preview_image | image_url: width: 160 }} 1x, {{ media.preview_image | image_url: width: 320 }} 2x"
+            alt=""
+            width="80"
+            height="80"
+            loading="lazy"
+            aria-hidden="true"
+          >
+          {%- if media.media_type == 'video' or media.media_type == 'external_video' -%}
+            <span class="product-gallery__thumb-badge product-gallery__thumb-badge--video" aria-hidden="true"></span>
+          {%- elsif media.media_type == 'model' -%}
+            <span class="product-gallery__thumb-badge product-gallery__thumb-badge--model" aria-hidden="true">3D</span>
+          {%- endif -%}
+        </button>
+      {%- endfor -%}
+    </div>
+  {%- endif -%}
+</div>

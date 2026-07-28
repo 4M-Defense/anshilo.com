@@ -1,0 +1,462 @@
+/* =========================================================
+   Shilo Pro — Product page (main-product + related-products)
+   ========================================================= */
+
+.product-page {
+  padding-block-end: clamp(2.5rem, 4vw, 4.5rem);
+}
+
+/* ---------- Layout: stacked mobile / 55-45 desktop ---------- */
+.product-layout {
+  display: grid;
+  gap: 1.75rem;
+  align-items: start;
+}
+
+@media (min-width: 990px) {
+  .product-layout {
+    grid-template-columns: minmax(0, 11fr) minmax(0, 9fr);
+    gap: clamp(2.25rem, 4vw, 4.5rem);
+  }
+
+  .product-layout__media {
+    position: sticky;
+    inset-block-start: 96px;
+  }
+}
+
+/* ---------- Media gallery ---------- */
+.product-gallery__stage {
+  position: relative;
+  aspect-ratio: 1 / 1;
+  background: #fff;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  overflow: hidden;
+}
+
+.product-gallery__badges {
+  position: absolute;
+  inset-block-start: 1rem;
+  inset-inline-start: 1rem;
+  z-index: 3;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.4rem;
+  pointer-events: none;
+}
+
+.product-gallery__item {
+  position: absolute;
+  inset: 0;
+  padding: clamp(0.75rem, 2.5vw, 1.75rem);
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity var(--duration-base) ease, visibility 0s var(--duration-base);
+}
+
+.product-gallery__item.is-active {
+  opacity: 1;
+  visibility: visible;
+  z-index: 1;
+  transition: opacity var(--duration-base) ease;
+}
+
+.product-gallery__item > img {
+  inline-size: 100%;
+  block-size: 100%;
+  object-fit: contain;
+}
+
+.product-gallery__item[data-media-type="video"],
+.product-gallery__item[data-media-type="external_video"] {
+  padding: 0;
+  background: var(--color-ink);
+}
+
+.product-gallery__item video,
+.product-gallery__item iframe,
+.product-gallery__item model-viewer {
+  inline-size: 100%;
+  block-size: 100%;
+  border: 0;
+}
+
+.product-gallery__item--placeholder {
+  padding: 0;
+}
+
+.product-gallery__item--placeholder .placeholder-svg {
+  inline-size: 100%;
+  block-size: 100%;
+}
+
+/* Thumbnails */
+.product-gallery__thumbs {
+  display: flex;
+  gap: 0.6rem;
+  margin-block-start: 0.9rem;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  padding: 3px;
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-border) transparent;
+}
+
+.product-gallery__thumbs::-webkit-scrollbar { height: 6px; }
+.product-gallery__thumbs::-webkit-scrollbar-thumb { background: var(--color-border); border-radius: 3px; }
+
+.product-gallery__thumb {
+  position: relative;
+  flex: 0 0 auto;
+  inline-size: 68px;
+  block-size: 68px;
+  padding: 5px;
+  background: #fff;
+  border: 1.5px solid var(--color-border);
+  border-radius: var(--radius-base);
+  cursor: pointer;
+  transition: border-color var(--duration-fast) ease, box-shadow var(--duration-fast) ease;
+}
+
+@media (min-width: 990px) {
+  .product-gallery__thumb {
+    inline-size: 80px;
+    block-size: 80px;
+  }
+}
+
+.product-gallery__thumb:hover { border-color: var(--color-text-muted); }
+
+.product-gallery__thumb.is-active {
+  border-color: var(--color-accent);
+  box-shadow: 0 0 0 1px var(--color-accent);
+}
+
+.product-gallery__thumb img {
+  inline-size: 100%;
+  block-size: 100%;
+  object-fit: contain;
+}
+
+.product-gallery__thumb-badge {
+  position: absolute;
+  inset-block-end: 4px;
+  inset-inline-end: 4px;
+  inline-size: 20px;
+  block-size: 20px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: rgba(16, 20, 24, 0.72);
+  color: #fff;
+  font-size: 0.55rem;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.product-gallery__thumb-badge--video::before {
+  content: "";
+  inline-size: 0;
+  block-size: 0;
+  /* Play triangle is a universal symbol — intentionally physical (always points right) */
+  border-top: 5px solid transparent;
+  border-bottom: 5px solid transparent;
+  border-left: 8px solid currentColor;
+  margin-left: 2px;
+}
+
+/* ---------- Info column ---------- */
+.product-info {
+  display: flex;
+  flex-direction: column;
+  gap: 1.35rem;
+  min-inline-size: 0;
+}
+
+.product-info__header {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.product-info__top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.product-info__vendor {
+  font-size: 0.78rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.product-info__share {
+  inline-size: auto;
+  padding-inline: 0.7rem;
+  gap: 0.4rem;
+  color: var(--color-text-muted);
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.product-info__share-label { line-height: 1; }
+
+.product-info__title {
+  margin: 0;
+  font-size: calc(clamp(1.55rem, 1.15rem + 1.7vw, 2.25rem) * var(--font-heading-scale));
+  line-height: 1.22;
+}
+
+.product-info__sku {
+  margin: 0;
+  font-size: 0.82rem;
+  color: var(--color-text-muted);
+}
+
+/* Pricing */
+.product-info__pricing {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+  padding-block: 1rem;
+  border-block: 1px solid var(--color-border);
+}
+
+.product-info__price-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.45rem 0.8rem;
+}
+
+.product-info__tax-note {
+  margin: 0;
+  font-size: 0.8rem;
+  color: var(--color-text-muted);
+}
+
+.product-info__tax-note a {
+  color: inherit;
+  text-underline-offset: 3px;
+}
+
+/* Variant picker */
+.product-variants {
+  display: flex;
+  flex-direction: column;
+  gap: 1.1rem;
+}
+
+.product-variants__option {
+  border: 0;
+  padding: 0;
+  margin: 0;
+  min-inline-size: 0;
+}
+
+.product-variants__option legend {
+  padding: 0;
+  margin-block-end: 0.55rem;
+}
+
+.product-variants__option legend [data-selected-value] {
+  font-weight: 500;
+  color: var(--color-text-muted);
+}
+
+/* Buy area */
+.product-buy { display: block; }
+
+.product-form__quantity {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+}
+
+.product-form__controls {
+  display: flex;
+  align-items: stretch;
+  gap: 0.75rem;
+}
+
+.product-form__controls .qty {
+  flex-shrink: 0;
+  align-self: stretch;
+}
+
+.product-form__controls .qty__input { min-block-size: 52px; }
+
+.product-form__submit {
+  flex: 1 1 auto;
+  min-inline-size: 0;
+}
+
+/* Dynamic checkout (payment button) — match the design system */
+.product-form .shopify-payment-button {
+  margin-block-start: 0.75rem;
+}
+
+.product-form .shopify-payment-button__button {
+  border-radius: var(--radius-base);
+}
+
+.product-form .shopify-payment-button__button--unbranded {
+  background-color: var(--color-ink);
+  color: var(--color-on-ink);
+  font-family: var(--font-body-family);
+  font-weight: 700;
+  font-size: 1rem;
+  min-block-size: 52px;
+  transition: background-color var(--duration-fast) ease;
+}
+
+.product-form .shopify-payment-button__button--unbranded:hover:not([disabled]) {
+  background-color: #000;
+}
+
+.product-form .shopify-payment-button__button--branded {
+  min-block-size: 52px;
+  border-radius: var(--radius-base);
+  overflow: hidden;
+}
+
+.product-form .shopify-payment-button__more-options {
+  font-size: 0.85rem;
+  color: var(--color-text-muted);
+}
+
+/* Trust rows */
+.product-trust {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+  padding: 1.1rem 1.25rem;
+  background: var(--color-surface-alt);
+  border-radius: var(--radius-card);
+}
+
+/* Accordions */
+.product-info__accordions { margin-block-start: 0.25rem; }
+
+.product-info__custom-liquid {
+  padding-block: 1.1rem;
+  border-block-end: 1px solid var(--color-border);
+}
+
+/* ---------- Sticky mobile add-to-cart bar ---------- */
+.product-sticky-bar {
+  position: fixed;
+  inset-inline: 0;
+  inset-block-end: 0;
+  z-index: 80;
+  background: var(--color-surface);
+  border-block-start: 1px solid var(--color-border);
+  box-shadow: 0 -8px 24px rgba(16, 20, 24, 0.1);
+  transform: translateY(105%);
+  visibility: hidden;
+  transition: transform var(--duration-base) var(--ease-out), visibility 0s var(--duration-base);
+}
+
+.product-sticky-bar.is-visible {
+  transform: translateY(0);
+  visibility: visible;
+  transition: transform var(--duration-base) var(--ease-out);
+}
+
+.product-sticky-bar__inner {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  padding-block-start: 0.6rem;
+  padding-block-end: calc(0.6rem + env(safe-area-inset-bottom));
+}
+
+.product-sticky-bar__media {
+  inline-size: 44px;
+  block-size: 44px;
+  flex-shrink: 0;
+  background: #fff;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-base);
+  overflow: hidden;
+}
+
+.product-sticky-bar__media img,
+.product-sticky-bar__media .placeholder-svg {
+  inline-size: 100%;
+  block-size: 100%;
+  object-fit: contain;
+}
+
+.product-sticky-bar__meta {
+  flex: 1 1 auto;
+  min-inline-size: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+}
+
+.product-sticky-bar__title {
+  font-size: 0.85rem;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.product-sticky-bar__price {
+  font-family: var(--font-heading-family);
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: var(--color-ink);
+}
+
+.product-sticky-bar__btn {
+  flex-shrink: 0;
+  padding-inline: 1.1rem;
+}
+
+@media (min-width: 990px) {
+  .product-sticky-bar { display: none; }
+}
+
+/* ---------- Related products ---------- */
+.related-products { display: block; }
+
+.related-products[hidden] { display: none; }
+
+.related-skeleton {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.related-skeleton__media { aspect-ratio: 1 / 1; }
+
+.related-skeleton__line {
+  block-size: 0.9rem;
+  inline-size: 75%;
+}
+
+.related-skeleton__line--short { inline-size: 40%; }
+
+.related-products.is-loaded .product-card {
+  animation: related-in 0.5s var(--ease-out) backwards;
+}
+
+.related-products.is-loaded .product-card:nth-child(2) { animation-delay: 70ms; }
+.related-products.is-loaded .product-card:nth-child(3) { animation-delay: 140ms; }
+.related-products.is-loaded .product-card:nth-child(4) { animation-delay: 210ms; }
+
+@keyframes related-in {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .related-products.is-loaded .product-card { animation: none; }
+}

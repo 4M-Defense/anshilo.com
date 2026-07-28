@@ -1,0 +1,403 @@
+{{ 'section-main-product.css' | asset_url | stylesheet_tag }}
+<script src="{{ 'section-main-product.js' | asset_url }}" defer="defer"></script>
+
+{%- liquid
+  assign current_variant = product.selected_or_first_available_variant
+  assign bc_collection = collection | default: product.collections.first
+  assign low_stock_threshold = section.settings.low_stock_threshold | default: 5
+
+  assign on_sale = false
+  if current_variant.compare_at_price > current_variant.price
+    assign on_sale = true
+  endif
+  assign saved_amount = current_variant.compare_at_price | minus: current_variant.price | money
+-%}
+
+<section
+  class="product-page"
+  id="MainProduct-{{ section.id }}"
+  data-main-product
+  data-section-id="{{ section.id }}"
+  data-low-stock="{{ low_stock_threshold }}"
+>
+  <div class="container">
+    {%- comment -%} Breadcrumbs: home > collection > product {%- endcomment -%}
+    <nav class="breadcrumbs" aria-label="מיקום באתר"><!-- TODO-i18n: general.breadcrumbs.label -->
+      <a href="{{ routes.root_url }}">{{ 'general.breadcrumbs.home' | t }}</a>
+      <span class="breadcrumbs__sep">{% render 'icon', name: 'chevron-right', size: 14, class: 'icon--dir' %}</span>
+      {%- if bc_collection != blank and bc_collection.handle != 'frontpage' -%}
+        <a href="{{ bc_collection.url }}">{{ bc_collection.title | escape }}</a>
+        <span class="breadcrumbs__sep">{% render 'icon', name: 'chevron-right', size: 14, class: 'icon--dir' %}</span>
+      {%- endif -%}
+      <span class="breadcrumbs__current" aria-current="page">{{ product.title | escape }}</span>
+    </nav>
+
+    <div class="product-layout">
+      <div class="product-layout__media">
+        {% render 'product-media-gallery', product: product, section_id: section.id %}
+      </div>
+
+      <div class="product-layout__info product-info" id="ProductInfo-{{ section.id }}">
+        <div class="product-info__header">
+          <div class="product-info__top">
+            {%- if section.settings.show_vendor and product.vendor != blank -%}
+              <a class="chip product-info__vendor" href="{{ product.vendor | url_for_vendor }}">
+                {{- product.vendor | escape -}}
+              </a>
+            {%- else -%}
+              <span></span>
+            {%- endif -%}
+            {%- if section.settings.show_share -%}
+              <button
+                type="button"
+                class="btn-icon product-info__share"
+                data-share-button
+                data-share-url="{{ shop.url }}{{ product.url }}"
+                data-share-title="{{ product.title | escape }}"
+                aria-label="{{ 'products.product.share' | t }}"
+                title="{{ 'general.share.copy_link' | t }}"
+              >
+                {% render 'icon', name: 'share', size: 20 %}
+                <span class="product-info__share-label">{{ 'general.share.share' | t }}</span>
+              </button>
+            {%- endif -%}
+          </div>
+
+          <h1 class="product-info__title">{{ product.title | escape }}</h1>
+
+          {%- if section.settings.show_sku -%}
+            <p class="product-info__sku" data-sku-wrap {% if current_variant.sku == blank %}hidden{% endif %}>
+              {{ 'products.product.sku' | t }}: <span data-sku>{{ current_variant.sku }}</span>
+            </p>
+          {%- endif -%}
+        </div>
+
+        <div class="product-info__pricing">
+          <div class="product-info__price-row">
+            <div id="ProductPrice-{{ section.id }}" role="status">
+              {% render 'price', product: product, variant: current_variant, large: true %}
+            </div>
+            <span class="badge badge--sale product-info__save" data-save-badge {% unless on_sale %}hidden{% endunless %}>
+              {{ 'products.product.save_amount' | t: amount: saved_amount }}
+            </span>
+          </div>
+          {%- if cart.taxes_included or shop.shipping_policy.body != blank -%}
+            <p class="product-info__tax-note">
+              {%- if cart.taxes_included -%}
+                {{ 'products.product.include_taxes' | t }}
+              {%- endif %}
+              {% if shop.shipping_policy.body != blank -%}
+                {{ 'products.product.shipping_policy_html' | t: link: shop.shipping_policy.url }}
+              {%- endif -%}
+            </p>
+          {%- endif -%}
+
+          {%- if section.settings.show_stock -%}
+            <div class="product-info__stock" data-stock-status>
+              {%- if current_variant.available -%}
+                {%- if current_variant.inventory_management != blank
+                  and current_variant.inventory_quantity > 0
+                  and current_variant.inventory_quantity <= low_stock_threshold -%}
+                  <span class="stock-dot stock-dot--low">
+                    {{- 'products.product.low_stock' | t: count: current_variant.inventory_quantity -}}
+                  </span>
+                {%- else -%}
+                  <span class="stock-dot">{{ 'products.product.in_stock' | t }}</span>
+                {%- endif -%}
+              {%- else -%}
+                <span class="stock-dot stock-dot--out">{{ 'products.product.out_of_stock' | t }}</span>
+              {%- endif -%}
+            </div>
+          {%- endif -%}
+        </div>
+
+        {% render 'product-variant-picker', product: product, section_id: section.id %}
+
+        {% render 'buy-buttons', product: product, section_id: section.id %}
+
+        {%- if section.settings.show_trust -%}
+          <div class="product-trust">
+            {%- if section.settings.trust_shipping != blank -%}
+              <div class="trust-row">
+                {% render 'icon', name: 'truck', size: 22 %}
+                <span>{{ section.settings.trust_shipping | escape }}</span>
+              </div>
+            {%- endif -%}
+            <div class="trust-row">
+              {% render 'icon', name: 'store', size: 22 %}
+              <span>{{ 'products.product.pickup_available' | t }}</span>
+            </div>
+            {%- if section.settings.trust_warranty != blank -%}
+              <div class="trust-row">
+                {% render 'icon', name: 'shield-check', size: 22 %}
+                <span>{{ section.settings.trust_warranty | escape }}</span>
+              </div>
+            {%- endif -%}
+          </div>
+        {%- endif -%}
+
+        <div class="accordion product-info__accordions">
+          {%- if product.description != blank -%}
+            <details class="accordion__item" open>
+              <summary class="accordion__trigger">
+                <span>{{ 'products.product.description' | t }}</span>
+                {% render 'icon', name: 'chevron-down', size: 18 %}
+              </summary>
+              <div class="accordion__content rte">{{ product.description }}</div>
+            </details>
+          {%- endif -%}
+
+          {%- if section.settings.shipping_info != blank -%}
+            <details class="accordion__item">
+              <summary class="accordion__trigger">
+                <span>{{ 'products.product.shipping_returns' | t }}</span>
+                {% render 'icon', name: 'chevron-down', size: 18 %}
+              </summary>
+              <div class="accordion__content rte">{{ section.settings.shipping_info }}</div>
+            </details>
+          {%- endif -%}
+
+          {%- for block in section.blocks -%}
+            {%- case block.type -%}
+              {%- when 'accordion' -%}
+                {%- if block.settings.title != blank -%}
+                  <details class="accordion__item" {{ block.shopify_attributes }}>
+                    <summary class="accordion__trigger">
+                      <span>{{ block.settings.title | escape }}</span>
+                      {% render 'icon', name: 'chevron-down', size: 18 %}
+                    </summary>
+                    <div class="accordion__content rte">
+                      {{ block.settings.content }}
+                      {{ block.settings.liquid }}
+                    </div>
+                  </details>
+                {%- endif -%}
+              {%- when 'custom_liquid' -%}
+                <div class="product-info__custom-liquid" {{ block.shopify_attributes }}>
+                  {{ block.settings.liquid }}
+                </div>
+            {%- endcase -%}
+          {%- endfor -%}
+        </div>
+
+        {%- comment -%} Localized strings for section-main-product.js {%- endcomment -%}
+        <script type="application/json" data-product-strings>
+          {
+            "addToCart": {{ 'products.product.add_to_cart' | t | json }},
+            "soldOut": {{ 'products.product.sold_out' | t | json }},
+            "unavailable": {{ 'products.product.unavailable' | t | json }},
+            "inStock": {{ 'products.product.in_stock' | t | json }},
+            "lowStockOne": {{ 'products.product.low_stock' | t: count: 1 | json }},
+            "lowStockOther": {{ 'products.product.low_stock' | t: count: 987 | replace: '987', '[count]' | json }},
+            "outOfStock": {{ 'products.product.out_of_stock' | t | json }},
+            "regularPrice": {{ 'products.price.regular_price' | t | json }},
+            "salePrice": {{ 'products.price.sale_price' | t | json }},
+            "saveAmount": {{ 'products.product.save_amount' | t: amount: '[amount]' | json }},
+            "copied": {{ 'general.share.copied' | t | json }}
+          }
+        </script>
+      </div>
+    </div>
+  </div>
+
+  {%- if section.settings.enable_sticky_atc -%}
+    <div class="product-sticky-bar" data-sticky-atc>
+      <div class="product-sticky-bar__inner container">
+        <div class="product-sticky-bar__media">
+          {%- assign sticky_media = current_variant.featured_media | default: product.featured_media -%}
+          {%- if sticky_media != blank -%}
+            <img
+              src="{{ sticky_media.preview_image | image_url: width: 88 }}"
+              srcset="{{ sticky_media.preview_image | image_url: width: 88 }} 1x, {{ sticky_media.preview_image | image_url: width: 176 }} 2x"
+              alt=""
+              width="44"
+              height="44"
+              loading="lazy"
+              data-sticky-image
+            >
+          {%- else -%}
+            {{ 'product-1' | placeholder_svg_tag: 'placeholder-svg' }}
+          {%- endif -%}
+        </div>
+        <div class="product-sticky-bar__meta">
+          <span class="product-sticky-bar__title">{{ product.title | escape }}</span>
+          <span class="product-sticky-bar__price" data-sticky-price>{{ current_variant.price | money }}</span>
+        </div>
+        <button
+          type="submit"
+          form="ProductForm-{{ section.id }}"
+          class="btn product-sticky-bar__btn"
+          data-sticky-add
+          {% if current_variant.available == false %}disabled aria-disabled="true"{% endif %}
+        >
+          {% render 'icon', name: 'cart-add', size: 18 %}
+          <span data-sticky-add-text>
+            {%- if current_variant.available -%}
+              {{ 'products.product.add_to_cart' | t }}
+            {%- else -%}
+              {{ 'products.product.sold_out' | t }}
+            {%- endif -%}
+          </span>
+        </button>
+      </div>
+    </div>
+  {%- endif -%}
+</section>
+
+{%- comment -%} Product structured data for rich results {%- endcomment -%}
+<script type="application/ld+json">
+  {
+    "@context": "https://schema.org/",
+    "@type": "Product",
+    "name": {{ product.title | json }},
+    "url": {{ request.origin | append: product.url | json }},
+    {% if product.featured_media -%}
+    "image": [{{ product.featured_media | image_url: width: 1200 | prepend: 'https:' | json }}],
+    {%- endif %}
+    "description": {{ product.description | strip_html | truncate: 500 | json }},
+    {% if current_variant.sku != blank -%}
+    "sku": {{ current_variant.sku | json }},
+    {%- endif %}
+    {% if product.vendor != blank -%}
+    "brand": { "@type": "Brand", "name": {{ product.vendor | json }} },
+    {%- endif %}
+    "offers": [
+      {%- for variant in product.variants -%}
+        {
+          "@type": "Offer",
+          {% if variant.sku != blank -%}
+          "sku": {{ variant.sku | json }},
+          {%- endif %}
+          "availability": "http://schema.org/{% if variant.available %}InStock{% else %}OutOfStock{% endif %}",
+          "price": {{ variant.price | divided_by: 100.0 | json }},
+          "priceCurrency": {{ cart.currency.iso_code | json }},
+          "url": {{ request.origin | append: variant.url | json }}
+        }{% unless forloop.last %},{% endunless %}
+      {%- endfor -%}
+    ]
+  }
+</script>
+
+{% schema %}
+{
+  "name": "עמוד מוצר",
+  "settings": [
+    {
+      "type": "header",
+      "content": "פרטי מוצר"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_vendor",
+      "label": "הצגת מותג",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_sku",
+      "label": "הצגת מק\"ט",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_stock",
+      "label": "הצגת סטטוס מלאי",
+      "default": true
+    },
+    {
+      "type": "range",
+      "id": "low_stock_threshold",
+      "label": "סף התראת מלאי נמוך",
+      "info": "כשנותרו במלאי פחות יחידות מהמספר הזה, תוצג התראת \"יחידות אחרונות\"",
+      "min": 1,
+      "max": 10,
+      "step": 1,
+      "default": 5
+    },
+    {
+      "type": "checkbox",
+      "id": "show_share",
+      "label": "הצגת כפתור שיתוף",
+      "default": true
+    },
+    {
+      "type": "header",
+      "content": "שורות אמון"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_trust",
+      "label": "הצגת שורות אמון",
+      "default": true
+    },
+    {
+      "type": "text",
+      "id": "trust_shipping",
+      "label": "שורת משלוח",
+      "default": "משלוח מהיר עד הבית או לאתר הבנייה"
+    },
+    {
+      "type": "text",
+      "id": "trust_warranty",
+      "label": "שורת אחריות",
+      "default": "אחריות יבואן רשמי"
+    },
+    {
+      "type": "header",
+      "content": "מידע נוסף"
+    },
+    {
+      "type": "richtext",
+      "id": "shipping_info",
+      "label": "תוכן משלוחים והחזרות",
+      "default": "<p>משלוח מהיר לכל הארץ תוך 1–4 ימי עסקים, או איסוף עצמי מהחנות בקרית אתא ללא עלות. ניתן להחזיר מוצר באריזתו המקורית עד 14 יום מקבלתו, בהתאם לתקנות הגנת הצרכן.</p>"
+    },
+    {
+      "type": "header",
+      "content": "קנייה"
+    },
+    {
+      "type": "checkbox",
+      "id": "enable_sticky_atc",
+      "label": "פס \"הוספה לעגלה\" צף במובייל",
+      "default": true
+    }
+  ],
+  "blocks": [
+    {
+      "type": "accordion",
+      "name": "אקורדיון מותאם",
+      "settings": [
+        {
+          "type": "text",
+          "id": "title",
+          "label": "כותרת",
+          "default": "מפרט טכני"
+        },
+        {
+          "type": "richtext",
+          "id": "content",
+          "label": "תוכן"
+        },
+        {
+          "type": "liquid",
+          "id": "liquid",
+          "label": "קוד Liquid (אופציונלי)",
+          "info": "לתוכן דינמי, למשל metafields"
+        }
+      ]
+    },
+    {
+      "type": "custom_liquid",
+      "name": "Liquid מותאם",
+      "settings": [
+        {
+          "type": "liquid",
+          "id": "liquid",
+          "label": "קוד Liquid"
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}

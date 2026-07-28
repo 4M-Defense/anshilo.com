@@ -1,0 +1,80 @@
+/* =========================================================
+   Shilo Pro — Image with text (split section)
+   Stacked on mobile, 50/50 on desktop, optional flip
+   ========================================================= */
+
+.image-text {
+  display: grid;
+  gap: clamp(1.75rem, 4vw, 4.5rem);
+  align-items: center;
+}
+
+@media (min-width: 750px) {
+  .image-text { grid-template-columns: 1fr 1fr; }
+  .image-text--flip .image-text__media-wrap { order: 2; }
+  .image-text--flip .image-text__content { order: 1; }
+}
+
+/* ----- Media side ----- */
+.image-text__media-wrap {
+  position: relative;
+}
+
+.image-text__media {
+  position: relative;
+  aspect-ratio: 4 / 3;
+  border-radius: var(--radius-card);
+  overflow: hidden;
+  box-shadow: var(--shadow-card);
+}
+
+/* Decorative offset hazard frame behind the image (desktop only) */
+@media (min-width: 750px) {
+  .image-text__media-wrap::before {
+    content: "";
+    position: absolute;
+    inset-block-start: clamp(1rem, 2vw, 1.5rem);
+    inset-inline-start: calc(-1 * clamp(1rem, 2vw, 1.5rem));
+    inline-size: 100%;
+    block-size: 100%;
+    border-radius: var(--radius-card);
+    background-image: repeating-linear-gradient(
+      -45deg,
+      rgba(var(--color-accent-rgb), 0.14) 0 10px,
+      transparent 10px 20px
+    );
+    pointer-events: none;
+  }
+
+  .image-text--flip .image-text__media-wrap::before {
+    inset-inline-start: auto;
+    inset-inline-end: calc(-1 * clamp(1rem, 2vw, 1.5rem));
+  }
+
+  .image-text__media { z-index: 1; }
+}
+
+/* ----- Content side ----- */
+.image-text__content {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.9rem;
+  min-inline-size: 0;
+}
+
+.image-text__heading {
+  margin: 0;
+  font-size: calc(clamp(1.6rem, 1.25rem + 1.6vw, 2.4rem) * var(--font-heading-scale));
+  line-height: 1.2;
+  text-wrap: balance;
+}
+
+.image-text__text {
+  color: var(--color-text);
+  max-inline-size: 56ch;
+}
+
+.image-text__actions {
+  margin-block-start: 0.5rem;
+}

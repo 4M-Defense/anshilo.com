@@ -1,0 +1,383 @@
+{{ 'section-header.css' | asset_url | stylesheet_tag }}
+<script src="{{ 'section-header.js' | asset_url }}" defer="defer"></script>
+
+{%- unless section.settings.enable_sticky -%}
+  <style>
+    #shopify-section-{{ section.id }} { position: static; }
+  </style>
+{%- endunless -%}
+
+{%- liquid
+  assign menu = section.settings.menu
+  assign logo_width = settings.logo_width | default: 160
+  assign logo_width_2x = logo_width | times: 2
+-%}
+
+<header class="site-header" {% if section.settings.enable_sticky %}data-sticky-header{% endif %}>
+  <div class="site-header__main">
+    <div class="container">
+      <div class="site-header__row">
+        <button
+          type="button"
+          class="btn-icon site-header__burger"
+          data-drawer-open="MenuDrawer"
+          aria-label="{{ 'general.accessibility.open_menu' | t }}"
+          aria-controls="MenuDrawer"
+        >
+          {% render 'icon', name: 'menu', size: 24 %}
+        </button>
+
+        <a class="site-header__logo" href="{{ routes.root_url }}" style="--logo-width: {{ logo_width }}px">
+          {%- if settings.logo != blank -%}
+            <img
+              class="site-header__logo-img"
+              src="{{ settings.logo | image_url: width: logo_width_2x }}"
+              srcset="{{ settings.logo | image_url: width: logo_width }} 1x, {{ settings.logo | image_url: width: logo_width_2x }} 2x"
+              width="{{ logo_width }}"
+              height="{{ logo_width | divided_by: settings.logo.aspect_ratio | round }}"
+              alt="{{ settings.logo.alt | default: shop.name | escape }}"
+            >
+          {%- else -%}
+            <span class="site-header__logo-text">{{ shop.name }}</span>
+          {%- endif -%}
+        </a>
+
+        <div class="site-header__search">
+          <form action="{{ routes.search_url }}" method="get" role="search" class="header-search" data-header-search>
+            <div class="header-search__box">
+              <input
+                id="HeaderSearchInput-desktop-{{ section.id }}"
+                class="header-search__input"
+                type="search"
+                name="q"
+                value="{{ search.terms | escape }}"
+                placeholder="{{ 'general.search.placeholder' | t }}"
+                role="combobox"
+                aria-expanded="false"
+                aria-controls="HeaderSearchPanel-desktop-{{ section.id }}"
+                aria-autocomplete="list"
+                aria-label="{{ 'general.search.title' | t }}"
+                autocomplete="off"
+                autocorrect="off"
+                autocapitalize="off"
+                spellcheck="false"
+                data-search-input
+              >
+              <button type="button" class="header-search__clear" data-search-clear hidden aria-label="{{ 'general.search.clear' | t }}">
+                {% render 'icon', name: 'close', size: 16 %}
+              </button>
+              <button type="submit" class="header-search__submit" aria-label="{{ 'general.search.submit' | t }}">
+                {% render 'icon', name: 'search', size: 20 %}
+              </button>
+            </div>
+            <div class="header-search__panel" id="HeaderSearchPanel-desktop-{{ section.id }}" data-search-panel hidden>
+              {%- if settings.popular_searches != blank -%}
+                <div class="header-search__popular" data-search-popular hidden>
+                  <p class="predictive-results__heading">{{ 'general.search.popular' | t }}</p>
+                  <div class="header-search__chips">
+                    {%- assign popular_terms = settings.popular_searches | split: ',' -%}
+                    {%- for term in popular_terms -%}
+                      {%- assign term_clean = term | strip -%}
+                      {%- if term_clean != blank -%}
+                        <a class="chip" href="{{ routes.search_url }}?q={{ term_clean | url_param_escape }}">{{ term_clean }}</a>
+                      {%- endif -%}
+                    {%- endfor -%}
+                  </div>
+                </div>
+              {%- endif -%}
+              <div class="header-search__results" data-search-results hidden aria-live="polite"></div>
+            </div>
+          </form>
+        </div>
+
+        <div class="site-header__icons">
+          {%- if section.settings.show_account and shop.customer_accounts_enabled -%}
+            <a href="{{ routes.account_url }}" class="btn-icon site-header__account" aria-label="{{ 'sections.header.account' | t }}">
+              {% render 'icon', name: 'user', size: 23 %}
+            </a>
+          {%- endif -%}
+
+          {%- if settings.cart_type == 'drawer' -%}
+            <button type="button" class="btn-icon site-header__cart" data-drawer-open="CartDrawer" aria-label="{{ 'general.accessibility.open_cart' | t }}">
+              {% render 'icon', name: 'cart', size: 23 %}
+              <span class="cart-bubble{% if cart.item_count == 0 %} is-empty{% endif %}" data-cart-bubble>{{ cart.item_count }}</span>
+            </button>
+          {%- else -%}
+            <a href="{{ routes.cart_url }}" class="btn-icon site-header__cart" aria-label="{{ 'general.accessibility.open_cart' | t }}">
+              {% render 'icon', name: 'cart', size: 23 %}
+              <span class="cart-bubble{% if cart.item_count == 0 %} is-empty{% endif %}" data-cart-bubble>{{ cart.item_count }}</span>
+            </a>
+          {%- endif -%}
+        </div>
+      </div>
+
+      <div class="site-header__search-row">
+        <form action="{{ routes.search_url }}" method="get" role="search" class="header-search" data-header-search>
+          <div class="header-search__box">
+            <input
+              id="HeaderSearchInput-mobile-{{ section.id }}"
+              class="header-search__input"
+              type="search"
+              name="q"
+              value="{{ search.terms | escape }}"
+              placeholder="{{ 'general.search.placeholder' | t }}"
+              role="combobox"
+              aria-expanded="false"
+              aria-controls="HeaderSearchPanel-mobile-{{ section.id }}"
+              aria-autocomplete="list"
+              aria-label="{{ 'general.search.title' | t }}"
+              autocomplete="off"
+              autocorrect="off"
+              autocapitalize="off"
+              spellcheck="false"
+              data-search-input
+            >
+            <button type="button" class="header-search__clear" data-search-clear hidden aria-label="{{ 'general.search.clear' | t }}">
+              {% render 'icon', name: 'close', size: 16 %}
+            </button>
+            <button type="submit" class="header-search__submit" aria-label="{{ 'general.search.submit' | t }}">
+              {% render 'icon', name: 'search', size: 20 %}
+            </button>
+          </div>
+          <div class="header-search__panel" id="HeaderSearchPanel-mobile-{{ section.id }}" data-search-panel hidden>
+            {%- if settings.popular_searches != blank -%}
+              <div class="header-search__popular" data-search-popular hidden>
+                <p class="predictive-results__heading">{{ 'general.search.popular' | t }}</p>
+                <div class="header-search__chips">
+                  {%- assign popular_terms = settings.popular_searches | split: ',' -%}
+                  {%- for term in popular_terms -%}
+                    {%- assign term_clean = term | strip -%}
+                    {%- if term_clean != blank -%}
+                      <a class="chip" href="{{ routes.search_url }}?q={{ term_clean | url_param_escape }}">{{ term_clean }}</a>
+                    {%- endif -%}
+                  {%- endfor -%}
+                </div>
+              </div>
+            {%- endif -%}
+            <div class="header-search__results" data-search-results hidden aria-live="polite"></div>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <nav class="site-header__nav" aria-label="{{ 'sections.header.menu' | t }}">
+    <div class="container">
+      <ul class="site-nav" role="list">
+        {%- if menu.links.size > 0 -%}
+          {%- for link in menu.links -%}
+            {%- if link.links.size > 0 -%}
+              {%- liquid
+                assign has_mega = false
+                for child in link.links
+                  if child.links.size > 0
+                    assign has_mega = true
+                  endif
+                endfor
+              -%}
+              <li class="site-nav__item">
+                <details class="site-nav__dropdown" data-disclosure>
+                  <summary class="site-nav__link{% if link.child_active %} is-active{% endif %}">
+                    {{ link.title | escape }}
+                    {% render 'icon', name: 'chevron-down', size: 15 %}
+                  </summary>
+                  <div class="site-nav__panel{% if has_mega %} site-nav__panel--mega{% endif %}">
+                    {%- if has_mega -%}
+                      {%- for child in link.links -%}
+                        <div class="site-nav__col">
+                          <a class="site-nav__col-title" href="{{ child.url }}">{{ child.title | escape }}</a>
+                          {%- if child.links.size > 0 -%}
+                            <ul class="site-nav__col-list" role="list">
+                              {%- for grandchild in child.links -%}
+                                <li>
+                                  <a class="site-nav__sublink{% if grandchild.active %} is-active{% endif %}" href="{{ grandchild.url }}" {% if grandchild.active %}aria-current="page"{% endif %}>{{ grandchild.title | escape }}</a>
+                                </li>
+                              {%- endfor -%}
+                            </ul>
+                          {%- endif -%}
+                        </div>
+                      {%- endfor -%}
+                      {%- if link.url != '#' and link.url != blank -%}
+                        <a class="site-nav__sublink site-nav__sublink--all site-nav__mega-all" href="{{ link.url }}">
+                          הצגת הכל<!-- TODO-i18n: general.navigation.view_all -->
+                          {% render 'icon', name: 'arrow-right', size: 14, class: 'icon--dir' %}
+                        </a>
+                      {%- endif -%}
+                    {%- else -%}
+                      <ul class="site-nav__list" role="list">
+                        {%- if link.url != '#' and link.url != blank -%}
+                          <li>
+                            <a class="site-nav__sublink site-nav__sublink--all" href="{{ link.url }}">
+                              הצגת הכל<!-- TODO-i18n: general.navigation.view_all -->
+                              {% render 'icon', name: 'arrow-right', size: 14, class: 'icon--dir' %}
+                            </a>
+                          </li>
+                        {%- endif -%}
+                        {%- for child in link.links -%}
+                          <li>
+                            <a class="site-nav__sublink{% if child.active %} is-active{% endif %}" href="{{ child.url }}" {% if child.active %}aria-current="page"{% endif %}>{{ child.title | escape }}</a>
+                          </li>
+                        {%- endfor -%}
+                      </ul>
+                    {%- endif -%}
+                  </div>
+                </details>
+              </li>
+            {%- else -%}
+              <li class="site-nav__item">
+                <a class="site-nav__link{% if link.active %} is-active{% endif %}" href="{{ link.url }}" {% if link.active %}aria-current="page"{% endif %}>{{ link.title | escape }}</a>
+              </li>
+            {%- endif -%}
+          {%- endfor -%}
+        {%- else -%}
+          <li class="site-nav__item">
+            <a class="site-nav__link" href="{{ routes.root_url }}">{{ 'general.breadcrumbs.home' | t }}</a>
+          </li>
+          <li class="site-nav__item">
+            <a class="site-nav__link" href="{{ routes.all_products_collection_url }}">{{ 'sections.featured_collection.view_all' | t }}</a>
+          </li>
+        {%- endif -%}
+      </ul>
+    </div>
+  </nav>
+</header>
+
+{%- comment -%}
+  Mobile menu drawer. section-header.js re-parents it to document.body at
+  runtime so it escapes the sticky wrapper's stacking context (the global
+  overlay sits at z-index 90).
+{%- endcomment -%}
+<div
+  id="MenuDrawer"
+  class="drawer drawer--start menu-drawer"
+  data-menu-drawer
+  role="dialog"
+  aria-modal="true"
+  aria-label="{{ 'sections.header.menu' | t }}"
+  aria-hidden="true"
+>
+  <div class="drawer__header">
+    <span class="drawer__title h5">{{ shop.name }}</span>
+    <button type="button" class="btn-icon" data-drawer-close aria-label="{{ 'general.accessibility.close' | t }}">
+      {% render 'icon', name: 'close', size: 22 %}
+    </button>
+  </div>
+
+  <div class="drawer__body menu-drawer__body">
+    <nav aria-label="{{ 'sections.header.menu' | t }}">
+      <ul class="menu-drawer__list" role="list">
+        {%- if menu.links.size > 0 -%}
+          {%- for link in menu.links -%}
+            {%- if link.links.size > 0 -%}
+              <li class="menu-drawer__item">
+                <details class="accordion__item menu-drawer__sub">
+                  <summary class="menu-drawer__link menu-drawer__toggle">
+                    <span>{{ link.title | escape }}</span>
+                    {% render 'icon', name: 'chevron-down', size: 18, class: 'icon-chevron' %}
+                  </summary>
+                  <ul class="menu-drawer__sublist" role="list">
+                    {%- if link.url != '#' and link.url != blank -%}
+                      <li>
+                        <a class="menu-drawer__sublink menu-drawer__sublink--all" href="{{ link.url }}">
+                          הצגת הכל<!-- TODO-i18n: general.navigation.view_all -->
+                          {% render 'icon', name: 'arrow-right', size: 14, class: 'icon--dir' %}
+                        </a>
+                      </li>
+                    {%- endif -%}
+                    {%- for child in link.links -%}
+                      {%- if child.links.size > 0 -%}
+                        <li>
+                          <details class="menu-drawer__sub menu-drawer__sub--nested">
+                            <summary class="menu-drawer__sublink menu-drawer__toggle">
+                              <span>{{ child.title | escape }}</span>
+                              {% render 'icon', name: 'chevron-down', size: 16, class: 'icon-chevron' %}
+                            </summary>
+                            <ul class="menu-drawer__sublist menu-drawer__sublist--nested" role="list">
+                              {%- if child.url != '#' and child.url != blank -%}
+                                <li>
+                                  <a class="menu-drawer__sublink menu-drawer__sublink--all" href="{{ child.url }}">
+                                    הצגת הכל<!-- TODO-i18n: general.navigation.view_all -->
+                                  </a>
+                                </li>
+                              {%- endif -%}
+                              {%- for grandchild in child.links -%}
+                                <li>
+                                  <a class="menu-drawer__sublink{% if grandchild.active %} is-active{% endif %}" href="{{ grandchild.url }}">{{ grandchild.title | escape }}</a>
+                                </li>
+                              {%- endfor -%}
+                            </ul>
+                          </details>
+                        </li>
+                      {%- else -%}
+                        <li>
+                          <a class="menu-drawer__sublink{% if child.active %} is-active{% endif %}" href="{{ child.url }}">{{ child.title | escape }}</a>
+                        </li>
+                      {%- endif -%}
+                    {%- endfor -%}
+                  </ul>
+                </details>
+              </li>
+            {%- else -%}
+              <li class="menu-drawer__item">
+                <a class="menu-drawer__link{% if link.active %} is-active{% endif %}" href="{{ link.url }}" {% if link.active %}aria-current="page"{% endif %}>{{ link.title | escape }}</a>
+              </li>
+            {%- endif -%}
+          {%- endfor -%}
+        {%- else -%}
+          <li class="menu-drawer__item">
+            <a class="menu-drawer__link" href="{{ routes.root_url }}">{{ 'general.breadcrumbs.home' | t }}</a>
+          </li>
+          <li class="menu-drawer__item">
+            <a class="menu-drawer__link" href="{{ routes.all_products_collection_url }}">{{ 'sections.featured_collection.view_all' | t }}</a>
+          </li>
+        {%- endif -%}
+      </ul>
+    </nav>
+  </div>
+
+  <div class="drawer__footer menu-drawer__footer">
+    {%- if settings.store_phone != blank -%}
+      <a class="menu-drawer__contact" href="tel:{{ settings.store_phone | replace: '-', '' | replace: ' ', '' }}">
+        {% render 'icon', name: 'phone', size: 18 %}
+        <span dir="ltr">{{ settings.store_phone }}</span>
+      </a>
+    {%- endif -%}
+    {%- if settings.store_whatsapp != blank -%}
+      <a class="menu-drawer__contact" href="https://wa.me/{{ settings.store_whatsapp | replace: '+', '' | replace: '-', '' | replace: ' ', '' }}" target="_blank" rel="noopener">
+        {% render 'icon', name: 'whatsapp', size: 18 %}
+        <span>{{ 'general.social.whatsapp' | t }}</span>
+      </a>
+    {%- endif -%}
+    <a class="menu-drawer__contact" href="{{ routes.account_url }}">
+      {% render 'icon', name: 'user', size: 18 %}
+      <span>{{ 'sections.header.account' | t }}</span>
+    </a>
+  </div>
+</div>
+
+{% schema %}
+{
+  "name": "כותרת עליונה",
+  "class": "site-header-wrapper",
+  "settings": [
+    {
+      "type": "link_list",
+      "id": "menu",
+      "label": "תפריט ראשי",
+      "default": "main-menu"
+    },
+    {
+      "type": "checkbox",
+      "id": "enable_sticky",
+      "label": "הדר צמוד בזמן גלילה",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_account",
+      "label": "הצגת קישור לאזור האישי",
+      "default": true
+    }
+  ]
+}
+{% endschema %}

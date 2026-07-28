@@ -1,0 +1,98 @@
+/* =========================================================
+   Shilo Pro — Services / trust bar
+   4-up divided row on desktop, 2x2 grid on mobile
+   ========================================================= */
+
+.services-bar {
+  padding-block: clamp(1.75rem, 3vw, 2.75rem);
+  background: var(--color-surface);
+  border-block: 1px solid var(--color-border);
+}
+
+.services-bar--alt { background: var(--color-surface-alt); }
+
+.services-bar__grid {
+  --services-gap: clamp(1rem, 2.5vw, 2.25rem);
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1.5rem var(--services-gap);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* Mobile: centered vertical cards */
+.services-bar__item {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 0.65rem;
+  min-inline-size: 0;
+}
+
+.services-bar__icon {
+  display: grid;
+  place-items: center;
+  inline-size: 52px;
+  block-size: 52px;
+  border-radius: 50%;
+  background: rgba(var(--color-accent-rgb), 0.12);
+  color: var(--color-accent);
+  flex-shrink: 0;
+  transition:
+    transform var(--duration-base) var(--ease-out),
+    background-color var(--duration-fast) ease;
+}
+
+.services-bar__item:hover .services-bar__icon {
+  transform: translateY(-3px);
+  background: rgba(var(--color-accent-rgb), 0.18);
+}
+
+.services-bar__text {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  min-inline-size: 0;
+}
+
+.services-bar__title {
+  font-weight: 700;
+  font-size: 0.98rem;
+  line-height: 1.35;
+  color: var(--color-ink);
+}
+
+.services-bar__sub {
+  font-size: 0.84rem;
+  line-height: 1.5;
+  color: var(--color-text-muted);
+}
+
+/* Desktop: horizontal items in one divided row */
+@media (min-width: 990px) {
+  .services-bar__grid {
+    grid-template-columns: repeat(var(--services-count, 4), 1fr);
+  }
+
+  .services-bar__item {
+    flex-direction: row;
+    align-items: center;
+    text-align: start;
+    gap: 0.9rem;
+    padding-inline: 0.35rem;
+  }
+
+  .services-bar__text { align-items: flex-start; }
+
+  .services-bar__item:not(:first-child)::before {
+    content: "";
+    position: absolute;
+    inset-inline-start: calc(var(--services-gap) / -2);
+    inset-block: 12%;
+    inline-size: 1px;
+    background: var(--color-border);
+  }
+}

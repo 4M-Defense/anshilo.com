@@ -1,0 +1,54 @@
+{%- comment -%}
+  Renders quantity selector + add-to-cart + dynamic checkout for the product page.
+  Usage: {% render 'buy-buttons', product: product, section_id: section.id %}
+  Params:
+    product    {Object} product (required)
+    section_id {String} section id (required)
+  Notes:
+    - <product-form> (global.js) AJAX-ifies the form and opens the cart drawer.
+    - The form id is "ProductForm-<section_id>" so the sticky mobile bar can
+      submit it via the button [form] attribute.
+    - data-buy-buttons-anchor is observed by section-main-product.js to toggle
+      the sticky add-to-cart bar.
+{%- endcomment -%}
+{%- liquid
+  assign current_variant = product.selected_or_first_available_variant
+  assign product_form_id = 'ProductForm-' | append: section_id
+  assign qty_id = 'Quantity-' | append: section_id
+-%}
+
+<product-form class="product-buy" data-buy-buttons-anchor>
+  {%- form 'product', product, id: product_form_id, class: 'product-form', novalidate: 'novalidate', data-type: 'add-to-cart-form' -%}
+    <input
+      type="hidden"
+      name="id"
+      value="{{ current_variant.id }}"
+      data-variant-id
+    >
+
+    <div class="product-form__quantity">
+      <label class="field__label" for="{{ qty_id }}">{{ 'products.product.quantity_label' | t }}</label>
+      <div class="product-form__controls">
+        {% render 'quantity-input', id: qty_id, name: 'quantity', value: 1, min: 1, product_title: product.title %}
+        <button
+          type="submit"
+          name="add"
+          class="btn btn--lg btn--full product-form__submit"
+          data-add-button
+          {% if current_variant.available == false %}disabled aria-disabled="true"{% endif %}
+        >
+          {% render 'icon', name: 'cart-add', size: 20 %}
+          <span data-add-button-text>
+            {%- if current_variant.available -%}
+              {{ 'products.product.add_to_cart' | t }}
+            {%- else -%}
+              {{ 'products.product.sold_out' | t }}
+            {%- endif -%}
+          </span>
+        </button>
+      </div>
+    </div>
+
+    {{ form | payment_button }}
+  {%- endform -%}
+</product-form>
