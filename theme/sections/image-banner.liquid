@@ -1,76 +1,149 @@
 {{ 'section-image-banner.css' | asset_url | stylesheet_tag }}
 
 {%- liquid
-  assign img = section.settings.image
-  assign mobile_img = section.settings.mobile_image
-  assign overlay = section.settings.overlay_opacity | divided_by: 100.0
+  comment
+    Image resolution order: section image -> chosen collection's image -> designed ink field.
+  endcomment
+  assign hero_image = section.settings.image
+  if hero_image == blank and section.settings.collection != blank
+    assign hero_image = section.settings.collection.image
+  endif
+  assign mobile_image = section.settings.mobile_image | default: hero_image
+  assign overlay = section.settings.overlay_opacity | default: 0 | divided_by: 100.0
 
-  assign btn2_link = section.settings.button_2_link
-  if btn2_link == blank and settings.store_phone != blank
-    assign btn2_link = 'tel:' | append: settings.store_phone
+  assign phone_href = ''
+  if settings.store_phone != blank
+    assign phone_digits = settings.store_phone | remove: '-' | remove: ' ' | remove: '(' | remove: ')'
+    assign phone_href = 'tel:' | append: phone_digits
+  endif
+
+  assign button_2_link = section.settings.button_2_link
+  assign button_2_is_phone = false
+  if button_2_link == blank and phone_href != blank
+    assign button_2_link = phone_href
+    assign button_2_is_phone = true
   endif
 
   assign has_chips = false
   if section.settings.chip_1 != blank or section.settings.chip_2 != blank or section.settings.chip_3 != blank
     assign has_chips = true
   endif
+  assign trust_chips = section.settings.chip_1 | append: '|~|' | append: section.settings.chip_2 | append: '|~|' | append: section.settings.chip_3 | split: '|~|'
+
+  assign popular_terms = settings.popular_searches | split: ','
 -%}
 
-<div
+<section
   id="ImageBanner-{{ section.id }}"
-  class="image-banner image-banner--{{ section.settings.height }} image-banner--align-{{ section.settings.alignment }}{% if img == blank %} image-banner--no-image{% endif %}"
+  class="image-banner image-banner--{{ section.settings.height }} image-banner--align-{{ section.settings.alignment }}{% if hero_image == blank %} image-banner--designed{% endif %}"
   style="--overlay-opacity: {{ overlay }};"
 >
-  {%- if img != blank -%}
+  {%- if hero_image != blank -%}
     <picture class="image-banner__media">
-      {%- if mobile_img != blank -%}
+      {%- if mobile_image != blank -%}
         <source
           media="(max-width: 749px)"
-          srcset="{{ mobile_img | image_url: width: 450 }} 450w, {{ mobile_img | image_url: width: 750 }} 750w, {{ mobile_img | image_url: width: 1100 }} 1100w"
+          srcset="{{ mobile_image | image_url: width: 600 }} 600w, {{ mobile_image | image_url: width: 900 }} 900w, {{ mobile_image | image_url: width: 1200 }} 1200w"
+          sizes="100vw"
         >
       {%- endif -%}
       <img
-        src="{{ img | image_url: width: 1780 }}"
-        srcset="{{ img | image_url: width: 750 }} 750w, {{ img | image_url: width: 1100 }} 1100w, {{ img | image_url: width: 1500 }} 1500w, {{ img | image_url: width: 1780 }} 1780w, {{ img | image_url: width: 2400 }} 2400w"
+        src="{{ hero_image | image_url: width: 1800 }}"
+        srcset="{{ hero_image | image_url: width: 900 }} 900w, {{ hero_image | image_url: width: 1200 }} 1200w, {{ hero_image | image_url: width: 1500 }} 1500w, {{ hero_image | image_url: width: 1800 }} 1800w, {{ hero_image | image_url: width: 2400 }} 2400w"
         sizes="100vw"
-        width="{{ img.width }}"
-        height="{{ img.height }}"
-        alt="{{ img.alt | escape }}"
+        width="{{ hero_image.width }}"
+        height="{{ hero_image.height }}"
+        alt="{{ hero_image.alt | escape }}"
         loading="eager"
         fetchpriority="high"
       >
     </picture>
-    <span class="image-banner__overlay" aria-hidden="true"></span>
+    <span class="image-banner__tint" aria-hidden="true"></span>
   {%- else -%}
-    <span class="image-banner__ornament image-banner__ornament--glow" aria-hidden="true"></span>
-    <span class="image-banner__ornament image-banner__ornament--grid" aria-hidden="true"></span>
-    <span class="image-banner__ornament image-banner__ornament--hazard" aria-hidden="true"></span>
+    <span class="image-banner__field blueprint-field" aria-hidden="true"></span>
+    <span class="image-banner__glow" aria-hidden="true"></span>
+    <span class="image-banner__edge blueprint-rule" aria-hidden="true"></span>
   {%- endif -%}
   <span class="image-banner__scrim" aria-hidden="true"></span>
 
   <div class="container image-banner__container">
     <div class="image-banner__content">
       {%- if section.settings.eyebrow != blank -%}
-        <span class="image-banner__eyebrow reveal">{{ section.settings.eyebrow | escape }}</span>
+        <p class="image-banner__eyebrow reveal">{{ section.settings.eyebrow | escape }}</p>
       {%- endif -%}
 
       {%- if section.settings.heading != blank -%}
-        <h2 class="image-banner__heading reveal">{{ section.settings.heading | escape }}</h2>
+        <h1 class="image-banner__heading reveal">{{ section.settings.heading | escape }}</h1>
       {%- endif -%}
 
       {%- if section.settings.subheading != blank -%}
         <p class="image-banner__subheading reveal">{{ section.settings.subheading | escape }}</p>
       {%- endif -%}
 
+      {%- if section.settings.show_search -%}
+        <div class="image-banner__search-wrap reveal">
+          <form action="{{ routes.search_url }}" method="get" role="search" class="image-banner__search">
+            <label for="HeroSearchInput-{{ section.id }}" class="visually-hidden">
+              {{- 'general.search.title' | t -}}
+            </label>
+            <div class="image-banner__search-box">
+              <input
+                id="HeroSearchInput-{{ section.id }}"
+                class="image-banner__search-input"
+                type="search"
+                name="q"
+                placeholder="{{ 'general.search.placeholder' | t | escape }}"
+                autocomplete="off"
+                autocorrect="off"
+                autocapitalize="off"
+                spellcheck="false"
+              >
+              <button
+                type="submit"
+                class="btn image-banner__search-submit"
+                aria-label="{{ 'general.search.submit' | t | escape }}"
+              >
+                {%- render 'icon', name: 'search', size: 20 -%}
+                <span class="image-banner__search-submit-text">{{ 'general.search.submit' | t }}</span>
+              </button>
+            </div>
+          </form>
+
+          {%- if popular_terms.size > 0 -%}
+            <div class="image-banner__popular">
+              <span class="image-banner__popular-label">{{ 'general.search.popular' | t }}</span>
+              <ul class="image-banner__popular-list" role="list">
+                {%- for term in popular_terms limit: 6 -%}
+                  {%- assign term_clean = term | strip -%}
+                  {%- if term_clean != blank -%}
+                    <li>
+                      <a class="chip" href="{{ routes.search_url }}?q={{ term_clean | url_param_escape }}">
+                        {{- term_clean -}}
+                      </a>
+                    </li>
+                  {%- endif -%}
+                {%- endfor -%}
+              </ul>
+            </div>
+          {%- endif -%}
+        </div>
+      {%- endif -%}
+
       {%- if section.settings.button_1_label != blank or section.settings.button_2_label != blank -%}
         <div class="image-banner__actions reveal">
           {%- if section.settings.button_1_label != blank -%}
-            <a href="{{ section.settings.button_1_link | default: routes.all_products_collection_url }}" class="btn btn--lg">
+            <a
+              href="{{ section.settings.button_1_link | default: routes.all_products_collection_url }}"
+              class="btn btn--lg image-banner__action"
+            >
               {{- section.settings.button_1_label | escape -}}
             </a>
           {%- endif -%}
-          {%- if section.settings.button_2_label != blank and btn2_link != blank -%}
-            <a href="{{ btn2_link }}" class="btn btn--outline-light btn--lg">
+          {%- if section.settings.button_2_label != blank and button_2_link != blank -%}
+            <a href="{{ button_2_link }}" class="btn btn--outline-light btn--lg image-banner__action">
+              {%- if button_2_is_phone -%}
+                {%- render 'icon', name: 'phone', size: 19 -%}
+              {%- endif -%}
               {{- section.settings.button_2_label | escape -}}
             </a>
           {%- endif -%}
@@ -78,34 +151,25 @@
       {%- endif -%}
 
       {%- if section.settings.show_chips and has_chips -%}
-        <ul class="image-banner__chips reveal" role="list">
-          {%- if section.settings.chip_1 != blank -%}
-            <li class="image-banner__chip">
-              {%- render 'icon', name: 'check-circle', size: 16 -%}
-              <span>{{ section.settings.chip_1 | escape }}</span>
-            </li>
-          {%- endif -%}
-          {%- if section.settings.chip_2 != blank -%}
-            <li class="image-banner__chip">
-              {%- render 'icon', name: 'truck', size: 16 -%}
-              <span>{{ section.settings.chip_2 | escape }}</span>
-            </li>
-          {%- endif -%}
-          {%- if section.settings.chip_3 != blank -%}
-            <li class="image-banner__chip">
-              {%- render 'icon', name: 'headset', size: 16 -%}
-              <span>{{ section.settings.chip_3 | escape }}</span>
-            </li>
-          {%- endif -%}
+        <ul class="image-banner__trust reveal" role="list">
+          {%- for chip in trust_chips -%}
+            {%- assign chip_clean = chip | strip -%}
+            {%- if chip_clean != blank -%}
+              <li class="image-banner__trust-item">
+                {%- render 'icon', name: 'check-circle', size: 17 -%}
+                <span>{{ chip_clean | escape }}</span>
+              </li>
+            {%- endif -%}
+          {%- endfor -%}
         </ul>
       {%- endif -%}
     </div>
   </div>
-</div>
+</section>
 
 {% schema %}
 {
-  "name": "באנר תמונה",
+  "name": "באנר ראשי",
   "settings": [
     {
       "type": "header",
@@ -115,12 +179,19 @@
       "type": "image_picker",
       "id": "image",
       "label": "תמונת רקע",
-      "info": "מומלץ 2400×1200 לפחות. ללא תמונה יוצג רקע תעשייתי ממותג."
+      "info": "מומלץ 2400×1200 ומעלה. ללא תמונה יוצג רקע כחול־כהה ממותג עם מרשתת שרטוט."
     },
     {
       "type": "image_picker",
       "id": "mobile_image",
-      "label": "תמונה למובייל (אופציונלי)"
+      "label": "תמונה למובייל",
+      "info": "אופציונלי. אם לא נבחרה — תוצג תמונת הרקע הראשית."
+    },
+    {
+      "type": "collection",
+      "id": "collection",
+      "label": "קטגוריה למשיכת תמונה",
+      "info": "אופציונלי. אם לא נבחרה תמונת רקע — תשמש תמונת הקטגוריה הזו."
     },
     {
       "type": "select",
@@ -138,11 +209,12 @@
       "type": "range",
       "id": "overlay_opacity",
       "label": "כהות שכבת ההצללה",
+      "info": "מגבירה את הניגודיות של הטקסט מעל התמונה.",
       "min": 0,
       "max": 80,
       "step": 5,
       "unit": "%",
-      "default": 40
+      "default": 55
     },
     {
       "type": "header",
@@ -152,19 +224,19 @@
       "type": "text",
       "id": "eyebrow",
       "label": "שורת פתיחה קטנה",
-      "default": "א.נ. שילו — חומרי בניין וכלי עבודה"
+      "default": "מאז 1990 · קיבוץ קרית ענבים"
     },
     {
       "type": "text",
       "id": "heading",
-      "label": "כותרת",
-      "default": "כל מה שהמקצוענים צריכים. במקום אחד."
+      "label": "כותרת ראשית",
+      "default": "חומרי בניין, כלי עבודה ואספקה טכנית — הכל במקום אחד"
     },
     {
       "type": "textarea",
       "id": "subheading",
       "label": "כותרת משנה",
-      "default": "יותר מ־30 שנה שאנחנו מלווים קבלנים, אנשי מקצוע ובעלי בתים בכל הצפון — עם הכלים, הצבעים והחומרים הטובים בשוק."
+      "default": "יותר מ־30 שנה שאנשי מקצוע, קבלנים ובעלי בתים סומכים עלינו. אלפי מוצרים במלאי, מהמותגים המובילים בעולם, עם ייעוץ של צוות שמכיר את השטח."
     },
     {
       "type": "select",
@@ -175,6 +247,17 @@
         { "value": "center", "label": "מרכז" }
       ],
       "default": "start"
+    },
+    {
+      "type": "header",
+      "content": "חיפוש"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_search",
+      "label": "הצגת שדה חיפוש גדול",
+      "info": "החיפוש הוא הדרך המהירה ביותר להתמצא בקטלוג. מתחתיו יוצגו החיפושים הפופולריים מהגדרות ערכת העיצוב.",
+      "default": true
     },
     {
       "type": "header",
@@ -202,7 +285,7 @@
       "type": "url",
       "id": "button_2_link",
       "label": "כפתור משני — קישור",
-      "info": "אם נשאר ריק — יקושר לטלפון החנות מהגדרות ערכת העיצוב."
+      "info": "אם נשאר ריק — הכפתור יקשר לטלפון החנות מהגדרות ערכת העיצוב."
     },
     {
       "type": "header",
@@ -218,13 +301,13 @@
       "type": "text",
       "id": "chip_1",
       "label": "חותמת 1",
-      "default": "30+ שנות ניסיון"
+      "default": "30+ שנות ניסיון בענף"
     },
     {
       "type": "text",
       "id": "chip_2",
       "label": "חותמת 2",
-      "default": "משלוחים עד האתר"
+      "default": "משלוחים לכל הארץ"
     },
     {
       "type": "text",
@@ -235,7 +318,7 @@
   ],
   "presets": [
     {
-      "name": "באנר תמונה"
+      "name": "באנר ראשי"
     }
   ]
 }

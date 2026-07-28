@@ -1,133 +1,45 @@
 /* =========================================================
-   Shilo Pro — Brand logos strip
-   Grayscale premium chips/logos; scroll row on mobile,
-   centered wrapping row on desktop
+   Shilo Pro — Brand logos grid (v2 "Clarity")
+   Layout only. The tile itself is the .brand-tile component
+   from base.css — do not restyle it here.
+   3 across on mobile, 6 across from 990px.
    ========================================================= */
 
-.brand-logos {
-  padding-block: clamp(2rem, 4vw, 3.25rem);
-  background: var(--color-surface);
-}
-
-.brand-logos--alt { background: var(--color-surface-alt); }
-
-/* Heading with subtle side rules */
-.brand-logos__heading {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 1.25rem;
-  margin: 0 0 clamp(1.25rem, 2.5vw, 2rem);
-  font-size: 1.05rem;
-  font-weight: 700;
-  letter-spacing: 0.02em;
-  color: var(--color-text-muted);
+.brand-logos__header {
+  margin-block-end: clamp(1.25rem, 2.5vw, 2rem);
   text-align: center;
 }
 
-.brand-logos__heading::before,
-.brand-logos__heading::after {
-  content: "";
-  flex: 0 1 90px;
-  block-size: 1px;
-  background: var(--color-border);
-}
-
-/* Mobile: horizontal scroll row */
-.brand-logos__row {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
+.brand-logos__heading {
   margin: 0;
-  padding: 0 0 0.5rem;
-  list-style: none;
-  overflow-x: auto;
-  overscroll-behavior-x: contain;
-  scroll-snap-type: x proximity;
-  -webkit-overflow-scrolling: touch;
-  scrollbar-width: thin;
-  scrollbar-color: var(--color-border) transparent;
+  text-wrap: balance;
 }
 
-.brand-logos__row::-webkit-scrollbar { height: 6px; }
-.brand-logos__row::-webkit-scrollbar-thumb { background: var(--color-border); border-radius: 3px; }
-.brand-logos__row::-webkit-scrollbar-track { background: transparent; }
+.brand-logos__grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: clamp(0.6rem, 1.3vw, 1rem);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+@media (min-width: 990px) {
+  .brand-logos__grid { grid-template-columns: repeat(6, minmax(0, 1fr)); }
+}
 
 .brand-logos__item {
-  flex-shrink: 0;
-  scroll-snap-align: start;
+  display: flex;
+  min-inline-size: 0;
 }
 
-/* Desktop: centered wrapping row */
-@media (min-width: 750px) {
-  .brand-logos__row {
-    flex-wrap: wrap;
-    justify-content: center;
-    gap: 1rem 1.25rem;
-    overflow: visible;
-    padding-block-end: 0;
-  }
-}
+/* The tile fills its grid cell so every row lines up. */
+.brand-logos__item > .brand-tile { inline-size: 100%; }
 
-.brand-logos__cell {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  text-decoration: none;
-  border-radius: var(--radius-pill);
-  transition:
-    transform var(--duration-fast) var(--ease-out),
-    box-shadow var(--duration-fast) ease,
-    border-color var(--duration-fast) ease,
-    color var(--duration-fast) ease;
-}
-
-/* Image logos: grayscale -> color on hover */
-.brand-logos__img {
-  block-size: 44px;
-  inline-size: auto;
-  max-inline-size: 150px;
-  object-fit: contain;
-  filter: grayscale(1);
-  opacity: 0.6;
-  transition: filter var(--duration-base) ease, opacity var(--duration-base) ease;
-}
-
-.brand-logos__cell:hover .brand-logos__img,
-.brand-logos__cell:focus-visible .brand-logos__img {
-  filter: grayscale(0);
-  opacity: 1;
-}
-
-@media (max-width: 749px) {
-  .brand-logos__img { block-size: 36px; max-inline-size: 120px; }
-}
-
-/* Text chips: premium grayscale pill -> accent on hover */
-.brand-logos__cell--chip {
-  padding: 0.55rem 1.3rem;
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  white-space: nowrap;
-}
-
-.brand-logos__name {
-  font-family: var(--font-heading-family);
-  font-size: clamp(0.95rem, 0.88rem + 0.35vw, 1.12rem);
-  font-weight: 800;
-  letter-spacing: 0.01em;
-  color: var(--color-text-muted);
-  transition: color var(--duration-fast) ease;
-}
-
-.brand-logos__cell--chip:hover,
-.brand-logos__cell--chip:focus-visible {
-  border-color: var(--color-accent);
-  transform: translateY(-2px);
-  box-shadow: 0 8px 18px -10px rgba(var(--color-accent-rgb), 0.5);
-}
-
-.brand-logos__cell--chip:hover .brand-logos__name,
-.brand-logos__cell--chip:focus-visible .brand-logos__name {
-  color: var(--color-ink);
+/* A tile without a link is not interactive — drop the hover affordance. */
+.brand-logos__tile--static { cursor: default; }
+.brand-logos__tile--static:hover {
+  border-color: var(--color-border);
+  box-shadow: none;
+  transform: none;
 }

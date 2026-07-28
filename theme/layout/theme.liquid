@@ -42,6 +42,20 @@
 
     <link rel="preconnect" href="https://cdn.shopify.com" crossorigin>
 
+    {%- comment -%}
+      Hebrew-first type. Heebo (display) + Assistant (UI) both ship full Hebrew
+      coverage, unlike most of the Shopify font library. Set
+      `use_shopify_fonts` in theme settings to fall back to the font pickers.
+    {%- endcomment -%}
+    {%- unless settings.use_shopify_fonts -%}
+      <link rel="preconnect" href="https://fonts.googleapis.com">
+      <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+      <link
+        rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Assistant:wght@400;500;600;700&family=Heebo:wght@500;700;800;900&display=swap"
+      >
+    {%- endunless -%}
+
     {{ content_for_header }}
 
     {%- liquid
@@ -51,70 +65,115 @@
     -%}
 
     <style>
-      {{ settings.font_body | font_face: font_display: 'swap' }}
-      {{ body_font_medium | font_face: font_display: 'swap' }}
-      {{ body_font_bold | font_face: font_display: 'swap' }}
-      {{ settings.font_heading | font_face: font_display: 'swap' }}
-      {%- if heading_font_heavy -%}
-        {{ heading_font_heavy | font_face: font_display: 'swap' }}
+      {%- if settings.use_shopify_fonts -%}
+        {{ settings.font_body | font_face: font_display: 'swap' }}
+        {{ body_font_medium | font_face: font_display: 'swap' }}
+        {{ body_font_bold | font_face: font_display: 'swap' }}
+        {{ settings.font_heading | font_face: font_display: 'swap' }}
+        {%- if heading_font_heavy -%}
+          {{ heading_font_heavy | font_face: font_display: 'swap' }}
+        {%- endif -%}
       {%- endif -%}
 
       :root {
-        --font-body-family: {{ settings.font_body.family }}, "Heebo", "Segoe UI", Arial, sans-serif;
-        --font-body-weight: {{ settings.font_body.weight | default: 400 }};
-        --font-heading-family: {{ settings.font_heading.family }}, "Heebo", "Segoe UI", Arial, sans-serif;
-        --font-heading-weight: {{ settings.font_heading.weight | default: 700 }};
+        {%- if settings.use_shopify_fonts -%}
+          --font-body-family: {{ settings.font_body.family }}, "Assistant", "Segoe UI", Arial, sans-serif;
+          --font-body-weight: {{ settings.font_body.weight | default: 400 }};
+          --font-heading-family: {{ settings.font_heading.family }}, "Heebo", "Segoe UI", Arial, sans-serif;
+          --font-heading-weight: {{ settings.font_heading.weight | default: 700 }};
+        {%- else -%}
+          --font-body-family: "Assistant", "Heebo", "Segoe UI", Arial, sans-serif;
+          --font-body-weight: 400;
+          --font-heading-family: "Heebo", "Assistant", "Segoe UI", Arial, sans-serif;
+          --font-heading-weight: 800;
+        {%- endif -%}
         --font-heading-scale: {{ settings.heading_scale | default: 100 | divided_by: 100.0 }};
         --font-body-scale: {{ settings.body_scale | default: 100 | divided_by: 100.0 }};
 
+        /* ---- Brand ---- */
         --color-accent: {{ settings.color_accent }};
         --color-accent-hover: {{ settings.color_accent_hover }};
         --color-accent-rgb: {{ settings.color_accent.rgb | replace: ' ', ', ' }};
+        --color-accent-soft: {{ settings.color_accent | color_mix: '#ffffff', 8 }};
+        --color-accent-tint: {{ settings.color_accent | color_mix: '#ffffff', 14 }};
+
+        /* ---- Structure ---- */
         --color-ink: {{ settings.color_ink }};
         --color-ink-rgb: {{ settings.color_ink.rgb | replace: ' ', ', ' }};
+        --color-ink-soft: {{ settings.color_ink | color_lighten: 7 }};
+        --color-ink-line: {{ settings.color_ink | color_lighten: 16 }};
+
+        /* ---- Surfaces ---- */
         --color-bg: {{ settings.color_background }};
         --color-surface: {{ settings.color_background }};
+        --color-page: {{ settings.color_page }};
         --color-surface-alt: {{ settings.color_surface_alt }};
+        --color-surface-sunken: {{ settings.color_surface_sunken }};
+
+        /* ---- Text ---- */
         --color-text: {{ settings.color_text }};
         --color-text-rgb: {{ settings.color_text.rgb | replace: ' ', ', ' }};
         --color-text-muted: {{ settings.color_text_muted }};
+
+        /* ---- Lines ---- */
         --color-border: {{ settings.color_border }};
+        --color-border-strong: {{ settings.color_border_strong }};
+
+        /* ---- Status ---- */
         --color-success: {{ settings.color_success }};
+        --color-warning: {{ settings.color_warning }};
         --color-danger: {{ settings.color_danger }};
         --color-sale: {{ settings.color_sale }};
+        --color-highlight: {{ settings.color_highlight }};
+        --color-highlight-rgb: {{ settings.color_highlight.rgb | replace: ' ', ', ' }};
+
         --color-on-accent: #ffffff;
-        --color-on-ink: #f4f5f7;
+        --color-on-ink: #eef1f6;
 
         {%- case settings.corner_style -%}
           {%- when 'sharp' -%}
+            --radius-sm: 0px;
             --radius-base: 0px;
             --radius-card: 0px;
+            --radius-lg: 0px;
             --radius-pill: 4px;
           {%- when 'round' -%}
-            --radius-base: 10px;
-            --radius-card: 14px;
+            --radius-sm: 10px;
+            --radius-base: 14px;
+            --radius-card: 22px;
+            --radius-lg: 28px;
             --radius-pill: 999px;
           {%- else -%}
-            --radius-base: 6px;
-            --radius-card: 10px;
+            --radius-sm: 8px;
+            --radius-base: 10px;
+            --radius-card: 16px;
+            --radius-lg: 22px;
             --radius-pill: 999px;
         {%- endcase -%}
 
-        --page-width: {{ settings.page_width | default: 1350 }}px;
+        --page-width: {{ settings.page_width | default: 1400 }}px;
         --page-gutter: clamp(1rem, 3vw, 2.5rem);
 
-        --shadow-card: 0 1px 2px rgba(16, 20, 24, 0.05);
-        --shadow-card-hover: 0 12px 32px -8px rgba(16, 20, 24, 0.18);
-        --shadow-drawer: 0 0 48px rgba(16, 20, 24, 0.24);
+        --shadow-xs: 0 1px 2px rgba(var(--color-ink-rgb), 0.05);
+        --shadow-sm: 0 1px 3px rgba(var(--color-ink-rgb), 0.06), 0 1px 2px rgba(var(--color-ink-rgb), 0.04);
+        --shadow-md: 0 6px 16px -4px rgba(var(--color-ink-rgb), 0.10), 0 2px 6px -2px rgba(var(--color-ink-rgb), 0.06);
+        --shadow-lg: 0 24px 48px -16px rgba(var(--color-ink-rgb), 0.24), 0 6px 16px -8px rgba(var(--color-ink-rgb), 0.10);
 
-        --duration-fast: 150ms;
-        --duration-base: 250ms;
+        /* Blueprint grid motif — the v2 decorative texture */
+        --blueprint-line: rgba(var(--color-ink-rgb), 0.06);
+
+        --duration-fast: 140ms;
+        --duration-base: 240ms;
         --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+        --ease-spring: cubic-bezier(0.34, 1.4, 0.64, 1);
       }
     </style>
 
     {{ 'base.css' | asset_url | stylesheet_tag }}
     <script src="{{ 'global.js' | asset_url }}" defer="defer"></script>
+    <script src="{{ 'recently-viewed.js' | asset_url }}" defer="defer"></script>
+
+    {% render 'structured-data' %}
     <script>
       document.documentElement.classList.replace('no-js', 'js');
       {%- if settings.enable_animations == false -%}
@@ -136,7 +195,8 @@
       };
       window.themeSettings = {
         cartType: {{ settings.cart_type | json }},
-        predictiveSearch: {{ settings.predictive_search_enabled | json }}
+        predictiveSearch: {{ settings.predictive_search_enabled | json }},
+        moneyFormat: {{ shop.money_format | json }}
       };
     </script>
   </head>
@@ -154,6 +214,19 @@
 
     {%- if settings.cart_type == 'drawer' -%}
       {% section 'cart-drawer' %}
+    {%- endif -%}
+
+    {%- comment -%} Floating contact dock — mobile-first, real store details {%- endcomment -%}
+    {%- if settings.show_contact_dock -%}
+      {% render 'contact-dock' %}
+    {%- endif -%}
+
+    {%- comment -%}
+      Marker read by assets/recently-viewed.js. Lives in the layout so the
+      product section can be re-authored without breaking the history feature.
+    {%- endcomment -%}
+    {%- if request.page_type == 'product' and product -%}
+      <span hidden data-product-handle="{{ product.handle }}"></span>
     {%- endif -%}
 
     <div class="toast-region" aria-live="polite" aria-atomic="true" data-toast-region></div>

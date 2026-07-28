@@ -1,0 +1,116 @@
+/* =========================================================
+   Shilo Pro — Category rail (v2 "Clarity")
+   Compact department tiles under the hero: swipeable row on
+   mobile, even grid from 750px (4 up) and 1100px (6 up).
+   Tokens only — see theme/DESIGN-SYSTEM.md.
+   ========================================================= */
+
+.category-rail__header {
+  align-items: center;
+  margin-block-end: clamp(0.9rem, 1.6vw, 1.4rem);
+}
+
+/* Hard rule: every tap target >= 44px. */
+.category-rail .section-header__link {
+  min-block-size: 44px;
+}
+
+/* ---------- Track: rail under 750px ----------
+   The element also carries .grid, whose 2-column template would fight
+   the rail's column auto-flow, so it is dropped at rail widths. */
+.category-rail__track {
+  grid-auto-columns: min(38vw, 168px);
+  margin-block: 0;
+  scroll-padding-inline: var(--page-gutter);
+}
+
+@media (max-width: 749px) {
+  .category-rail__track { grid-template-columns: none; }
+}
+
+/* ---------- Track: grid from 750px ----------
+   .grid--6 supplies the columns (4 up, 6 up from 1100px); the rail's
+   scroll behaviour is undone so the hover lift is not clipped. */
+@media (min-width: 750px) {
+  .category-rail__track {
+    grid-auto-flow: row;
+    grid-auto-columns: auto;
+    gap: clamp(0.7rem, 1.4vw, 1.15rem);
+    overflow-x: visible;
+    scroll-snap-type: none;
+    padding-inline: 0;
+    padding-block-end: 0;
+    margin-inline: 0;
+  }
+}
+
+.category-rail__item {
+  display: flex;
+  min-inline-size: 0;
+}
+
+/* ---------- Tile ---------- */
+.category-rail__tile {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  inline-size: 100%;
+  padding: 0.5rem 0.5rem 0.7rem;
+  text-decoration: none;
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-xs);
+  transition:
+    transform var(--duration-base) var(--ease-out),
+    box-shadow var(--duration-base) var(--ease-out),
+    border-color var(--duration-base) ease;
+}
+
+@media (hover: hover) {
+  .category-rail__tile:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+    border-color: rgba(var(--color-accent-rgb), 0.35);
+  }
+
+  .category-rail__tile:hover .category-rail__title { color: var(--color-accent); }
+}
+
+/* Catalogue parts: contained, on white, with breathing room. */
+.category-rail__media {
+  border-radius: var(--radius-sm);
+  padding: clamp(0.3rem, 1vw, 0.55rem);
+}
+
+/* ---------- Copy ---------- */
+.category-rail__body {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.3rem;
+  padding-inline: 0.3rem;
+  min-inline-size: 0;
+}
+
+.category-rail__title {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  inline-size: 100%;
+  overflow-wrap: break-word;
+  font-family: var(--font-heading-family);
+  font-size: 0.92rem;
+  font-weight: 700;
+  line-height: 1.3;
+  letter-spacing: -0.005em;
+  color: var(--color-ink);
+  /* Steady two-line box keeps the count pills on one baseline. */
+  min-block-size: 2.6em;
+  transition: color var(--duration-fast) ease;
+}
+
+@media (min-width: 1100px) {
+  .category-rail__title { font-size: 0.95rem; }
+}

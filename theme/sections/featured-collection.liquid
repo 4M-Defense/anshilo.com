@@ -2,76 +2,78 @@
 
 {%- liquid
   assign coll = section.settings.collection
-  assign limit = section.settings.products_limit
-  assign columns = section.settings.columns
+  assign limit = section.settings.products_limit | default: 10
+  assign columns = section.settings.columns | default: 5
 
   assign has_products = false
   if coll != blank and coll.products.size > 0
     assign has_products = true
   endif
 
-  assign row_class = 'scroll-row featured-collection__row'
-  if section.settings.scroll_desktop
-    assign row_class = row_class | append: ' featured-collection__row--scroll'
-  else
-    assign row_class = row_class | append: ' featured-collection__row--grid'
+  assign product_count = 0
+  if coll != blank
+    assign product_count = coll.all_products_count
   endif
 
   assign view_all_url = coll.url | default: routes.all_products_collection_url
+
+  comment
+    The row carries both .scroll-row and .grid/.grid--N from base.css.
+    section-featured-collection.css picks the winner per breakpoint:
+    rail under 750px, grid above — or rail everywhere with --rail.
+  endcomment
+  assign row_class = 'featured-collection__row scroll-row grid grid--' | append: columns
+  if section.settings.scroll_desktop
+    assign row_class = row_class | append: ' featured-collection__row--rail'
+  endif
+
+  assign heading_id = 'FeaturedCollectionHeading-' | append: section.id
 -%}
 
 <section
   id="FeaturedCollection-{{ section.id }}"
-  class="section featured-collection{% if section.settings.alt_background %} section--alt{% endif %}"
+  class="section featured-collection{% if section.settings.highlight %} featured-collection--highlight{% elsif section.settings.alt_background %} section--alt{% endif %}"
+  {% if section.settings.heading != blank %}aria-labelledby="{{ heading_id }}"{% endif %}
 >
   <div class="container">
     <div class="section-header">
-      <div class="section-header__titles">
+      <div class="section-header__text">
         {%- if section.settings.eyebrow != blank -%}
           <span class="section-header__eyebrow">{{ section.settings.eyebrow | escape }}</span>
         {%- endif -%}
-        {%- if section.settings.heading != blank -%}
-          <h2 class="featured-collection__heading">{{ section.settings.heading | escape }}</h2>
-        {%- endif -%}
+
+        <div class="featured-collection__title-row">
+          {%- if section.settings.heading != blank -%}
+            <h2 class="section-header__heading" id="{{ heading_id }}">{{ section.settings.heading | escape }}</h2>
+          {%- endif -%}
+
+          {%- if product_count > 0 -%}
+            <span class="badge badge--outline featured-collection__count">
+              {{- 'products.facets.product_count' | t: count: product_count -}}
+            </span>
+          {%- endif -%}
+        </div>
       </div>
 
       {%- if section.settings.show_view_all -%}
         <a href="{{ view_all_url }}" class="section-header__link">
           {{ 'sections.featured_collection.view_all' | t }}
-          {% render 'icon', name: 'arrow-right', size: 18 %}
+          {% render 'icon', name: 'arrow-right', size: 18, class: 'icon--dir' %}
         </a>
       {%- endif -%}
     </div>
 
-    <ul
-      class="{{ row_class }}"
-      style="--fc-columns: {{ columns }};"
-      role="list"
-    >
+    <div class="{{ row_class }}" style="--fc-columns: {{ columns }};">
       {%- if has_products -%}
         {%- for product in coll.products limit: limit -%}
-          <li class="featured-collection__item">
-            {% render 'product-card', product: product, class: 'reveal', lazy: true %}
-          </li>
+          {% render 'product-card', product: product, lazy: true, class: 'reveal' %}
         {%- endfor -%}
       {%- else -%}
-        {%- for i in (1..limit) -%}
-          {%- assign ph_index = forloop.index0 | modulo: 6 | plus: 1 -%}
-          <li class="featured-collection__item">
-            {% render 'product-card', product: blank, class: 'reveal', placeholder_index: ph_index %}
-          </li>
+        {%- for i in (1..5) -%}
+          {% render 'product-card', placeholder_index: forloop.index, class: 'reveal' %}
         {%- endfor -%}
       {%- endif -%}
-    </ul>
-
-    {%- if section.settings.show_view_all -%}
-      <div class="featured-collection__footer">
-        <a href="{{ view_all_url }}" class="btn btn--outline">
-          {{ 'sections.featured_collection.view_all' | t }}
-          {% render 'icon', name: 'arrow-right', size: 18, class: 'icon--dir' %}
-        </a>
-      </div>
-    {%- endif -%}
+    </div>
   </div>
 </section>
 
@@ -109,7 +111,7 @@
       "type": "collection",
       "id": "collection",
       "label": "קולקציה",
-      "info": "כשלא נבחרה קולקציה יוצגו כרטיסי דוגמה."
+      "info": "כשלא נבחרה קולקציה, או כשהיא ריקה, יוצגו כרטיסי דוגמה."
     },
     {
       "type": "range",
@@ -118,7 +120,7 @@
       "min": 4,
       "max": 12,
       "step": 1,
-      "default": 8
+      "default": 10
     },
     {
       "type": "header",
@@ -129,9 +131,9 @@
       "id": "columns",
       "label": "עמודות במחשב",
       "min": 3,
-      "max": 5,
+      "max": 6,
       "step": 1,
-      "default": 4
+      "default": 5
     },
     {
       "type": "checkbox",
@@ -141,9 +143,21 @@
       "default": false
     },
     {
+      "type": "header",
+      "content": "עיצוב"
+    },
+    {
+      "type": "checkbox",
+      "id": "highlight",
+      "label": "רצועת מבצע (רקע ענבר עדין)",
+      "info": "מדגיש את הרצועה בגוון ענבר רך — מתאים למבצעים ולמכירות מיוחדות.",
+      "default": false
+    },
+    {
       "type": "checkbox",
       "id": "alt_background",
       "label": "רקע אפור בהיר",
+      "info": "לא פעיל כשמסומנת רצועת מבצע.",
       "default": false
     }
   ],

@@ -1,69 +1,81 @@
 {{ 'section-newsletter.css' | asset_url | stylesheet_tag }}
 
-<div class="section section--alt newsletter-section" id="Newsletter-{{ section.id }}">
-  <div class="container">
-    <div class="newsletter-card reveal">
-      <span class="newsletter-card__hazard" aria-hidden="true"></span>
+{%- liquid
+  assign newsletter_form_id = 'NewsletterSectionForm-' | append: section.id
+  assign newsletter_input_id = 'NewsletterSectionEmail-' | append: section.id
+-%}
 
-      <div class="newsletter-card__icon" aria-hidden="true">
-        {% render 'icon', name: 'mail', size: 26 %}
+<div class="section section--ink newsletter" id="Newsletter-{{ section.id }}">
+  <div class="container">
+    <div class="newsletter__inner reveal">
+      <div class="newsletter__intro">
+        <span class="newsletter__icon" aria-hidden="true">
+          {% render 'icon', name: 'mail', size: 22 %}
+        </span>
+
+        {%- if section.settings.heading != blank -%}
+          <h2 class="newsletter__heading">{{ section.settings.heading | escape }}</h2>
+        {%- endif -%}
+
+        {%- if section.settings.text != blank -%}
+          <p class="newsletter__text">{{ section.settings.text | escape | newline_to_br }}</p>
+        {%- endif -%}
       </div>
 
-      {%- if section.settings.heading != blank -%}
-        <h2 class="newsletter-card__heading">{{ section.settings.heading }}</h2>
-      {%- endif -%}
+      <div class="newsletter__form-col">
+        {%- form 'customer', id: newsletter_form_id, class: 'newsletter__form' -%}
+          <input type="hidden" name="contact[tags]" value="newsletter">
 
-      {%- if section.settings.text != blank -%}
-        <p class="newsletter-card__text">{{ section.settings.text }}</p>
-      {%- endif -%}
-
-      {%- assign newsletter_form_id = 'NewsletterSectionForm-' | append: section.id -%}
-      {% form 'customer', id: newsletter_form_id, class: 'newsletter-card__form' %}
-        <input type="hidden" name="contact[tags]" value="newsletter">
-
-        {%- if form.posted_successfully? -%}
-          <div class="form__success newsletter-card__success" role="status" tabindex="-1">
-            {% render 'icon', name: 'check-circle', size: 20 %}
-            <span>{{ 'general.newsletter.success' | t }}</span>
-          </div>
-        {%- else -%}
-          {%- if form.errors -%}
-            <div class="errors newsletter-card__errors" role="alert">
-              <p>
+          {%- if form.posted_successfully? -%}
+            <div class="form__success newsletter__success" role="status" tabindex="-1">
+              {% render 'icon', name: 'check-circle', size: 20 %}
+              <span>{{ 'general.newsletter.success' | t }}</span>
+            </div>
+          {%- else -%}
+            {%- if form.errors -%}
+              <div class="errors newsletter__errors" role="alert">
                 {%- assign email_error = form.errors.messages['email'] -%}
-                {%- if email_error != blank -%}
-                  {{ form.errors.translated_fields['email'] }} {{ email_error }}
-                {%- else -%}
-                  {{ 'general.newsletter.error' | t }}
-                {%- endif -%}
-              </p>
+                <p>
+                  {%- if email_error != blank -%}
+                    {{ form.errors.translated_fields['email'] }} {{ email_error }}
+                  {%- else -%}
+                    {{ 'general.newsletter.error' | t }}
+                  {%- endif -%}
+                </p>
+              </div>
+            {%- endif -%}
+
+            <div class="newsletter__row">
+              <label class="visually-hidden" for="{{ newsletter_input_id }}">
+                {{- 'general.newsletter.label' | t -}}
+              </label>
+              <input
+                id="{{ newsletter_input_id }}"
+                class="field__input newsletter__input"
+                type="email"
+                name="contact[email]"
+                value="{{ form.email }}"
+                placeholder="{{ 'general.newsletter.placeholder' | t }}"
+                autocomplete="email"
+                autocorrect="off"
+                autocapitalize="off"
+                spellcheck="false"
+                required
+              >
+              <button type="submit" class="btn newsletter__btn">
+                {{- 'general.newsletter.button' | t -}}
+              </button>
             </div>
           {%- endif -%}
 
-          <div class="newsletter-card__row">
-            <label class="visually-hidden" for="NewsletterSectionEmail-{{ section.id }}">{{ 'general.newsletter.label' | t }}</label>
-            <input
-              id="NewsletterSectionEmail-{{ section.id }}"
-              type="email"
-              name="contact[email]"
-              class="field__input newsletter-card__input"
-              value="{{ form.email }}"
-              placeholder="{{ 'general.newsletter.placeholder' | t }}"
-              autocomplete="email"
-              autocorrect="off"
-              autocapitalize="off"
-              required>
-            <button type="submit" class="btn newsletter-card__btn">{{ 'general.newsletter.button' | t }}</button>
-          </div>
-        {%- endif -%}
-      {% endform %}
-
-      {%- if section.settings.show_privacy_note -%}
-        <p class="newsletter-card__note">
-          {% render 'icon', name: 'shield-check', size: 15 %}
-          <span>{{ 'general.newsletter.privacy_note' | t }}</span>
-        </p>
-      {%- endif -%}
+          {%- if section.settings.show_privacy_note -%}
+            <p class="text-meta newsletter__note">
+              {% render 'icon', name: 'shield-check', size: 15 %}
+              <span>{{ 'general.newsletter.privacy_note' | t }}</span>
+            </p>
+          {%- endif -%}
+        {%- endform -%}
+      </div>
     </div>
   </div>
 </div>

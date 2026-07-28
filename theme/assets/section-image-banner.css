@@ -1,6 +1,8 @@
 /* =========================================================
-   Shilo Pro — Image banner (hero)
-   Full-bleed hero with gradient fallback, glassy trust chips
+   Shilo Pro — Homepage hero (image banner)
+   v2 "Clarity": one calm dark stage, huge tight headline,
+   catalogue search as the primary navigation.
+   Tokens only — see theme/DESIGN-SYSTEM.md.
    ========================================================= */
 
 .image-banner {
@@ -9,24 +11,24 @@
   align-items: center;
   overflow: hidden;
   isolation: isolate;
-  background: var(--color-ink);
+  background-color: var(--color-ink);
   color: #fff;
 }
 
-/* ----- Heights ----- */
-.image-banner--small { min-block-size: clamp(340px, 46svh, 460px); }
-.image-banner--medium { min-block-size: clamp(430px, 60svh, 580px); }
-.image-banner--large { min-block-size: clamp(500px, 74svh, 720px); }
+/* ---------- Heights ---------- */
+.image-banner--small { min-block-size: clamp(360px, 46svh, 470px); }
+.image-banner--medium { min-block-size: clamp(450px, 62svh, 600px); }
+.image-banner--large { min-block-size: clamp(540px, 78svh, 760px); }
 .image-banner--full {
   min-block-size: 100vh;
   min-block-size: 100svh;
 }
 
-/* ----- Media layers ----- */
+/* ---------- Photo layers ---------- */
 .image-banner__media {
   position: absolute;
   inset: 0;
-  z-index: -3;
+  z-index: 0;
 }
 
 .image-banner__media img {
@@ -35,91 +37,95 @@
   object-fit: cover;
 }
 
-/* Configurable flat scrim (only rendered when an image exists) */
-.image-banner__overlay {
+/* Merchant-controlled legibility tint (overlay_opacity) */
+.image-banner__tint {
   position: absolute;
   inset: 0;
-  z-index: -2;
-  background: #0d1117;
-  opacity: var(--overlay-opacity, 0.4);
+  z-index: 1;
+  background-color: var(--color-ink);
+  opacity: var(--overlay-opacity, 0.55);
+  pointer-events: none;
 }
 
-/* Fixed readability gradient — text stays legible at any overlay setting */
+/* Fixed baseline scrim so text stays readable at any tint setting.
+   Vertical only — direction-safe in RTL and LTR. */
 .image-banner__scrim {
   position: absolute;
   inset: 0;
-  z-index: -1;
-  background: linear-gradient(
+  z-index: 2;
+  background-image: linear-gradient(
     to top,
-    rgba(13, 17, 23, 0.62) 0%,
-    rgba(13, 17, 23, 0.18) 45%,
-    rgba(13, 17, 23, 0.3) 100%
+    rgba(var(--color-ink-rgb), 0.72) 0%,
+    rgba(var(--color-ink-rgb), 0.28) 52%,
+    rgba(var(--color-ink-rgb), 0.5) 100%
   );
   pointer-events: none;
 }
 
-/* ----- No-image fallback: industrial gradient + ornaments ----- */
-.image-banner--no-image {
-  background: linear-gradient(135deg, var(--color-ink) 0%, #1f2937 58%, #161e29 100%);
-}
+/* ---------- Designed fallback (no photography yet) ---------- */
+.image-banner--designed { background-color: var(--color-ink); }
 
-.image-banner--no-image .image-banner__scrim {
-  background: linear-gradient(to top, rgba(13, 17, 23, 0.45), transparent 55%);
-}
-
-.image-banner__ornament {
+/* Blueprint grid from base.css, retinted for a dark field. */
+.image-banner .image-banner__field {
   position: absolute;
-  z-index: -1;
+  inset: 0;
+  z-index: 0;
+  --blueprint-line: rgba(255, 255, 255, 0.055);
+  background-color: transparent;
+  -webkit-mask-image: radial-gradient(ellipse 95% 85% at 50% 28%, #000, transparent 78%);
+  mask-image: radial-gradient(ellipse 95% 85% at 50% 28%, #000, transparent 78%);
   pointer-events: none;
 }
 
-.image-banner__ornament--glow {
-  inset-block-start: -25%;
+.image-banner__glow {
+  position: absolute;
+  z-index: 1;
+  inset-block-start: -32%;
   inset-inline-end: -12%;
-  inline-size: min(62%, 760px);
+  inline-size: min(74%, 860px);
   aspect-ratio: 1;
-  background: radial-gradient(circle, rgba(var(--color-accent-rgb), 0.22), transparent 62%);
+  background-image: radial-gradient(
+    circle,
+    rgba(var(--color-accent-rgb), 0.3) 0%,
+    rgba(var(--color-accent-rgb), 0.1) 38%,
+    transparent 66%
+  );
+  pointer-events: none;
 }
 
-.image-banner__ornament--grid {
-  inset: 0;
-  background-image:
-    linear-gradient(rgba(255, 255, 255, 0.035) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255, 255, 255, 0.035) 1px, transparent 1px);
-  background-size: 56px 56px;
-  -webkit-mask-image: radial-gradient(ellipse 90% 90% at 50% 30%, rgba(0, 0, 0, 0.9), transparent 75%);
-  mask-image: radial-gradient(ellipse 90% 90% at 50% 30%, rgba(0, 0, 0, 0.9), transparent 75%);
-}
-
-.image-banner__ornament--hazard {
+/* Signature blueprint rule along the bottom edge. */
+.image-banner .image-banner__edge {
+  position: absolute;
+  z-index: 3;
   inset-block-end: 0;
   inset-inline: 0;
-  block-size: 8px;
-  background-image: repeating-linear-gradient(
-    -45deg,
-    var(--color-accent) 0 14px,
-    transparent 14px 28px
-  );
-  opacity: 0.65;
-  /* symmetric fade = direction-safe in RTL and LTR */
-  -webkit-mask-image: linear-gradient(90deg, transparent, #000 18%, #000 82%, transparent);
-  mask-image: linear-gradient(90deg, transparent, #000 18%, #000 82%, transparent);
+  pointer-events: none;
 }
 
-/* ----- Content ----- */
+.image-banner--designed .image-banner__scrim {
+  background-image: linear-gradient(
+    to top,
+    rgba(var(--color-ink-rgb), 0.55) 0%,
+    transparent 58%
+  );
+}
+
+/* ---------- Content shell ---------- */
 .image-banner__container {
   position: relative;
+  z-index: 4;
   display: flex;
   inline-size: 100%;
-  padding-block: clamp(3rem, 8vw, 5.5rem);
+  padding-block: clamp(3rem, 7vw, 5.75rem);
 }
 
 .image-banner__content {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  gap: 1.1rem;
-  max-inline-size: 700px;
+  gap: clamp(0.8rem, 1.5vw, 1.15rem);
+  inline-size: 100%;
+  max-inline-size: 47rem;
   text-align: start;
 }
 
@@ -127,104 +133,210 @@
 .image-banner--align-center .image-banner__content {
   align-items: center;
   text-align: center;
-  max-inline-size: 780px;
+  max-inline-size: 52rem;
 }
 
+/* ---------- Eyebrow ---------- */
 .image-banner__eyebrow {
   display: inline-flex;
   align-items: center;
   gap: 0.6rem;
-  padding: 0.35rem 0.9rem;
-  font-size: 0.85rem;
+  margin: 0;
+  font-family: var(--font-heading-family);
+  font-size: 0.86rem;
   font-weight: 700;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.01em;
+  color: rgba(255, 255, 255, 0.86);
+}
+
+.image-banner__eyebrow::before {
+  content: "";
+  inline-size: 26px;
+  block-size: 3px;
+  border-radius: 2px;
+  background-color: var(--color-accent);
+  flex-shrink: 0;
+}
+
+/* ---------- Headline ---------- */
+.image-banner__heading {
+  margin: 0;
+  font-size: calc(clamp(2.1rem, 1.15rem + 4.4vw, 4.15rem) * var(--font-heading-scale));
+  font-weight: 800;
+  line-height: 1.06;
+  letter-spacing: -0.02em;
   color: #fff;
-  background: rgba(255, 255, 255, 0.09);
-  border: 1px solid rgba(255, 255, 255, 0.18);
+  text-wrap: balance;
+  text-shadow: 0 2px 20px rgba(var(--color-ink-rgb), 0.4);
+}
+
+.image-banner__subheading {
+  margin: 0;
+  font-size: clamp(1rem, 0.93rem + 0.42vw, 1.2rem);
+  line-height: 1.65;
+  color: rgba(255, 255, 255, 0.86);
+  max-inline-size: 62ch;
+}
+
+/* ---------- Hero search ---------- */
+.image-banner__search-wrap {
+  inline-size: 100%;
+  max-inline-size: 41rem;
+  margin-block-start: clamp(0.35rem, 1vw, 0.75rem);
+}
+
+.image-banner--align-center .image-banner__search-wrap { margin-inline: auto; }
+
+.image-banner__search-box {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.4rem;
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  transition: border-color var(--duration-fast) ease, box-shadow var(--duration-fast) ease;
+}
+
+.image-banner__search-box:focus-within {
+  border-color: var(--color-accent);
+  box-shadow: var(--shadow-lg), 0 0 0 3px rgba(var(--color-accent-rgb), 0.22);
+}
+
+.image-banner__search-input {
+  flex: 1 1 auto;
+  min-inline-size: 0;
+  min-block-size: 48px;
+  padding-inline: 0.85rem;
+  font-size: 1.02rem;
+  font-weight: 500;
+  color: var(--color-text);
+  background-color: transparent;
+  border: none;
+  appearance: none;
+}
+
+.image-banner__search-input::placeholder {
+  color: var(--color-text-muted);
+  opacity: 0.9;
+}
+
+/* Focus is shown on the whole box, so the inner ring would be redundant. */
+.image-banner__search-input:focus,
+.image-banner__search-input:focus-visible { outline: none; }
+
+.image-banner__search-input::-webkit-search-cancel-button { cursor: pointer; }
+
+.image-banner__search-submit {
+  flex-shrink: 0;
+  padding-inline: 1.3rem;
+}
+
+/* ---------- Popular searches ---------- */
+.image-banner__popular {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.4rem 0.7rem;
+  margin-block-start: 0.85rem;
+}
+
+.image-banner--align-center .image-banner__popular { justify-content: center; }
+
+.image-banner__popular-label {
+  font-size: 0.84rem;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.image-banner__popular-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* Tap-target compliance for the pill links. */
+.image-banner__popular-list .chip { min-block-size: 44px; }
+
+/* ---------- Actions ---------- */
+.image-banner__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.7rem;
+  margin-block-start: clamp(0.35rem, 1vw, 0.65rem);
+}
+
+.image-banner--align-center .image-banner__actions { justify-content: center; }
+
+/* ---------- Trust pills ---------- */
+.image-banner__trust {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 0.55rem;
+  margin: 0.35rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.image-banner--align-center .image-banner__trust { justify-content: center; }
+
+.image-banner__trust-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  min-block-size: 38px;
+  padding: 0.4rem 0.9rem;
+  font-size: 0.87rem;
+  font-weight: 600;
+  line-height: 1.35;
+  color: #fff;
+  background-color: rgba(255, 255, 255, 0.09);
+  border: 1px solid rgba(255, 255, 255, 0.2);
   border-radius: var(--radius-pill);
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
 }
 
-.image-banner__eyebrow::before {
-  content: "";
-  display: inline-block;
-  inline-size: 20px;
-  block-size: 3px;
-  border-radius: 2px;
-  background: var(--color-accent);
+.image-banner__trust-item .icon {
+  color: rgba(255, 255, 255, 0.9);
   flex-shrink: 0;
 }
 
-.image-banner__heading {
-  margin: 0;
-  font-size: calc(clamp(2.1rem, 1.35rem + 3.8vw, 4.1rem) * var(--font-heading-scale));
-  font-weight: 800;
-  line-height: 1.12;
-  color: #fff;
-  text-wrap: balance;
-  text-shadow: 0 2px 24px rgba(13, 17, 23, 0.35);
+/* ---------- Small screens ---------- */
+@media (max-width: 749px) {
+  .image-banner__container { padding-block: clamp(2.75rem, 11vw, 4.25rem); }
+
+  .image-banner__content {
+    align-items: flex-start;
+    gap: 0.85rem;
+  }
+
+  .image-banner--align-center .image-banner__content { align-items: center; }
+
+  .image-banner__search-wrap { max-inline-size: none; }
+
+  .image-banner__subheading { max-inline-size: none; }
 }
 
-.image-banner__subheading {
-  margin: 0;
-  font-size: clamp(1rem, 0.94rem + 0.4vw, 1.2rem);
-  line-height: 1.7;
-  color: rgba(255, 255, 255, 0.88);
-  max-inline-size: 54ch;
-}
+@media (max-width: 599px) {
+  .image-banner__search-box { padding: 0.35rem; }
+  .image-banner__search-submit { padding-inline: 0.95rem; }
+  .image-banner__search-submit-text { display: none; }
 
-.image-banner__actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.75rem;
-  margin-block-start: 0.5rem;
-}
-
-@media (max-width: 479px) {
   .image-banner__actions {
     inline-size: 100%;
     flex-direction: column;
+    align-items: stretch;
   }
-  .image-banner__actions .btn { inline-size: 100%; }
-}
 
-/* ----- Glassy trust chips ----- */
-.image-banner__chips {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.6rem;
-  margin: 0.9rem 0 0;
-  padding: 0;
-  list-style: none;
-}
+  .image-banner__action { inline-size: 100%; }
 
-.image-banner--align-center .image-banner__chips { justify-content: center; }
-
-.image-banner__chip {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.45rem;
-  padding: 0.5rem 0.95rem;
-  font-size: 0.88rem;
-  font-weight: 600;
-  color: #fff;
-  background: rgba(255, 255, 255, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.22);
-  border-radius: var(--radius-pill);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  white-space: nowrap;
-}
-
-.image-banner__chip .icon {
-  color: var(--color-accent);
-  flex-shrink: 0;
-}
-
-@media (max-width: 400px) {
-  .image-banner__chip {
-    font-size: 0.82rem;
-    padding: 0.42rem 0.8rem;
+  .image-banner__trust-item {
+    font-size: 0.83rem;
+    padding: 0.38rem 0.8rem;
   }
 }

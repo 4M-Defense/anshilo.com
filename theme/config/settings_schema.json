@@ -2,34 +2,35 @@
   {
     "name": "theme_info",
     "theme_name": "Shilo Pro",
-    "theme_version": "1.0.0",
-    "theme_author": "A.N. Shilo",
-    "theme_documentation_url": "https://github.com/ofir-commits/anshilo.com",
-    "theme_support_url": "https://github.com/ofir-commits/anshilo.com/issues"
+    "theme_version": "2.0.0",
+    "theme_author": "א.נ. שילו בע\"מ",
+    "theme_documentation_url": "https://anshilo.com",
+    "theme_support_url": "https://anshilo.com/pages/contact"
   },
   {
-    "name": "לוגו ומיתוג",
+    "name": "מיתוג",
     "settings": [
       {
         "type": "image_picker",
         "id": "logo",
-        "label": "לוגו"
+        "label": "לוגו החנות",
+        "info": "מומלץ PNG שקוף, רוחב 600px לפחות."
       },
       {
         "type": "range",
         "id": "logo_width",
-        "min": 80,
+        "label": "רוחב הלוגו במחשב",
+        "min": 90,
         "max": 300,
-        "step": 10,
+        "step": 5,
         "unit": "px",
-        "label": "רוחב הלוגו",
-        "default": 160
+        "default": 175
       },
       {
         "type": "image_picker",
         "id": "favicon",
-        "label": "אייקון לדפדפן (Favicon)",
-        "info": "מומלץ 96x96 פיקסלים"
+        "label": "אייקון האתר (Favicon)",
+        "info": "מומלץ 96×96 פיקסלים."
       }
     ]
   },
@@ -38,82 +39,124 @@
     "settings": [
       {
         "type": "header",
-        "content": "צבעי מותג"
+        "content": "צבע המותג"
+      },
+      {
+        "type": "paragraph",
+        "content": "צבע המותג מיועד לכפתורים, מחירים ומצבים פעילים בלבד — כך הוא נשאר בולט ומכוון לפעולה."
       },
       {
         "type": "color",
         "id": "color_accent",
-        "label": "צבע ראשי (הדגשה)",
-        "default": "#F97316",
-        "info": "צבע הכפתורים, קישורים והדגשות"
+        "label": "צבע מותג (כפתורים ומחירים)",
+        "default": "#D81E29"
       },
       {
         "type": "color",
         "id": "color_accent_hover",
-        "label": "צבע ראשי — ריחוף",
-        "default": "#EA580C"
+        "label": "צבע מותג במעבר עכבר",
+        "default": "#B3151F"
+      },
+      {
+        "type": "header",
+        "content": "מבנה"
       },
       {
         "type": "color",
         "id": "color_ink",
-        "label": "צבע כהה (כותרות ופוטר)",
-        "default": "#12161C"
+        "label": "כהה ראשי (הדר, פוטר, כותרות)",
+        "default": "#0F1729"
       },
       {
         "type": "header",
-        "content": "צבעי רקע וטקסט"
+        "content": "משטחים"
       },
       {
         "type": "color",
         "id": "color_background",
-        "label": "רקע כללי",
+        "label": "רקע כרטיסים ומשטחים",
         "default": "#FFFFFF"
       },
       {
         "type": "color",
+        "id": "color_page",
+        "label": "רקע עמודי קטלוג",
+        "info": "הרקע האפור־קריר שמאחורי כרטיסי המוצרים בעמודי קטגוריה וחיפוש.",
+        "default": "#F4F6F9"
+      },
+      {
+        "type": "color",
         "id": "color_surface_alt",
-        "label": "רקע משני (אזורים מודגשים)",
-        "default": "#F5F6F8"
+        "label": "רקע סקשן מתחלף",
+        "default": "#F7F9FC"
+      },
+      {
+        "type": "color",
+        "id": "color_surface_sunken",
+        "label": "רקע שקוע (בורות תמונה, טעינה)",
+        "default": "#EDF1F6"
+      },
+      {
+        "type": "header",
+        "content": "טקסט וקווים"
       },
       {
         "type": "color",
         "id": "color_text",
-        "label": "צבע טקסט",
-        "default": "#1D242E"
+        "label": "טקסט",
+        "default": "#16202F"
       },
       {
         "type": "color",
         "id": "color_text_muted",
-        "label": "צבע טקסט משני",
-        "default": "#5D6673"
+        "label": "טקסט משני",
+        "default": "#5B6779"
       },
       {
         "type": "color",
         "id": "color_border",
-        "label": "צבע מסגרות",
-        "default": "#E4E7EB"
+        "label": "קווי הפרדה",
+        "default": "#E3E8EF"
+      },
+      {
+        "type": "color",
+        "id": "color_border_strong",
+        "label": "מסגרות שדות קלט",
+        "default": "#CBD4E0"
       },
       {
         "type": "header",
-        "content": "צבעי מערכת"
+        "content": "מצבים"
       },
       {
         "type": "color",
         "id": "color_success",
-        "label": "צבע הצלחה / במלאי",
-        "default": "#178A50"
+        "label": "במלאי",
+        "default": "#0E8A4F"
+      },
+      {
+        "type": "color",
+        "id": "color_warning",
+        "label": "מלאי מוגבל",
+        "default": "#B45309"
       },
       {
         "type": "color",
         "id": "color_danger",
-        "label": "צבע שגיאה / אזל מהמלאי",
-        "default": "#D93025"
+        "label": "שגיאה / אזל מהמלאי",
+        "default": "#C81E1E"
       },
       {
         "type": "color",
         "id": "color_sale",
-        "label": "צבע תווית מבצע",
-        "default": "#E5484D"
+        "label": "מחיר מבצע",
+        "default": "#D81E29"
+      },
+      {
+        "type": "color",
+        "id": "color_highlight",
+        "label": "הדגשת מבצעים (ענבר)",
+        "default": "#FFB224"
       }
     ]
   },
@@ -121,67 +164,84 @@
     "name": "טיפוגרפיה",
     "settings": [
       {
-        "type": "font_picker",
-        "id": "font_heading",
-        "label": "גופן כותרות",
-        "default": "heebo_n7"
+        "type": "paragraph",
+        "content": "כברירת מחדל האתר משתמש ב-Heebo לכותרות וב-Assistant לגוף הטקסט — שני גופנים עבריים מלאים ומודרניים."
+      },
+      {
+        "type": "checkbox",
+        "id": "use_shopify_fonts",
+        "label": "שימוש בגופני שופיפיי במקום Heebo / Assistant",
+        "info": "סמנו רק אם אתם רוצים לבחור גופנים מספריית שופיפיי. לרוב הגופנים שם אין תמיכה מלאה בעברית.",
+        "default": false
       },
       {
         "type": "font_picker",
         "id": "font_body",
-        "label": "גופן טקסט",
-        "default": "heebo_n4"
+        "label": "גופן גוף הטקסט (שופיפיי)",
+        "default": "assistant_n4"
+      },
+      {
+        "type": "font_picker",
+        "id": "font_heading",
+        "label": "גופן כותרות (שופיפיי)",
+        "default": "assistant_n7"
       },
       {
         "type": "range",
         "id": "heading_scale",
+        "label": "גודל כותרות",
         "min": 90,
-        "max": 130,
+        "max": 120,
         "step": 5,
         "unit": "%",
-        "label": "גודל כותרות",
         "default": 100
       },
       {
         "type": "range",
         "id": "body_scale",
+        "label": "גודל גוף הטקסט",
         "min": 90,
         "max": 115,
         "step": 5,
         "unit": "%",
-        "label": "גודל טקסט",
         "default": 100
       }
     ]
   },
   {
-    "name": "פריסה ועיצוב",
+    "name": "פריסה וסגנון",
     "settings": [
       {
         "type": "range",
         "id": "page_width",
-        "min": 1100,
+        "label": "רוחב מקסימלי של התוכן",
+        "min": 1200,
         "max": 1600,
-        "step": 50,
+        "step": 20,
         "unit": "px",
-        "label": "רוחב מקסימלי של העמוד",
-        "default": 1350
+        "default": 1400
       },
       {
         "type": "select",
         "id": "corner_style",
-        "label": "סגנון פינות",
+        "label": "עיגול פינות",
         "options": [
-          { "value": "sharp", "label": "חד (0px)" },
-          { "value": "soft", "label": "מעודן (8px)" },
-          { "value": "round", "label": "מעוגל (14px)" }
+          { "value": "sharp", "label": "חד" },
+          { "value": "soft", "label": "רך (מומלץ)" },
+          { "value": "round", "label": "מעוגל מאוד" }
         ],
         "default": "soft"
       },
       {
         "type": "checkbox",
         "id": "enable_animations",
-        "label": "אנימציות גלילה עדינות",
+        "label": "אנימציות ומעברים",
+        "default": true
+      },
+      {
+        "type": "checkbox",
+        "id": "show_breadcrumbs",
+        "label": "הצגת נתיב ניווט",
         "default": true
       }
     ]
@@ -192,11 +252,10 @@
       {
         "type": "select",
         "id": "card_image_ratio",
-        "label": "יחס תמונה בכרטיס",
+        "label": "יחס תמונת המוצר",
         "options": [
-          { "value": "square", "label": "ריבועי (מומלץ)" },
-          { "value": "portrait", "label": "לאורך" },
-          { "value": "adapt", "label": "מותאם לתמונה" }
+          { "value": "square", "label": "ריבוע (מומלץ לקטלוג)" },
+          { "value": "portrait", "label": "אורך" }
         ],
         "default": "square"
       },
@@ -209,7 +268,7 @@
       {
         "type": "checkbox",
         "id": "card_show_second_image",
-        "label": "החלפה לתמונה שנייה בריחוף",
+        "label": "החלפת תמונה במעבר עכבר",
         "default": true
       },
       {
@@ -221,36 +280,54 @@
       {
         "type": "checkbox",
         "id": "card_show_stock",
-        "label": "הצגת חיווי מלאי",
+        "label": "חיווי מלאי",
         "default": true
       },
       {
         "type": "checkbox",
         "id": "show_sale_badge_percent",
-        "label": "הצגת אחוז הנחה בתווית מבצע",
+        "label": "תגית מבצע באחוזים",
         "default": true
       },
       {
         "type": "range",
         "id": "new_badge_days",
+        "label": "תגית \"חדש\" למוצרים מהימים האחרונים",
         "min": 0,
         "max": 90,
         "step": 5,
-        "unit": "ימ'",
-        "label": "תווית \"חדש\" למוצרים שנוצרו ב-X הימים האחרונים (0 = כבוי)",
+        "unit": "יום",
         "default": 30
+      },
+      {
+        "type": "range",
+        "id": "low_stock_threshold",
+        "label": "רף \"מלאי מוגבל\"",
+        "min": 0,
+        "max": 20,
+        "step": 1,
+        "default": 5
+      },
+      {
+        "type": "range",
+        "id": "products_per_page",
+        "label": "מוצרים בעמוד קטגוריה",
+        "min": 12,
+        "max": 48,
+        "step": 4,
+        "default": 24
       }
     ]
   },
   {
-    "name": "עגלת קניות",
+    "name": "עגלה וחיפוש",
     "settings": [
       {
         "type": "select",
         "id": "cart_type",
-        "label": "סוג עגלה",
+        "label": "סוג העגלה",
         "options": [
-          { "value": "drawer", "label": "מגירה צדדית (מומלץ)" },
+          { "value": "drawer", "label": "עגלה צדדית (מומלץ)" },
           { "value": "page", "label": "עמוד עגלה" }
         ],
         "default": "drawer"
@@ -258,33 +335,28 @@
       {
         "type": "checkbox",
         "id": "cart_show_note",
-        "label": "אפשרות להוסיף הערה להזמנה",
+        "label": "אפשרות להוספת הערה להזמנה",
         "default": true
       },
       {
         "type": "text",
         "id": "free_shipping_threshold",
-        "label": "סכום למשלוח חינם (₪)",
-        "info": "השאירו ריק כדי להסתיר את פס ההתקדמות למשלוח חינם",
+        "label": "סכום למשלוח חינם",
+        "info": "מספר בשקלים, ללא סימן. השאירו ריק כדי להסתיר את פס ההתקדמות.",
         "default": "399"
-      }
-    ]
-  },
-  {
-    "name": "חיפוש",
-    "settings": [
+      },
       {
         "type": "checkbox",
         "id": "predictive_search_enabled",
-        "label": "חיפוש מיידי תוך כדי הקלדה",
+        "label": "חיפוש חי תוך כדי הקלדה",
         "default": true
       },
       {
         "type": "text",
         "id": "popular_searches",
-        "label": "חיפושים פופולריים (מופרדים בפסיק)",
-        "default": "מקדחה, מברגה, טמבור, סולם, מקיטה",
-        "info": "מוצגים כשפותחים את החיפוש"
+        "label": "חיפושים פופולריים",
+        "info": "מופרדים בפסיקים.",
+        "default": "מקיטה, מברגה נטענת, סולם, מנעול, ברז מטבח, ספריי צבע"
       }
     ]
   },
@@ -292,64 +364,69 @@
     "name": "פרטי החנות",
     "settings": [
       {
+        "type": "paragraph",
+        "content": "הפרטים האלה מוצגים בהדר, בפוטר, בעמוד צור קשר ובכפתורי הפעולה הצפים."
+      },
+      {
         "type": "text",
         "id": "store_phone",
-        "label": "טלפון החנות",
-        "default": "04-8444444"
+        "label": "טלפון",
+        "default": "02-534-3422"
       },
       {
         "type": "text",
         "id": "store_whatsapp",
-        "label": "וואטסאפ (מספר בפורמט בינלאומי)",
-        "info": "לדוגמה: 972501234567",
+        "label": "וואטסאפ",
+        "info": "מספר בפורמט בינלאומי (למשל 972501234567) או קישור wa.link מלא.",
         "default": ""
       },
       {
         "type": "text",
         "id": "store_email",
         "label": "אימייל",
-        "default": ""
+        "default": "info@anshilo.com"
       },
       {
         "type": "text",
         "id": "store_address",
         "label": "כתובת",
-        "default": "קרית אתא"
+        "default": "קיבוץ קרית ענבים"
       },
       {
         "type": "textarea",
         "id": "store_hours",
         "label": "שעות פעילות",
         "default": "א'-ה' 07:00-17:00\nו' 07:00-13:00"
-      }
-    ]
-  },
-  {
-    "name": "רשתות חברתיות",
-    "settings": [
+      },
+      {
+        "type": "checkbox",
+        "id": "show_contact_dock",
+        "label": "כפתורי טלפון/וואטסאפ צפים",
+        "default": true
+      },
+      {
+        "type": "header",
+        "content": "רשתות חברתיות"
+      },
       {
         "type": "text",
         "id": "social_facebook",
-        "label": "קישור לפייסבוק",
-        "default": ""
+        "label": "פייסבוק"
       },
       {
         "type": "text",
         "id": "social_instagram",
-        "label": "קישור לאינסטגרם",
-        "default": ""
+        "label": "אינסטגרם"
       },
       {
         "type": "text",
         "id": "social_tiktok",
-        "label": "קישור לטיקטוק",
-        "default": ""
+        "label": "טיקטוק"
       },
       {
         "type": "text",
         "id": "social_youtube",
-        "label": "קישור ליוטיוב",
-        "default": ""
+        "label": "יוטיוב"
       }
     ]
   }

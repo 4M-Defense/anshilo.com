@@ -1,18 +1,16 @@
 {
   "sections": {
-    "main": {
-      "type": "main-cart",
-      "settings": {}
-    },
-    "recently_viewed": {
-      "type": "recently-viewed",
+    "quick_order": {
+      "type": "quick-order",
       "settings": {
-        "heading": "אולי שכחתם משהו?",
-        "products_limit": 8,
-        "alt_background": false
+        "eyebrow": "לאנשי מקצוע וקבלנים",
+        "heading": "הזמנה מהירה לפי מקט",
+        "subheading": "יש לכם רשימת מקטים? הקלידו או הדביקו אותה כאן, ואנחנו נמלא את העגלה בשבילכם — בלי לחפש מוצר־מוצר.",
+        "alt_background": false,
+        "show_help": true
       }
     },
-    "trust": {
+    "services": {
       "type": "services-bar",
       "settings": {
         "alt_background": true
@@ -37,31 +35,22 @@
         "s3": {
           "type": "service",
           "settings": {
-            "icon": "shield-check",
-            "title": "מותגים מקוריים בלבד",
-            "text": "אחריות מלאה מיבואן רשמי"
+            "icon": "headset",
+            "title": "ייעוץ מקצועי",
+            "text": "צוות עם 30+ שנות ניסיון בענף"
           }
         },
         "s4": {
           "type": "service",
           "settings": {
-            "icon": "headset",
-            "title": "ייעוץ מקצועי",
-            "text": "02-534-3422 · 30+ שנות ניסיון"
+            "icon": "percent",
+            "title": "תנאים לעסקים",
+            "text": "מחירי קבלן להזמנות בכמויות"
           }
         }
       },
-      "block_order": [
-        "s1",
-        "s2",
-        "s3",
-        "s4"
-      ]
+      "block_order": ["s1", "s2", "s3", "s4"]
     }
   },
-  "order": [
-    "main",
-    "recently_viewed",
-    "trust"
-  ]
+  "order": ["quick_order", "services"]
 }
