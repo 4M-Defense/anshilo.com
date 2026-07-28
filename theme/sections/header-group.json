@@ -4,11 +4,46 @@
   "sections": {
     "announcement-bar": {
       "type": "announcement-bar",
-      "settings": {}
+      "blocks": {
+        "delivery": {
+          "type": "announcement",
+          "settings": {
+            "text": "אספקה לירושלים והסביבה — או איסוף עצמי מהמחסן בקרית ענבים",
+            "icon": "truck"
+          }
+        },
+        "experience": {
+          "type": "announcement",
+          "settings": {
+            "text": "למעלה מ-30 שנה מספקים לקבלנים, מוסדות ולקוחות פרטיים",
+            "icon": "shield-check"
+          }
+        },
+        "timber": {
+          "type": "announcement",
+          "settings": {
+            "text": "מחסן עצים בקרית ענבים — ניסור וחיתוך למידה",
+            "icon": "ruler"
+          }
+        }
+      },
+      "block_order": ["delivery", "experience", "timber"],
+      "settings": {
+        "show_whatsapp": true,
+        "rotate_speed": 5
+      }
     },
     "header": {
       "type": "header",
-      "settings": {}
+      "settings": {
+        "menu": "main-menu",
+        "enable_sticky": true,
+        "show_account": true,
+        "show_utility_bar": true,
+        "utility_message": "משלוח חינם בקנייה מעל",
+        "contact_page": "contact",
+        "mega_all_label": "לכל הקטגוריה"
+      }
     }
   },
   "order": ["announcement-bar", "header"]

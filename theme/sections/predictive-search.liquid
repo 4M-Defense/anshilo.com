@@ -3,7 +3,7 @@
   section-header.js fetches:
   {{ routes.predictive_search_url }}?q=...&section_id=predictive-search
   and injects the innerHTML of #PredictiveSearchResults into the header
-  search panel. Styles live in assets/section-header.css.
+  search panel. Styles live in assets/section-search.css.
 {%- endcomment -%}
 
 <div id="PredictiveSearchResults" class="predictive-results">
@@ -29,9 +29,10 @@
                     {%- if product.featured_image -%}
                       <img
                         src="{{ product.featured_image | image_url: width: 128 }}"
+                        srcset="{{ product.featured_image | image_url: width: 64 }} 1x, {{ product.featured_image | image_url: width: 128 }} 2x"
                         alt="{{ product.featured_image.alt | default: product.title | escape }}"
-                        width="64"
-                        height="64"
+                        width="56"
+                        height="56"
                         loading="lazy"
                       >
                     {%- else -%}
@@ -39,6 +40,7 @@
                       {{ 'product-' | append: placeholder_index | placeholder_svg_tag: 'placeholder-svg' }}
                     {%- endif -%}
                   </span>
+
                   <span class="predictive-results__info">
                     {%- if product.vendor != blank -%}
                       <span class="predictive-results__vendor">{{ product.vendor }}</span>
@@ -46,9 +48,14 @@
                     <span class="predictive-results__title">{{ product.title | escape }}</span>
                     {% render 'price', product: product, class: 'predictive-results__price' %}
                   </span>
-                  {%- unless product.available -%}
-                    <span class="badge badge--soldout predictive-results__badge">{{ 'products.product.sold_out' | t }}</span>
-                  {%- endunless -%}
+
+                  <span class="predictive-results__aside">
+                    {%- if product.available -%}
+                      {% render 'icon', name: 'arrow-right', size: 16, class: 'icon--dir predictive-results__arrow' %}
+                    {%- else -%}
+                      <span class="badge badge--soldout">{{ 'products.product.sold_out' | t }}</span>
+                    {%- endif -%}
+                  </span>
                 </a>
               </li>
             {%- endfor -%}
@@ -58,22 +65,32 @@
 
       {%- if collections.size > 0 -%}
         <div class="predictive-results__group">
-          <h3 class="predictive-results__heading">{{ 'general.search.collections' | t }}</h3>
-          <div class="predictive-results__chips">
+          <h3 class="predictive-results__heading" id="PredictiveResultsCollections">{{ 'general.search.collections' | t }}</h3>
+          <ul class="predictive-results__links" role="list" aria-labelledby="PredictiveResultsCollections">
             {%- for collection in collections limit: 6 -%}
-              <a class="chip" href="{{ collection.url }}">{{ collection.title | escape }}</a>
+              <li>
+                <a class="predictive-results__link" href="{{ collection.url }}">
+                  <span class="predictive-results__link-icon">{% render 'icon', name: 'layers', size: 16 %}</span>
+                  <span class="predictive-results__link-title">{{ collection.title | escape }}</span>
+                  {% render 'icon', name: 'arrow-right', size: 15, class: 'icon--dir predictive-results__arrow' %}
+                </a>
+              </li>
             {%- endfor -%}
-          </div>
+          </ul>
         </div>
       {%- endif -%}
 
       {%- if pages.size > 0 -%}
         <div class="predictive-results__group">
-          <h3 class="predictive-results__heading">{{ 'general.search.pages' | t }}</h3>
-          <ul class="predictive-results__links" role="list">
+          <h3 class="predictive-results__heading" id="PredictiveResultsPages">{{ 'general.search.pages' | t }}</h3>
+          <ul class="predictive-results__links" role="list" aria-labelledby="PredictiveResultsPages">
             {%- for page in pages limit: 4 -%}
               <li>
-                <a class="predictive-results__link" href="{{ page.url }}">{{ page.title | escape }}</a>
+                <a class="predictive-results__link" href="{{ page.url }}">
+                  <span class="predictive-results__link-icon">{% render 'icon', name: 'info', size: 16 %}</span>
+                  <span class="predictive-results__link-title">{{ page.title | escape }}</span>
+                  {% render 'icon', name: 'arrow-right', size: 15, class: 'icon--dir predictive-results__arrow' %}
+                </a>
               </li>
             {%- endfor -%}
           </ul>
@@ -82,18 +99,22 @@
 
       {%- if articles.size > 0 -%}
         <div class="predictive-results__group">
-          <h3 class="predictive-results__heading">{{ 'general.search.articles' | t }}</h3>
-          <ul class="predictive-results__links" role="list">
+          <h3 class="predictive-results__heading" id="PredictiveResultsArticles">{{ 'general.search.articles' | t }}</h3>
+          <ul class="predictive-results__links" role="list" aria-labelledby="PredictiveResultsArticles">
             {%- for article in articles limit: 4 -%}
               <li>
-                <a class="predictive-results__link" href="{{ article.url }}">{{ article.title | escape }}</a>
+                <a class="predictive-results__link" href="{{ article.url }}">
+                  <span class="predictive-results__link-icon">{% render 'icon', name: 'tag', size: 16 %}</span>
+                  <span class="predictive-results__link-title">{{ article.title | escape }}</span>
+                  {% render 'icon', name: 'arrow-right', size: 15, class: 'icon--dir predictive-results__arrow' %}
+                </a>
               </li>
             {%- endfor -%}
           </ul>
         </div>
       {%- endif -%}
 
-      <a class="btn btn--ghost btn--sm btn--full predictive-results__all" href="{{ routes.search_url }}?q={{ predictive_search.terms | url_param_escape }}">
+      <a class="btn btn--outline btn--sm btn--full predictive-results__all" href="{{ routes.search_url }}?q={{ predictive_search.terms | url_param_escape }}">
         {{ 'general.search.view_all' | t }}
         {% render 'icon', name: 'arrow-right', size: 16, class: 'icon--dir' %}
       </a>

@@ -16,10 +16,8 @@
 
   assign phone_href = settings.store_phone | remove: '-' | remove: ' ' | remove: '(' | remove: ')'
 
-  comment
-    store_hours is a textarea (one line per day range) — the utility row shows
-    the first line only; the full block lives in the footer / contact page.
-  endcomment
+  # store_hours is a textarea (one line per day range) — the utility row shows
+  # the first line only; the full block lives in the footer and contact page.
   assign hours_lines = settings.store_hours | newline_to_br | strip_newlines | split: '<br />'
   assign hours_first = hours_lines[0] | strip
 
