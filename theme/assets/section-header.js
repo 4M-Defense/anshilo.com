@@ -1,6 +1,7 @@
 /* =========================================================
    Shilo Pro — Header group JS
-   Announcement rotation, predictive search, menu drawer adoption
+   Announcement rotation, predictive search, mega menu,
+   sticky-compression height reserve, menu drawer adoption.
    Loaded (deferred) by both announcement-bar and header sections,
    so the whole module is guarded against double execution.
    ========================================================= */
@@ -20,7 +21,25 @@
     };
   };
 
+  function toArray(list) {
+    return Array.prototype.slice.call(list);
+  }
+
   var searchInstances = [];
+
+  /* Pointer activity flag — lets keyboard focus open the mega menu without a
+     mouse click on <summary> opening and instantly re-closing it. */
+  var pointerActive = false;
+  var pointerTimer = null;
+  document.addEventListener(
+    'pointerdown',
+    function () {
+      pointerActive = true;
+      clearTimeout(pointerTimer);
+      pointerTimer = setTimeout(function () { pointerActive = false; }, 500);
+    },
+    true
+  );
 
   /* ---------- Menu drawer: move to <body> ----------
      The header section wrapper is position:sticky with a z-index, which
@@ -40,7 +59,7 @@
     if (!track || track.dataset.initialized === 'true') return;
     track.dataset.initialized = 'true';
 
-    var items = Array.prototype.slice.call(track.querySelectorAll('[data-announcement]'));
+    var items = toArray(track.querySelectorAll('[data-announcement]'));
     if (items.length < 2) return;
 
     var interval = parseInt(track.getAttribute('data-rotate-interval'), 10) || 5000;
@@ -101,6 +120,7 @@
     var slot = form.querySelector('[data-search-results]');
     var popular = form.querySelector('[data-search-popular]');
     var clearBtn = form.querySelector('[data-search-clear]');
+    var skeleton = form.querySelector('[data-search-skeleton]');
     var predictiveOn = !!(window.themeSettings && window.themeSettings.predictiveSearch) && !!slot;
     var cache = {};
     var cacheSize = 0;
@@ -112,18 +132,24 @@
       input.setAttribute('aria-expanded', 'true');
     }
 
+    function hideSkeleton() {
+      if (skeleton) skeleton.hidden = true;
+    }
+
     function closePanel() {
       if (controller) {
         controller.abort();
         controller = null;
       }
       form.classList.remove('is-searching');
+      hideSkeleton();
       panel.hidden = true;
       form.classList.remove('is-open');
       input.setAttribute('aria-expanded', 'false');
     }
 
     function showPopular() {
+      hideSkeleton();
       if (slot) {
         slot.hidden = true;
         slot.innerHTML = '';
@@ -136,8 +162,21 @@
       }
     }
 
+    /* Skeleton only replaces an empty panel — when results are already on
+       screen they stay put and the submit button shows the spinner. */
+    function showSkeleton() {
+      if (!skeleton) return;
+      var hasResults = slot && !slot.hidden && slot.innerHTML.trim().length > 0;
+      if (hasResults) return;
+      if (popular) popular.hidden = true;
+      if (slot) slot.hidden = true;
+      skeleton.hidden = false;
+      openPanel();
+    }
+
     function renderResults(html) {
       if (!slot) return;
+      hideSkeleton();
       if (!html || !html.trim()) {
         closePanel();
         return;
@@ -156,6 +195,7 @@
       if (controller) controller.abort();
       controller = new AbortController();
       form.classList.add('is-searching');
+      showSkeleton();
 
       var url = window.routes.predictive_search_url +
         '?q=' + encodeURIComponent(q) +
@@ -248,7 +288,7 @@
 
     panel.addEventListener('keydown', function (e) {
       if (e.key !== 'ArrowDown' && e.key !== 'ArrowUp' && e.key !== 'Escape') return;
-      var focusables = Array.prototype.slice.call(panel.querySelectorAll('a[href], button:not([disabled])'))
+      var focusables = toArray(panel.querySelectorAll('a[href], button:not([disabled])'))
         .filter(function (el) { return el.offsetParent !== null; });
       if (e.key === 'Escape') {
         closePanel();
@@ -280,12 +320,156 @@
     });
   });
 
+  /* ---------- Mega menu / nav dropdowns ----------
+     <details> keeps click + keyboard support for free; this adds hover-intent
+     opening, single-panel-at-a-time behaviour and Escape/scroll closing.
+     (global.js also closes [data-disclosure] on outside click and Escape.) */
+  function initNav(nav) {
+    if (!nav || nav.dataset.initialized === 'true') return;
+    nav.dataset.initialized = 'true';
+
+    var dropdowns = toArray(nav.querySelectorAll('[data-nav-dropdown]'));
+    if (!dropdowns.length) return;
+
+    var hoverCapable = !window.matchMedia || window.matchMedia('(hover: hover) and (pointer: fine)').matches;
+    var openTimer = null;
+    var closeTimer = null;
+
+    function clearTimers() {
+      clearTimeout(openTimer);
+      clearTimeout(closeTimer);
+    }
+
+    function closeOthers(except) {
+      dropdowns.forEach(function (item) {
+        if (item !== except) item.removeAttribute('open');
+      });
+    }
+
+    function openOne(item) {
+      clearTimers();
+      closeOthers(item);
+      if (!item.hasAttribute('open')) item.setAttribute('open', '');
+    }
+
+    function closeOne(item) {
+      item.removeAttribute('open');
+    }
+
+    dropdowns.forEach(function (item) {
+      var summary = item.querySelector('summary');
+
+      item.addEventListener('toggle', function () {
+        if (item.open) closeOthers(item);
+      });
+
+      if (hoverCapable) {
+        item.addEventListener('mouseenter', function () {
+          clearTimeout(closeTimer);
+          openTimer = setTimeout(function () { openOne(item); }, 120);
+        });
+        item.addEventListener('mouseleave', function () {
+          clearTimeout(openTimer);
+          closeTimer = setTimeout(function () { closeOne(item); }, 180);
+        });
+      }
+
+      item.addEventListener('focusin', function () {
+        if (pointerActive) return;
+        openOne(item);
+      });
+
+      item.addEventListener('focusout', function (e) {
+        if (e.relatedTarget && item.contains(e.relatedTarget)) return;
+        closeOne(item);
+      });
+
+      item.addEventListener('keydown', function (e) {
+        if (e.key !== 'Escape') return;
+        e.stopPropagation();
+        closeOne(item);
+        if (summary) summary.focus();
+      });
+    });
+
+    /* The nav row folds away while the header is compressed — never leave a
+       panel hanging open across that transition. */
+    window.addEventListener(
+      'scroll',
+      function () {
+        for (var i = 0; i < dropdowns.length; i++) {
+          if (dropdowns[i].hasAttribute('open')) {
+            clearTimers();
+            closeOthers(null);
+            return;
+          }
+        }
+      },
+      { passive: true }
+    );
+  }
+
+  /* ---------- Sticky compression: reserve the collapsing height ----------
+     The utility row and the nav row fold away once the header is stuck. The
+     sticky wrapper hands that height back to the document through an inert
+     spacer so the page never jumps. */
+  function initStickyReserve(scope) {
+    var header = scope.querySelector('[data-sticky-header]');
+    if (!header) return;
+
+    var wrapper = header.closest('.site-header-wrapper') || header.parentElement;
+    if (!wrapper) return;
+
+    var reserve = wrapper.querySelector('[data-header-reserve]');
+    if (!reserve || reserve.dataset.initialized === 'true') return;
+    reserve.dataset.initialized = 'true';
+
+    var util = header.querySelector('[data-header-util]');
+    var navRow = header.querySelector('[data-header-nav]');
+    if (!util && !navRow) return;
+
+    var measured = 0;
+
+    function apply() {
+      /* Only measurable while expanded. */
+      if (header.classList.contains('is-stuck')) return;
+      var height = 0;
+      if (util) height += util.offsetHeight;
+      /* A collapsed nav row keeps its 1px hairline, so it is not part of the
+         height that disappears. */
+      if (navRow && navRow.offsetHeight) height += navRow.offsetHeight - 1;
+      if (height > measured) {
+        measured = height;
+        wrapper.style.setProperty('--header-reserve', height + 'px');
+      }
+    }
+
+    apply();
+
+    if ('ResizeObserver' in window) {
+      var observer = new ResizeObserver(apply);
+      if (util) observer.observe(util);
+      if (navRow) observer.observe(navRow);
+    }
+
+    window.addEventListener('load', apply);
+    window.addEventListener(
+      'resize',
+      debounce(function () {
+        measured = 0;
+        apply();
+      }, 150)
+    );
+  }
+
   /* ---------- Init ---------- */
   function initAll(scope) {
     var root = scope || document;
     adoptMenuDrawer(root);
     root.querySelectorAll('[data-announcements]').forEach(initAnnouncements);
     root.querySelectorAll('[data-header-search]').forEach(initSearchForm);
+    root.querySelectorAll('[data-header-nav]').forEach(initNav);
+    initStickyReserve(root);
   }
 
   if (document.readyState === 'loading') {

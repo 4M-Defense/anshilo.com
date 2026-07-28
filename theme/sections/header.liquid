@@ -324,9 +324,11 @@
                             </div>
                           {%- endfor -%}
                         </div>
+                      </div>
 
-                        {%- if link.url != '#' and link.url != blank -%}
-                          <div class="site-nav__mega-foot">
+                      {%- if link.url != '#' and link.url != blank -%}
+                        <div class="site-nav__mega-foot">
+                          <div class="container">
                             <a class="site-nav__mega-all" href="{{ link.url }}">
                               {% render 'icon', name: 'grid', size: 16 %}
                               <span class="site-nav__mega-all-label">{{ all_label }}</span>
@@ -334,8 +336,8 @@
                               {% render 'icon', name: 'arrow-right', size: 15, class: 'icon--dir' %}
                             </a>
                           </div>
-                        {%- endif -%}
-                      </div>
+                        </div>
+                      {%- endif -%}
                     </div>
                   {%- else -%}
                     <div class="site-nav__panel site-nav__panel--flyout">
