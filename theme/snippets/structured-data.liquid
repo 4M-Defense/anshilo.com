@@ -26,9 +26,13 @@
   endif
   assign email = settings.store_email | default: shop.email
   assign street = settings.store_address | default: shop.address.address1
+  # Google wants the Organization logo at 112px on BOTH axes, which the shop's
+  # horizontal lockup (500x100) fails on height. Prefer the square companion and
+  # fall back to the main logo only when no square version has been uploaded.
+  assign logo_image = settings.logo_square | default: settings.logo
   assign logo_url = ''
-  if settings.logo != blank
-    assign logo_url = settings.logo | image_url: width: 600
+  if logo_image != blank
+    assign logo_url = logo_image | image_url: width: 600
   endif
 -%}
 

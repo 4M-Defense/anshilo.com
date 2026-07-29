@@ -143,20 +143,26 @@ palette colour, run the validator — it will tell you if you broke AA.
 
 The deployed theme is byte-identical to the repo **except**:
 
-- `snippets/structured-data.liquid` — the deployed copy has an abbreviated header
-  comment. Functionally identical.
 - `assets/base.css` — the repo carries two small changes not yet deployed: the
   `--color-success` alpha tints moved from `rgba(14,138,79,…)` to
   `rgba(11,122,70,…)` to follow the new green (imperceptible at 8–24% alpha), and
   `scroll-padding-block-start` now reads `--header-reserve` instead of a variable
   no one ever set. Deploy it whenever you next touch that file; nothing is broken
   meanwhile except the anchor offset on the A–Z jump bar.
+- `sections/header.liquid` — the repo carries a comment rewrite and a changed
+  `default:` fallback for `logo_width` (175 → 260). Both are no-ops on the
+  storefront: `settings_data.json` always sets `logo_width`, so the fallback never
+  fires, and the `height` attribute it feeds computes the same number either way.
 
 Note that `config/settings_data.json` will always differ in **size** from the repo
 copy: Shopify strips blank lines and prepends its own auto-generated header comment
-on write. Compare values, not bytes. The accessibility fix was verified that way.
+on write. Compare values, not bytes. Both the accessibility fix and the horizontal
+logo were verified that way.
 
-Everything else, including `assets/section-header.css` at 24,780 bytes, matches.
+Everything else matches byte-for-byte, verified by comparing the `size` returned by
+`themeFilesUpsert` to the local byte count: `assets/section-header.css` 25,540,
+`config/settings_schema.json` 8,743, `snippets/structured-data.liquid` 11,097,
+`layout/theme.liquid` 14,008.
 
 ---
 
@@ -270,12 +276,41 @@ Liquid errors, leftover Empire assets and undersized tap targets.
 
 See §6. Nothing about the app can be validated end-to-end until this is done.
 
-### 3. A horizontal logo
+### 3. A horizontal logo — DONE, but confirm it by eye
 
-The current logo is stacked — icon above wordmark, roughly 1:1 — so the header can
-only show it at a capped height (54px mobile / 68px desktop) and the wordmark comes
-out small. A horizontal variant would visibly improve the header and needs no code:
-theme editor → Branding → Logo.
+The theme now uses the shop's own horizontal lockup,
+`shopify://shop_images/final-logo-for-the-website.png` (500×100, 5:1, 8.6KB PNG),
+at `logo_width: 260`. It was already the logo the **live** Empire theme renders
+(`sections/header-group.json` → `static-header.logo`, `logo_width: 230`), so this
+is the shop's real artwork, not a substitute. v2 had been pointed at the 512×512
+square variant `logo-logo-logo-logo-logo.png`, which is why it swallowed the phone
+header.
+
+**`cdn.shopify.com` is blocked from this environment, so no agent has ever seen
+these pixels.** The identification rests on the live theme's own configuration plus
+the filename and ratio. It is solid, but a human should still glance at the header.
+
+A 500px-wide source is slightly under 2× for the 260px desktop render (1.92×). If
+the owner can produce a 1000×200 export it will be marginally crisper; nothing is
+wrong as-is.
+
+Sizing is deliberately height-first — see the long comment above
+`.site-header__logo-img` in `assets/section-header.css`. Both axes are bounded and
+both sizes are `auto`, so the CSS replaced-element constraint table scales the mark
+to satisfy the tighter bound and preserves the ratio without Liquid passing one in.
+Caps: 46px tall on mobile (58vw guard), 60px desktop, 42px when the header is stuck.
+Swapping a square logo back in is safe — the height cap governs and it renders 46px.
+
+A second setting was added because a 5:1 image is the wrong shape for two other
+places a logo gets used:
+
+- `logo_square` (מיתוג group) feeds the Organization `logo` in
+  `snippets/structured-data.liquid` — Google wants ≥112px on **both** axes, which
+  500×100 fails on height — and the `og:image`/`twitter:image` fallback in
+  `layout/theme.liquid`. It defaults to the 512×512 file. Before this, ordinary
+  pages had **no** `og:image` at all, so links shared to WhatsApp rendered as a bare
+  grey card; that is now fixed. If it is ever cleared, both paths fall back to the
+  main logo.
 
 ### 4. Data fixes in the store — see `docs/STORE-HEALTH.md`
 

@@ -1,7 +1,8 @@
 {
   "current": {
-    "logo": "shopify://shop_images/logo-logo-logo-logo-logo.png",
-    "logo_width": 175,
+    "logo": "shopify://shop_images/final-logo-for-the-website.png",
+    "logo_width": 260,
+    "logo_square": "shopify://shop_images/logo-logo-logo-logo-logo.png",
     "favicon": "shopify://shop_images/favicon-for-website-2.png",
 
     "color_accent": "#D81E29",

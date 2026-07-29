@@ -10,8 +10,15 @@
 
 {%- liquid
   assign menu = section.settings.menu
-  assign logo_width = settings.logo_width | default: 175
+  assign logo_width = settings.logo_width | default: 260
   assign logo_width_2x = logo_width | times: 2
+
+  # width/height are the intrinsic-ratio hint that reserves the right box before
+  # the image lands. The CSS caps both axes and lets the browser pick the tighter
+  # one, so the rendered size can come out smaller than these numbers on a phone —
+  # only the ratio between them has to be right.
+  assign logo_ar = settings.logo.aspect_ratio | default: 1
+  assign logo_height = logo_width | divided_by: logo_ar | round
   assign all_label = section.settings.mega_all_label | default: 'לכל הקטגוריה'
 
   assign phone_href = settings.store_phone | remove: '-' | remove: ' ' | remove: '(' | remove: ')'
@@ -108,7 +115,7 @@
               src="{{ settings.logo | image_url: width: logo_width_2x }}"
               srcset="{{ settings.logo | image_url: width: logo_width }} 1x, {{ settings.logo | image_url: width: logo_width_2x }} 2x"
               width="{{ logo_width }}"
-              height="{{ logo_width | divided_by: settings.logo.aspect_ratio | round }}"
+              height="{{ logo_height }}"
               alt="{{ settings.logo.alt | default: shop.name | escape }}"
               fetchpriority="high"
             >

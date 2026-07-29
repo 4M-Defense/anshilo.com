@@ -1,7 +1,7 @@
 {{ 'section-customers.css' | asset_url | stylesheet_tag }}
 
 {%- liquid
-  assign logo_width = settings.logo_width | default: 175
+  assign logo_width = settings.logo_width | default: 260
   assign logo_width_2x = logo_width | times: 2
   assign phone_href = settings.store_phone | remove: '-' | remove: ' ' | remove: '(' | remove: ')'
 -%}

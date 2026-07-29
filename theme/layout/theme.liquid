@@ -35,9 +35,24 @@
     {%- if page_description -%}
       <meta property="og:description" content="{{ page_description | escape }}">
     {%- endif -%}
-    {%- if page_image -%}
-      <meta property="og:image" content="http:{{ page_image | image_url: width: 1200 }}">
-      <meta property="og:image:secure_url" content="https:{{ page_image | image_url: width: 1200 }}">
+    {%- comment -%}
+      Without a fallback the homepage and every ordinary page shares with no
+      preview image at all — which on WhatsApp, where most of this shop's links
+      get passed around, renders as a bare grey card. The square logo is the right
+      fallback: the horizontal lockup gets letterboxed into unreadability at the
+      1.91:1 crop Facebook and WhatsApp apply.
+    {%- endcomment -%}
+    {%- liquid
+      assign share_image = page_image
+      if share_image == blank
+        assign share_image = settings.logo_square | default: settings.logo
+      endif
+    -%}
+    {%- if share_image != blank -%}
+      <meta property="og:image" content="http:{{ share_image | image_url: width: 1200 }}">
+      <meta property="og:image:secure_url" content="https:{{ share_image | image_url: width: 1200 }}">
+      <meta name="twitter:card" content="summary_large_image">
+      <meta name="twitter:image" content="https:{{ share_image | image_url: width: 1200 }}">
     {%- endif -%}
 
     <link rel="preconnect" href="https://cdn.shopify.com" crossorigin>

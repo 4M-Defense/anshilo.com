@@ -57,7 +57,7 @@
         <div class="footer__col footer__col--brand">
           {%- if settings.logo != blank -%}
             {%- liquid
-              assign logo_width = settings.logo_width | default: 175
+              assign logo_width = settings.logo_width | default: 260
               assign logo_width_2x = logo_width | times: 2
               assign logo_ratio = settings.logo.aspect_ratio | default: 2.5
               assign logo_height = logo_width | divided_by: logo_ratio | round
