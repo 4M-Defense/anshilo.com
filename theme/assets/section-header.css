@@ -231,10 +231,18 @@ a.site-header__util-item:hover .icon { color: #fff; }
   border-radius: var(--radius-base);
 }
 
+/* The shop's logo is a STACKED mark (house icon above the wordmark), so its
+   aspect ratio is close to 1:1. Bounding width alone let it grow to ~165px tall
+   on a phone and swallow the whole header. Bound BOTH axes and let the image
+   scale to fit: height decides on tall logos, width decides on wide ones. */
 .site-header__logo-img {
-  inline-size: min(var(--logo-width, 175px), 42vw);
+  inline-size: auto;
   block-size: auto;
-  transition: inline-size var(--duration-base) var(--ease-out);
+  max-inline-size: min(var(--logo-width, 175px), 40vw);
+  max-block-size: 54px;
+  object-fit: contain;
+  transition: max-block-size var(--duration-base) var(--ease-out),
+    max-inline-size var(--duration-base) var(--ease-out);
 }
 
 .site-header__logo-text {
@@ -899,7 +907,10 @@ details[open] > .menu-drawer__toggle .icon-chevron { transform: rotate(180deg); 
   .site-header__account { display: inline-flex; }
 
   .site-header__logo { margin-inline-end: 0; }
-  .site-header__logo-img { inline-size: var(--logo-width, 175px); }
+  .site-header__logo-img {
+    max-inline-size: var(--logo-width, 175px);
+    max-block-size: 68px;
+  }
   .site-header__logo-text { max-inline-size: 320px; }
 
   .site-header__main { padding-block: 0.8rem; }
@@ -929,7 +940,10 @@ details[open] > .menu-drawer__toggle .icon-chevron { transform: rotate(180deg); 
      actions. The burger takes over so the catalogue stays one tap away. */
   .site-header.is-stuck .site-header__main { padding-block: 0.4rem; }
   .site-header.is-stuck .site-header__row { min-block-size: 52px; }
-  .site-header.is-stuck .site-header__logo-img { inline-size: min(var(--logo-width, 175px), 140px); }
+  .site-header.is-stuck .site-header__logo-img {
+    max-inline-size: min(var(--logo-width, 175px), 140px);
+    max-block-size: 46px;
+  }
   .site-header.is-stuck .header-search__input { min-block-size: 48px; }
   .site-header.is-stuck .site-header__burger { display: inline-flex; margin-inline-start: -8px; }
 
