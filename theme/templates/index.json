@@ -25,7 +25,7 @@
       "settings": {
         "heading": "המחלקות שלנו",
         "show_count": true,
-        "tile_style": "icon"
+        "tile_style": "image"
       },
       "blocks": {
         "r1": {
