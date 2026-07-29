@@ -144,9 +144,16 @@ palette colour, run the validator — it will tell you if you broke AA.
 
 ---
 
-## 5. Deployed theme vs repo — currently identical
+## 5. Deployed theme vs repo — one known delta
 
-**There is no delta.** Theme `148375371855` was created by a full zip import of the
+**One file is ahead of the deployed theme:** `sections/main-addresses.liquid`. It
+carries the country-select data-loss guard (see §10) and nothing else. It is not
+deployed because the preview theme is unpublished, so no real customer can save an
+address through it, and a single 21KB upsert was not worth spending on a path nobody
+can currently reach. **Send it with your next deploy** — the fix matters the moment
+the theme is published. Everything else matches.
+
+Theme `148375371855` was created by a full zip import of the
 repo, and every file was verified by comparing the `size` the Admin API reports to
 the local byte count — 127 files, all exact, including the four that the import
 traps below would have silently mangled.

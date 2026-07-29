@@ -129,7 +129,7 @@
                 data-default="{{ form.country | default: 'Israel' }}"
                 autocomplete="country"
               >
-{%- comment -%}
+                {%- comment -%}
                   Israel is the only destination, so it is the only option offered.
                   But a select whose value has no matching option submits its FIRST
                   option, and this one was unconditionally `selected` - so any
