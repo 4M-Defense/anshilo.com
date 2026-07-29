@@ -4,6 +4,7 @@
    - input/sort changes -> fetch section via Section Rendering API
    - replaces #ProductGridContainer content + history.pushState
    - handles popstate, AJAX pagination, chip removal, loading overlay
+   - collapses long filter option lists behind "show more"
    - also powers the collapsible collection description in the banner
    ========================================================= */
 (function () {
@@ -15,9 +16,14 @@
   var CONTAINER_ID = 'ProductGridContainer';
   var FORM_ID = 'FacetFiltersForm';
   var DRAWER_ID = 'FacetsDrawer';
+  var DESKTOP = '(min-width: 990px)';
 
   var abortController = null;
   var lastQuery = null;
+
+  /* Which long option lists the shopper has expanded, keyed by filter param.
+     Survives the AJAX re-renders that rebuild the sidebar from scratch. */
+  var expandedLists = Object.create(null);
 
   function getContainer() {
     return document.getElementById(CONTAINER_ID);
@@ -144,6 +150,8 @@
       openDesktopFacets(container);
     }
 
+    initFacetLists(container);
+
     // Keep the filters drawer open across re-renders (mobile).
     if (drawerWasOpen) {
       var freshDrawer = document.getElementById(DRAWER_ID);
@@ -178,6 +186,27 @@
     container.querySelectorAll('.reveal:not(.reveal--visible)').forEach(function (el) {
       el.classList.add('reveal--visible');
     });
+
+    announceResults(container);
+  }
+
+  /* The result count lives inside the swapped markup, so its own role="status"
+     never fires on an AJAX update. Mirror it into a live region that persists. */
+  function announceResults(container) {
+    var count = container.querySelector('.collection-toolbar__count');
+    if (!count) return;
+
+    var region = document.getElementById('FacetsStatus');
+    if (!region) {
+      region = document.createElement('p');
+      region.id = 'FacetsStatus';
+      region.className = 'visually-hidden';
+      region.setAttribute('role', 'status');
+      region.setAttribute('aria-live', 'polite');
+      document.body.appendChild(region);
+    }
+    var text = count.textContent.trim();
+    if (text && text !== region.textContent) region.textContent = text;
   }
 
   /* ---------- Event wiring (delegated — content gets replaced) ---------- */
@@ -244,11 +273,67 @@
 
   /* ---------- Desktop: open all facet groups ---------- */
   function openDesktopFacets(scope) {
-    if (!window.matchMedia('(min-width: 990px)').matches) return;
+    if (!window.matchMedia(DESKTOP).matches) return;
     (scope || document).querySelectorAll('details[data-facet][data-open-desktop]').forEach(function (details) {
       details.open = true;
     });
   }
+
+  /* ---------- Long option lists: collapse past the first N ----------
+     The server renders every option, so a no-JS shopper sees the full list and
+     never meets a dead "show more" button. Here we fold the tail away and turn
+     the button on. */
+  function initFacetLists(scope) {
+    (scope || document).querySelectorAll('[data-facet-list]').forEach(function (list) {
+      if (list.dataset.listInit === 'true') return;
+      list.dataset.listInit = 'true';
+
+      var limit = parseInt(list.getAttribute('data-facet-limit'), 10) || 10;
+      var rows = Array.prototype.slice.call(list.querySelectorAll('[data-facet-row]'));
+      var toggle = list.parentNode
+        ? list.parentNode.querySelector('[data-facet-more]')
+        : null;
+
+      if (rows.length <= limit) {
+        if (toggle) toggle.remove();
+        return;
+      }
+
+      var key = list.getAttribute('data-facet-key') || '';
+      var expanded =
+        list.hasAttribute('data-force-expanded') || expandedLists[key] === true;
+
+      function apply() {
+        list.classList.toggle('is-truncated', !expanded);
+        for (var i = limit; i < rows.length; i++) rows[i].hidden = !expanded;
+        if (!toggle) return;
+        toggle.setAttribute('aria-expanded', expanded ? 'true' : 'false');
+        var more = toggle.querySelector('[data-more]');
+        var less = toggle.querySelector('[data-less]');
+        if (more) more.hidden = expanded;
+        if (less) less.hidden = !expanded;
+      }
+
+      if (toggle) {
+        toggle.hidden = false;
+        toggle.addEventListener('click', function () {
+          expanded = !expanded;
+          expandedLists[key] = expanded;
+          apply();
+        });
+      }
+
+      apply();
+    });
+  }
+
+  /* Sticky offsets are NOT measured here. section-header.js publishes the
+     compressed header height as --sticky-header-height on :root, and that is
+     exactly the value sticky collection UI needs (by the time anything is
+     stuck, the page is scrolled and the header has collapsed). A previous
+     version measured the header itself per scroll frame; at the top of the
+     page that reads the EXPANDED header (~225px with a two-line nav row) and
+     the sidebar's max-block-size arithmetic collapsed to nothing. */
 
   /* ---------- Collapsible collection description (banner) ---------- */
   function initCollapsibleDesc() {
@@ -284,6 +369,7 @@
     lastQuery = initial.toString();
 
     openDesktopFacets(document);
+    initFacetLists(document);
     initCollapsibleDesc();
   }
 
@@ -295,6 +381,7 @@
 
   document.addEventListener('shopify:section:load', function () {
     openDesktopFacets(document);
+    initFacetLists(document);
     initCollapsibleDesc();
   });
 })();

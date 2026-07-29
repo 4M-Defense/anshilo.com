@@ -12,7 +12,7 @@ import { colors, radius as radiusTokens } from '@/theme';
  * דופק אחיד וגלובלי לכל השלדים במסך — כולם "נושמים" יחד.
  * useNativeDriver: האנימציה רצה על ה-UI thread ולא חוסמת JS.
  */
-const pulse = new Animated.Value(0.55);
+const pulse = new Animated.Value(0.6);
 let pulseStarted = false;
 
 function ensurePulseRunning() {
@@ -27,7 +27,7 @@ function ensurePulseRunning() {
         useNativeDriver: true,
       }),
       Animated.timing(pulse, {
-        toValue: 0.55,
+        toValue: 0.6,
         duration: 720,
         easing: Easing.inOut(Easing.ease),
         useNativeDriver: true,
@@ -63,7 +63,8 @@ export function Skeleton({ width, height, radius = radiusTokens.sm, style }: Ske
           width,
           height,
           borderRadius: radius,
-          backgroundColor: colors.border,
+          // בארות טעינה תמיד בגוון השקוע — אותו טוקן כמו באתר
+          backgroundColor: colors.surfaceSunken,
           opacity,
         },
         style,

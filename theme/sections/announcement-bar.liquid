@@ -3,9 +3,20 @@
 
 {%- liquid
   assign rotate_ms = section.settings.rotate_speed | default: 5 | times: 1000
+
+  assign wa_raw = settings.store_whatsapp | strip
+  assign wa_url = ''
+  if wa_raw != blank
+    if wa_raw contains 'http'
+      assign wa_url = wa_raw
+    else
+      assign wa_digits = wa_raw | remove: '+' | remove: '-' | remove: ' ' | remove: '(' | remove: ')'
+      assign wa_url = 'https://wa.me/' | append: wa_digits
+    endif
+  endif
 -%}
 
-<div class="util-bar announcement-bar" role="region" aria-label="{{ 'sections.announcement_bar.label' | t }}">
+<div class="announcement-bar" role="region" aria-label="{{ 'sections.announcement_bar.label' | t }}">
   <div class="container announcement-bar__inner">
     <div class="announcement-bar__track" data-announcements data-rotate-interval="{{ rotate_ms }}">
       {%- if section.blocks.size > 0 -%}
@@ -28,20 +39,21 @@
         {%- endfor -%}
       {%- else -%}
         <div class="announcement-bar__item is-active" data-announcement>
-          {% render 'icon', name: 'truck', size: 15, class: 'announcement-bar__icon' %}
+          {% render 'icon', name: 'shield-check', size: 15, class: 'announcement-bar__icon' %}
           <span class="announcement-bar__text">{{ 'sections.announcement_bar.fallback' | t }}</span>
         </div>
       {%- endif -%}
     </div>
 
-    {%- if section.settings.show_phone and settings.store_phone != blank -%}
+    {%- if section.settings.show_whatsapp and wa_url != blank -%}
       <a
-        class="announcement-bar__phone"
-        href="tel:{{ settings.store_phone | replace: '-', '' | replace: ' ', '' }}"
-        aria-label="{{ 'general.contact.phone' | t }}: {{ settings.store_phone }}"
+        class="announcement-bar__aside"
+        href="{{ wa_url }}"
+        target="_blank"
+        rel="noopener"
       >
-        {% render 'icon', name: 'phone', size: 14 %}
-        <span dir="ltr">{{ settings.store_phone }}</span>
+        {% render 'icon', name: 'whatsapp', size: 15 %}
+        <span>{{ 'general.contact.whatsapp_cta' | t }}</span>
       </a>
     {%- endif -%}
   </div>
@@ -54,8 +66,9 @@
   "settings": [
     {
       "type": "checkbox",
-      "id": "show_phone",
-      "label": "הצגת טלפון החנות בצד (בדסקטופ)",
+      "id": "show_whatsapp",
+      "label": "הצגת קישור וואטסאפ בצד (בדסקטופ)",
+      "info": "מספר הוואטסאפ נלקח מהגדרות התבנית.",
       "default": true
     },
     {
@@ -78,7 +91,7 @@
           "type": "text",
           "id": "text",
           "label": "טקסט ההודעה",
-          "default": "משלוחים מהירים לכל הצפון"
+          "default": "אספקה לירושלים והסביבה - ואיסוף עצמי מהמחסן בקרית ענבים"
         },
         {
           "type": "url",
@@ -100,7 +113,9 @@
             { "value": "phone", "label": "טלפון" },
             { "value": "store", "label": "חנות" },
             { "value": "headset", "label": "שירות לקוחות" },
-            { "value": "check-circle", "label": "סימן אישור" }
+            { "value": "check-circle", "label": "סימן אישור" },
+            { "value": "ruler", "label": "סרט מידה" },
+            { "value": "hammer", "label": "פטיש" }
           ]
         }
       ]

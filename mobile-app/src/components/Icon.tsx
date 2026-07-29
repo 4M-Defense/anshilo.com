@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, type ColorValue, type StyleProp, type ViewStyle } from 'react-native';
+import { I18nManager, View, type ColorValue, type StyleProp, type ViewStyle } from 'react-native';
 import { colors } from '@/theme';
 
 /**
@@ -10,7 +10,8 @@ import { colors } from '@/theme';
  *
  * `knockout` — צבע "חיתוך" לפרטים פנימיים בגליפים מלאים (ברירת מחדל: לבן).
  * כיווניות: הציור בקואורדינטות פיזיות (left/top) ולכן יציב גם ב-RTL כפוי.
- * שברונים אינם מתהפכים אוטומטית — כמו ב-Ionicons, ההיפוך באחריות המסך.
+ * `dir` — מקביל ל-class ‏`icon--dir` באתר: אייקון כיווני (חץ, שברון) שמתהפך
+ * אופקית תחת RTL. תמיד עדיף על היפוך ידני בתוך מסך.
  */
 export interface IconProps {
   /** שם בסגנון Ionicons, למשל "cart-outline" */
@@ -19,6 +20,8 @@ export interface IconProps {
   color?: ColorValue;
   /** צבע רקע לפרטים פנימיים של גליפים מלאים */
   knockout?: ColorValue;
+  /** אייקון כיווני — יתהפך אופקית כשהפריסה RTL */
+  dir?: boolean;
   style?: StyleProp<ViewStyle>;
 }
 
@@ -54,9 +57,17 @@ const ALIASES: Record<string, string> = {
   people: 'person',
   wallet: 'card',
   cash: 'card',
-  shield: 'lock-closed',
-  'shield-checkmark': 'lock-closed',
+  'shield-checkmark': 'shield',
+  'shield-half': 'shield',
   'lock-open': 'lock-closed',
+  bus: 'truck',
+  car: 'truck',
+  cube: 'truck',
+  'flash-off': 'flash',
+  'trending-down': 'trending-up',
+  'stats-chart': 'trending-up',
+  'bar-chart': 'trending-up',
+  ribbon: 'trending-up',
   funnel: 'filter',
   'swap-horizontal': 'swap-vertical',
   settings: 'options',
@@ -85,6 +96,7 @@ export function Icon({
   size = 24,
   color = colors.ink,
   knockout = colors.surface,
+  dir = false,
   style,
 }: IconProps) {
   const S = size;
@@ -1133,6 +1145,181 @@ export function Icon({
         </>
       );
       break;
+    case 'logo-facebook':
+      glyph = (
+        <>
+          <View style={ring(0.07 * S, 0.07 * S, 0.86 * S)} />
+          {/* גוף האות f */}
+          <View style={bar(0.48 * S, 0.28 * S, t * 1.2, 0.46 * S)} />
+          <View style={bar(0.36 * S, 0.46 * S, 0.28 * S, t * 1.2)} />
+          <View
+            style={{
+              ...A,
+              left: 0.48 * S,
+              top: 0.28 * S,
+              width: 0.16 * S,
+              height: 0.16 * S,
+              borderTopWidth: t * 1.2,
+              borderRightWidth: t * 1.2,
+              borderTopRightRadius: 0.1 * S,
+              borderColor: c,
+            }}
+          />
+        </>
+      );
+      break;
+    case 'shield':
+      glyph = (
+        <>
+          {/* מגן: כתפיים ישרות למעלה, התכנסות לחוד למטה */}
+          <View
+            style={{
+              ...A,
+              left: 0.18 * S,
+              top: 0.1 * S,
+              width: 0.64 * S,
+              height: 0.42 * S,
+              borderTopLeftRadius: 0.08 * S,
+              borderTopRightRadius: 0.08 * S,
+              ...fillOr({ backgroundColor: c }),
+              ...(o ? { borderBottomWidth: 0 } : null),
+            }}
+          />
+          <View
+            style={{
+              ...A,
+              left: 0.28 * S,
+              top: 0.5 * S,
+              width: 0.44 * S,
+              height: 0.44 * S,
+              borderBottomRightRadius: 0.1 * S,
+              transform: [{ rotate: '45deg' }],
+              ...(o
+                ? { borderRightWidth: t, borderBottomWidth: t, borderColor: c }
+                : { backgroundColor: c }),
+            }}
+          />
+          {!o && (
+            <View
+              style={{
+                ...A,
+                left: 0.34 * S,
+                top: 0.38 * S,
+                width: 0.32 * S,
+                height: 0.18 * S,
+                borderLeftWidth: t,
+                borderBottomWidth: t,
+                borderColor: k,
+                transform: [{ rotate: '-45deg' }],
+              }}
+            />
+          )}
+        </>
+      );
+      break;
+    case 'truck':
+      glyph = (
+        <>
+          {/* תא מטען */}
+          <View
+            style={{
+              ...A,
+              left: 0.06 * S,
+              top: 0.26 * S,
+              width: 0.5 * S,
+              height: 0.4 * S,
+              borderRadius: 0.05 * S,
+              ...fillOr({ backgroundColor: c }),
+            }}
+          />
+          {/* תא נהג */}
+          <View
+            style={{
+              ...A,
+              left: 0.58 * S,
+              top: 0.4 * S,
+              width: 0.34 * S,
+              height: 0.26 * S,
+              borderTopRightRadius: 0.1 * S,
+              borderRadius: 0.04 * S,
+              ...fillOr({ backgroundColor: c }),
+            }}
+          />
+          <View style={bar(0.04 * S, 0.68 * S, 0.9 * S, t * 0.9)} />
+          <View style={dot(0.2 * S, 0.72 * S, 0.16 * S)} />
+          <View style={dot(0.64 * S, 0.72 * S, 0.16 * S)} />
+        </>
+      );
+      break;
+    case 'flash':
+      glyph = (
+        <>
+          {/* ברק — שני משולשים נגדיים */}
+          <View
+            style={{
+              ...A,
+              left: 0.3 * S,
+              top: 0.06 * S,
+              width: 0,
+              height: 0,
+              borderLeftWidth: 0.24 * S,
+              borderRightWidth: 0.12 * S,
+              borderBottomWidth: 0.46 * S,
+              borderLeftColor: 'transparent',
+              borderRightColor: 'transparent',
+              borderBottomColor: c,
+              transform: [{ rotate: '180deg' }],
+            }}
+          />
+          <View
+            style={{
+              ...A,
+              left: 0.34 * S,
+              top: 0.48 * S,
+              width: 0,
+              height: 0,
+              borderLeftWidth: 0.12 * S,
+              borderRightWidth: 0.24 * S,
+              borderTopWidth: 0.46 * S,
+              borderLeftColor: 'transparent',
+              borderRightColor: 'transparent',
+              borderTopColor: c,
+              transform: [{ rotate: '180deg' }],
+            }}
+          />
+        </>
+      );
+      break;
+    case 'trending-up':
+      glyph = (
+        <>
+          <View
+            style={bar(0.1 * S, 0.62 * S, 0.44 * S, t, {
+              transform: [{ rotate: '-32deg' }],
+            })}
+          />
+          <View
+            style={bar(0.44 * S, 0.46 * S, 0.44 * S, t, {
+              transform: [{ rotate: '-32deg' }],
+            })}
+          />
+          <View style={bar(0.62 * S, 0.14 * S, 0.26 * S, t)} />
+          <View style={bar(0.86 * S - t, 0.14 * S, t, 0.26 * S)} />
+        </>
+      );
+      break;
+    case 'sparkles':
+      glyph = (
+        <>
+          {/* ניצוץ גדול */}
+          <View style={bar(0.36 * S - t * 0.5, 0.06 * S, t, 0.36 * S)} />
+          <View style={bar(0.18 * S, 0.24 * S - t * 0.5, 0.36 * S, t)} />
+          {/* ניצוץ קטן */}
+          <View style={bar(0.72 * S - t * 0.4, 0.52 * S, t * 0.8, 0.28 * S)} />
+          <View style={bar(0.58 * S, 0.66 * S - t * 0.4, 0.28 * S, t * 0.8)} />
+        </>
+      );
+      break;
     default:
       glyph = (
         <>
@@ -1145,7 +1332,12 @@ export function Icon({
 
   return (
     <View
-      style={[{ width: S, height: S }, style]}
+      style={[
+        { width: S, height: S },
+        // מקביל ל-.icon--dir באתר: אייקון כיווני מתהפך תחת RTL
+        dir && I18nManager.isRTL && MIRROR,
+        style,
+      ]}
       pointerEvents="none"
       accessibilityElementsHidden
       importantForAccessibility="no-hide-descendants"
@@ -1154,3 +1346,5 @@ export function Icon({
     </View>
   );
 }
+
+const MIRROR: ViewStyle = { transform: [{ scaleX: -1 }] };

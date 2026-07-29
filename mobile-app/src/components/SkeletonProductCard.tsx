@@ -1,5 +1,5 @@
 import { Animated, StyleSheet, View } from 'react-native';
-import { colors, radius, spacing } from '@/theme';
+import { colors, layout, radius, spacing } from '@/theme';
 import { useSkeletonPulse } from './Skeleton';
 
 export interface SkeletonProductCardProps {
@@ -24,6 +24,7 @@ export function SkeletonProductCard({ width }: SkeletonProductCardProps) {
         <Animated.View style={[styles.line, styles.titleLine1, { opacity }]} />
         <Animated.View style={[styles.line, styles.titleLine2, { opacity }]} />
         <Animated.View style={[styles.line, styles.priceLine, { opacity }]} />
+        <Animated.View style={[styles.line, styles.stockLine, { opacity }]} />
       </View>
     </View>
   );
@@ -35,23 +36,25 @@ const styles = StyleSheet.create({
   },
   card: {
     backgroundColor: colors.surface,
-    borderWidth: 1,
+    borderWidth: layout.hairline,
     borderColor: colors.border,
-    borderRadius: radius.lg,
+    borderRadius: radius.card,
     overflow: 'hidden',
   },
   image: {
     aspectRatio: 1,
     width: '100%',
-    backgroundColor: colors.surfaceAlt,
+    backgroundColor: colors.surfaceSunken,
   },
   info: {
     padding: spacing.md,
-    paddingTop: spacing.sm,
+    paddingTop: spacing.sm + 2,
     gap: spacing.sm,
+    borderTopWidth: layout.hairline,
+    borderTopColor: colors.border,
   },
   line: {
-    backgroundColor: colors.border,
+    backgroundColor: colors.surfaceSunken,
     borderRadius: radius.sm,
   },
   vendorLine: {
@@ -68,7 +71,11 @@ const styles = StyleSheet.create({
   },
   priceLine: {
     width: '46%',
-    height: 16,
-    marginTop: spacing.xs,
+    height: 18,
+    marginTop: spacing.xxs,
+  },
+  stockLine: {
+    width: '30%',
+    height: 10,
   },
 });

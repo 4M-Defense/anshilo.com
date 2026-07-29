@@ -1,5 +1,5 @@
 import { StyleSheet, Text, View } from 'react-native';
-import { colors, radius, spacing, typography } from '@/theme';
+import { colors, layout, radius, rtl, spacing, type } from '@/theme';
 import { Button } from './Button';
 import { Icon } from './Icon';
 
@@ -15,12 +15,12 @@ export function ErrorView({ message, onRetry }: ErrorViewProps) {
       <View style={styles.iconWrap}>
         <Icon
           name="alert-circle-outline"
-          size={32}
+          size={30}
           color={colors.danger}
           knockout={colors.dangerSoft}
         />
       </View>
-      <Text style={styles.title}>אופס, משהו השתבש</Text>
+      <Text style={styles.title}>משהו לא עבד כמצופה</Text>
       <Text style={styles.message}>{message}</Text>
       <Button title="נסו שוב" onPress={onRetry} style={styles.button} />
     </View>
@@ -35,32 +35,30 @@ const styles = StyleSheet.create({
     padding: spacing.xxl,
   },
   iconWrap: {
-    width: 76,
-    height: 76,
+    width: 72,
+    height: 72,
     borderRadius: radius.pill,
     backgroundColor: colors.dangerSoft,
+    borderWidth: layout.hairline,
+    borderColor: colors.border,
     alignItems: 'center',
     justifyContent: 'center',
   },
   title: {
+    ...type.subheading,
+    ...rtl.center,
     marginTop: spacing.lg,
-    fontSize: typography.h3,
     fontWeight: '800',
-    color: colors.ink,
-    textAlign: 'center',
-    writingDirection: 'rtl',
   },
   message: {
+    ...type.small,
+    ...rtl.center,
     marginTop: spacing.sm,
-    fontSize: typography.small,
-    lineHeight: typography.small + 7,
     color: colors.textMuted,
-    textAlign: 'center',
-    writingDirection: 'rtl',
     maxWidth: 300,
   },
   button: {
     marginTop: spacing.xl,
-    minWidth: 180,
+    minWidth: 190,
   },
 });

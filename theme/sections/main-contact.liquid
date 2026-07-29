@@ -1,20 +1,72 @@
 {{ 'section-contact.css' | asset_url | stylesheet_tag }}
 
+{%- comment -%}
+  Contact page. The form on one side, the real store details on the other —
+  address, phone, email and opening hours all come from the theme settings so
+  there is exactly one place to change them. Map embed is editable per page.
+{%- endcomment -%}
+{%- liquid
+  assign phone_href = settings.store_phone | remove: '-' | remove: ' ' | remove: '(' | remove: ')'
+  assign maps_query = settings.store_address | url_param_escape
+
+  assign wa_raw = settings.store_whatsapp | strip
+  assign wa_href = ''
+  if wa_raw != blank
+    assign wa_scheme = wa_raw | slice: 0, 4
+    if wa_scheme == 'http'
+      assign wa_href = wa_raw
+    else
+      assign wa_digits = wa_raw | remove: '+' | remove: '-' | remove: ' ' | remove: '(' | remove: ')'
+      assign wa_href = 'https://wa.me/' | append: wa_digits
+    endif
+  endif
+
+  assign has_social = false
+  if settings.social_facebook != blank or settings.social_instagram != blank or settings.social_tiktok != blank or settings.social_youtube != blank or settings.store_google != blank
+    assign has_social = true
+  endif
+-%}
+
 <section class="section contact-section">
   <div class="container">
-    <header class="contact-section__header">
-      {%- if section.settings.eyebrow != blank -%}
-        <span class="section-header__eyebrow">{{ section.settings.eyebrow | escape }}</span>
+    <header class="contact-header">
+      {%- if settings.show_breadcrumbs -%}
+        <nav class="breadcrumbs contact-header__crumbs" aria-label="{{ 'general.breadcrumbs.label' | t }}">
+          <a href="{{ routes.root_url }}">{{ 'general.breadcrumbs.home' | t }}</a>
+          <span class="breadcrumbs__sep" aria-hidden="true">
+            {% render 'icon', name: 'chevron-right', size: 14, class: 'icon--dir' %}
+          </span>
+          <span class="breadcrumbs__current" aria-current="page">
+            {{- section.settings.heading | default: page.title | escape -}}
+          </span>
+        </nav>
       {%- endif -%}
-      <h1 class="hazard-underline">{{ section.settings.heading | default: page.title | escape }}</h1>
+
+      {%- if section.settings.eyebrow != blank -%}
+        <span class="text-eyebrow">{{ section.settings.eyebrow | escape }}</span>
+      {%- endif -%}
+
+      <h1 class="contact-header__title blueprint-underline">
+        {{- section.settings.heading | default: page.title | escape -}}
+      </h1>
+
       {%- if section.settings.subheading != blank -%}
-        <p class="contact-section__subheading">{{ section.settings.subheading | escape }}</p>
+        <p class="contact-header__subheading">{{ section.settings.subheading | escape }}</p>
       {%- endif -%}
     </header>
 
     <div class="contact-layout">
       {%- # ---------- Form column ---------- -%}
-      <div class="contact-form-wrap">
+      <div class="panel contact-form-panel">
+        <h2 class="h3 contact-form-panel__title">
+          {% render 'icon', name: 'mail', size: 20 %}
+          {{ section.settings.form_heading | escape }}
+        </h2>
+
+        {%- if section.settings.form_note != blank -%}
+          <p class="contact-form-panel__note">{{ section.settings.form_note | escape }}</p>
+        {%- endif -%}
+
         {%- form 'contact', id: 'ContactForm', class: 'contact-form' -%}
           {%- if form.posted_successfully? -%}
             <div class="form__success" role="status" tabindex="-1" autofocus>
@@ -28,13 +80,13 @@
               <p class="fw-700">{{ 'general.contact.error' | t }}</p>
               <ul>
                 {%- for field in form.errors -%}
-                  <li>{{ form.errors.translated_fields[field] }} — {{ form.errors.messages[field] }}</li>
+                  <li>{{ form.errors.translated_fields[field] }} - {{ form.errors.messages[field] }}</li>
                 {%- endfor -%}
               </ul>
             </div>
           {%- endif -%}
 
-          <div class="form__row form__row--2">
+          <div class="form__row">
             <div class="field">
               <label class="field__label" for="ContactFormName">
                 {{ 'general.contact.name' | t }} <span class="required" aria-hidden="true">*</span>
@@ -60,6 +112,7 @@
                 value="{{ form.phone }}"
                 autocomplete="tel"
                 pattern="[0-9\-+() ]*"
+                dir="ltr"
               >
             </div>
           </div>
@@ -77,6 +130,7 @@
               autocomplete="email"
               spellcheck="false"
               autocapitalize="off"
+              dir="ltr"
               required
               {% if form.errors contains 'email' %}aria-invalid="true"{% endif %}
             >
@@ -104,44 +158,49 @@
         {%- endform -%}
       </div>
 
-      {%- # ---------- Info card column ---------- -%}
-      <aside class="contact-card" aria-label="{{ section.settings.card_heading | escape }}">
-        <h2 class="contact-card__heading h3">{{ section.settings.card_heading | escape }}</h2>
+      {%- # ---------- Store details ---------- -%}
+      <aside class="panel contact-card" aria-labelledby="ContactCardHeading">
+        <h2 class="h3 contact-card__heading" id="ContactCardHeading">{{ section.settings.card_heading | escape }}</h2>
 
         <ul class="contact-card__list" role="list">
+          {%- if settings.store_address != blank -%}
+            <li class="contact-card__row">
+              <span class="contact-card__icon" aria-hidden="true">{% render 'icon', name: 'map-pin', size: 19 %}</span>
+              <span class="contact-card__info">
+                <span class="contact-card__label">{{ 'general.contact.address' | t }}</span>
+                <a
+                  class="contact-card__value"
+                  href="https://www.google.com/maps/search/?api=1&query={{ maps_query }}"
+                  target="_blank"
+                  rel="noopener"
+                  aria-describedby="a11y-new-window-message"
+                >
+                  {{ settings.store_address }}
+                  {% render 'icon', name: 'external', size: 14 %}
+                </a>
+              </span>
+            </li>
+          {%- endif -%}
+
           {%- if settings.store_phone != blank -%}
             <li class="contact-card__row">
-              <span class="contact-card__icon">{% render 'icon', name: 'phone', size: 19 %}</span>
+              <span class="contact-card__icon" aria-hidden="true">{% render 'icon', name: 'phone', size: 19 %}</span>
               <span class="contact-card__info">
                 <span class="contact-card__label">{{ 'general.contact.phone' | t }}</span>
-                <a class="contact-card__value" href="tel:{{ settings.store_phone | remove: '-' | remove: ' ' }}" dir="ltr">{{ settings.store_phone }}</a>
+                <a class="contact-card__value contact-ltr" href="tel:{{ phone_href }}" dir="ltr">
+                  {{- settings.store_phone -}}
+                </a>
               </span>
             </li>
           {%- endif -%}
 
           {%- if settings.store_email != blank -%}
             <li class="contact-card__row">
-              <span class="contact-card__icon">{% render 'icon', name: 'mail', size: 19 %}</span>
+              <span class="contact-card__icon" aria-hidden="true">{% render 'icon', name: 'mail', size: 19 %}</span>
               <span class="contact-card__info">
                 <span class="contact-card__label">{{ 'general.contact.email' | t }}</span>
-                <a class="contact-card__value" href="mailto:{{ settings.store_email }}" dir="ltr">{{ settings.store_email }}</a>
-              </span>
-            </li>
-          {%- endif -%}
-
-          {%- if settings.store_address != blank -%}
-            <li class="contact-card__row">
-              <span class="contact-card__icon">{% render 'icon', name: 'map-pin', size: 19 %}</span>
-              <span class="contact-card__info">
-                <span class="contact-card__label">{{ 'general.contact.address' | t }}</span>
-                <a
-                  class="contact-card__value"
-                  href="https://www.google.com/maps/search/?api=1&query={{ settings.store_address | url_param_escape }}"
-                  target="_blank"
-                  rel="noopener"
-                >
-                  {{ settings.store_address }}
-                  <span class="visually-hidden">{{ 'general.accessibility.link_opens_new_tab' | t }}</span>
+                <a class="contact-card__value contact-ltr" href="mailto:{{ settings.store_email }}" dir="ltr">
+                  {{- settings.store_email -}}
                 </a>
               </span>
             </li>
@@ -149,7 +208,7 @@
 
           {%- if settings.store_hours != blank -%}
             <li class="contact-card__row">
-              <span class="contact-card__icon">{% render 'icon', name: 'clock', size: 19 %}</span>
+              <span class="contact-card__icon" aria-hidden="true">{% render 'icon', name: 'clock', size: 19 %}</span>
               <span class="contact-card__info">
                 <span class="contact-card__label">{{ 'general.contact.hours' | t }}</span>
                 <span class="contact-card__value contact-card__hours">{{ settings.store_hours | newline_to_br }}</span>
@@ -158,22 +217,29 @@
           {%- endif -%}
         </ul>
 
-        {%- if settings.store_whatsapp != blank -%}
-          <a
-            class="btn btn--full contact-card__whatsapp"
-            href="https://wa.me/{{ settings.store_whatsapp | remove: '+' | remove: '-' | remove: ' ' }}"
-            target="_blank"
-            rel="noopener"
-          >
-            {% render 'icon', name: 'whatsapp', size: 20 %}
-            {{ 'general.contact.whatsapp_cta' | t }}
-            <span class="visually-hidden">{{ 'general.accessibility.link_opens_new_tab' | t }}</span>
-          </a>
-        {%- endif -%}
+        {%- if wa_href != blank or settings.store_phone != blank -%}
+          <div class="contact-card__actions">
+            {%- if wa_href != blank -%}
+              <a
+                class="btn btn--full contact-card__whatsapp"
+                href="{{ wa_href }}"
+                target="_blank"
+                rel="noopener"
+                aria-describedby="a11y-new-window-message"
+              >
+                {% render 'icon', name: 'whatsapp', size: 20 %}
+                {{ 'general.contact.whatsapp_cta' | t }}
+              </a>
+            {%- endif -%}
 
-        {%- assign has_social = false -%}
-        {%- if settings.social_facebook != blank or settings.social_instagram != blank or settings.social_tiktok != blank or settings.social_youtube != blank -%}
-          {%- assign has_social = true -%}
+            {%- if settings.store_phone != blank -%}
+              <a class="btn btn--secondary btn--full" href="tel:{{ phone_href }}">
+                {% render 'icon', name: 'phone', size: 18 %}
+                {{ 'general.contact.phone' | t }}
+                <span class="contact-ltr">{{ settings.store_phone }}</span>
+              </a>
+            {%- endif -%}
+          </div>
         {%- endif -%}
 
         {%- if has_social -%}
@@ -181,22 +247,62 @@
             <span class="contact-card__label">{{ 'general.social.follow_title' | t }}</span>
             <div class="contact-card__social-icons">
               {%- if settings.social_facebook != blank -%}
-                <a class="contact-card__social-link" href="{{ settings.social_facebook }}" target="_blank" rel="noopener" aria-label="{{ 'general.social.facebook' | t }}">
+                <a
+                  class="contact-card__social-link"
+                  href="{{ settings.social_facebook }}"
+                  target="_blank"
+                  rel="noopener"
+                  aria-label="{{ 'general.social.facebook' | t }}"
+                  aria-describedby="a11y-new-window-message"
+                >
                   {% render 'icon', name: 'facebook', size: 19 %}
                 </a>
               {%- endif -%}
               {%- if settings.social_instagram != blank -%}
-                <a class="contact-card__social-link" href="{{ settings.social_instagram }}" target="_blank" rel="noopener" aria-label="{{ 'general.social.instagram' | t }}">
+                <a
+                  class="contact-card__social-link"
+                  href="{{ settings.social_instagram }}"
+                  target="_blank"
+                  rel="noopener"
+                  aria-label="{{ 'general.social.instagram' | t }}"
+                  aria-describedby="a11y-new-window-message"
+                >
                   {% render 'icon', name: 'instagram', size: 19 %}
                 </a>
               {%- endif -%}
+              {%- if settings.store_google != blank -%}
+                <a
+                  class="contact-card__social-link"
+                  href="{{ settings.store_google }}"
+                  target="_blank"
+                  rel="noopener"
+                  aria-label="{{ 'general.social.google' | t }}"
+                  aria-describedby="a11y-new-window-message"
+                >
+                  {% render 'icon', name: 'google', size: 19 %}
+                </a>
+              {%- endif -%}
               {%- if settings.social_tiktok != blank -%}
-                <a class="contact-card__social-link" href="{{ settings.social_tiktok }}" target="_blank" rel="noopener" aria-label="{{ 'general.social.tiktok' | t }}">
+                <a
+                  class="contact-card__social-link"
+                  href="{{ settings.social_tiktok }}"
+                  target="_blank"
+                  rel="noopener"
+                  aria-label="{{ 'general.social.tiktok' | t }}"
+                  aria-describedby="a11y-new-window-message"
+                >
                   {% render 'icon', name: 'tiktok', size: 19 %}
                 </a>
               {%- endif -%}
               {%- if settings.social_youtube != blank -%}
-                <a class="contact-card__social-link" href="{{ settings.social_youtube }}" target="_blank" rel="noopener" aria-label="{{ 'general.social.youtube' | t }}">
+                <a
+                  class="contact-card__social-link"
+                  href="{{ settings.social_youtube }}"
+                  target="_blank"
+                  rel="noopener"
+                  aria-label="{{ 'general.social.youtube' | t }}"
+                  aria-describedby="a11y-new-window-message"
+                >
                   {% render 'icon', name: 'youtube', size: 19 %}
                 </a>
               {%- endif -%}
@@ -208,7 +314,28 @@
 
     {%- if section.settings.map_embed != blank -%}
       <div class="contact-map">
-        {{ section.settings.map_embed }}
+        <div class="contact-map__head">
+          {%- if section.settings.map_heading != blank -%}
+            <h2 class="h3 contact-map__heading">{{ section.settings.map_heading | escape }}</h2>
+          {%- endif -%}
+
+          {%- if settings.store_address != blank and section.settings.directions_label != blank -%}
+            <a
+              class="btn btn--outline btn--sm"
+              href="https://www.google.com/maps/dir/?api=1&destination={{ maps_query }}"
+              target="_blank"
+              rel="noopener"
+              aria-describedby="a11y-new-window-message"
+            >
+              {% render 'icon', name: 'map-pin', size: 16 %}
+              {{ section.settings.directions_label | escape }}
+            </a>
+          {%- endif -%}
+        </div>
+
+        <div class="contact-map__frame">
+          {{ section.settings.map_embed }}
+        </div>
       </div>
     {%- endif -%}
   </div>
@@ -238,12 +365,28 @@
       "type": "textarea",
       "id": "subheading",
       "label": "טקסט פתיחה",
-      "default": "יש לכם שאלה על מוצר, מלאי או הזמנה? השאירו הודעה או התקשרו — צוות המומחים שלנו כאן בשבילכם."
+      "default": "יש לכם שאלה על מוצר, מלאי או הזמנה? השאירו הודעה או התקשרו - צוות המומחים שלנו כאן בשבילכם."
+    },
+    {
+      "type": "header",
+      "content": "טופס"
+    },
+    {
+      "type": "text",
+      "id": "form_heading",
+      "label": "כותרת הטופס",
+      "default": "השאירו הודעה"
+    },
+    {
+      "type": "textarea",
+      "id": "form_note",
+      "label": "הערה מעל הטופס",
+      "default": "נחזור אליכם בתוך יום עסקים אחד. לעניינים דחופים - עדיף להתקשר או לשלוח וואטסאפ."
     },
     {
       "type": "header",
       "content": "כרטיס פרטי התקשרות",
-      "info": "הפרטים עצמם (טלפון, כתובת, שעות פעילות ורשתות חברתיות) מוגדרים בהגדרות התבנית."
+      "info": "הפרטים עצמם (טלפון, אימייל, כתובת, שעות פעילות ורשתות חברתיות) מוגדרים בהגדרות התבנית."
     },
     {
       "type": "text",
@@ -256,11 +399,23 @@
       "content": "מפה"
     },
     {
+      "type": "text",
+      "id": "map_heading",
+      "label": "כותרת מעל המפה",
+      "default": "איך מגיעים אלינו"
+    },
+    {
+      "type": "text",
+      "id": "directions_label",
+      "label": "טקסט כפתור הניווט",
+      "default": "פתיחת ניווט"
+    },
+    {
       "type": "textarea",
       "id": "map_embed",
       "label": "קוד הטמעה למפה (iframe)",
-      "info": "הדביקו כאן קוד הטמעה מגוגל מפות. השאירו ריק כדי להסתיר.",
-      "default": ""
+      "info": "ברירת המחדל מציגה את קיבוץ קרית ענבים. אפשר להדביק כאן קוד הטמעה אחר מגוגל מפות, או להשאיר ריק כדי להסתיר את המפה.",
+      "default": "<iframe src=\"https://www.google.com/maps?q=%D7%A7%D7%99%D7%91%D7%95%D7%A6+%D7%A7%D7%A8%D7%99%D7%AA+%D7%A2%D7%A0%D7%91%D7%99%D7%9D&hl=iw&z=14&output=embed\" width=\"600\" height=\"420\" loading=\"lazy\" referrerpolicy=\"no-referrer-when-downgrade\" title=\"מפה - א.נ. שילו, קיבוץ קרית ענבים\"></iframe>"
     }
   ]
 }

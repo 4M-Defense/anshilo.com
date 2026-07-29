@@ -33,29 +33,50 @@
       assign active_count = active_count | plus: filter.active_values.size
     endif
   endfor
+
+  assign columns = section.settings.columns_desktop | default: 4
+  assign grid_class = 'grid--4'
+  if columns == 3
+    assign grid_class = 'grid--3'
+  elsif columns == 5
+    assign grid_class = 'grid--5'
+  endif
+
+  assign card_sizes = '(min-width: 1400px) 250px, (min-width: 1100px) 19vw, (min-width: 750px) 30vw, 46vw'
+  if columns == 3
+    assign card_sizes = '(min-width: 1400px) 340px, (min-width: 1100px) 26vw, (min-width: 750px) 30vw, 46vw'
+  endif
 -%}
 
-{%- paginate collection.products by per_page -%}
+{%- paginate collection.products by per_page, window_size: 2 -%}
   <section class="collection-grid" id="CollectionGrid-{{ section.id }}">
     <div class="container">
       <div id="ProductGridContainer" data-facets-container data-section-id="{{ section.id }}">
-        {%- comment -%} ---------- Toolbar ---------- {%- endcomment -%}
+        {%- comment -%} ---------- Sticky toolbar ---------- {%- endcomment -%}
         <div class="collection-toolbar">
           {%- if has_filters -%}
             <button
               type="button"
-              class="btn btn--ghost collection-toolbar__filter-btn"
+              class="btn btn--outline btn--sm collection-toolbar__filter-btn"
               data-drawer-open="FacetsDrawer"
               aria-haspopup="dialog"
+              aria-controls="FacetsDrawer"
             >
               {% render 'icon', name: 'filter', size: 18 %}
               <span>{{ 'products.facets.filter_button' | t }}</span>
-              <span class="collection-toolbar__filter-count"{% if active_count == 0 %} hidden{% endif %}>{{ active_count }}</span>
+              <span
+                class="collection-toolbar__filter-count"
+                {% if active_count == 0 %}hidden{% endif %}
+              >{{ active_count }}</span>
             </button>
           {%- endif -%}
 
           <p class="collection-toolbar__count" role="status">
-            {{ 'products.facets.product_count' | t: count: collection.products_count }}
+            {%- if active_count > 0 -%}
+              {{ 'products.facets.results_with_count' | t: count: collection.products_count }}
+            {%- else -%}
+              {{ 'products.facets.product_count' | t: count: collection.products_count }}
+            {%- endif -%}
           </p>
 
           {%- if show_sort -%}
@@ -64,18 +85,40 @@
                 <form method="get" action="{{ base_url }}" class="collection-toolbar__sort-form">
               {%- endunless -%}
 
-              <label class="collection-toolbar__sort-label" for="SortBy">{{ 'products.facets.sort_by_label' | t }}</label>
+              <label class="collection-toolbar__sort-label" for="SortBy">
+                {{ 'products.facets.sort_by_label' | t }}
+              </label>
               <div class="select-wrap">
                 <select
                   id="SortBy"
-                  class="field__select collection-toolbar__select"
+                  class="select collection-toolbar__select"
                   name="sort_by"
                   {% if has_filters %}form="FacetFiltersForm"{% endif %}
                   data-sort-select
                 >
                   {%- for option in collection.sort_options -%}
-                    <option value="{{ option.value | escape }}"{% if option.value == sort_by %} selected="selected"{% endif %}>
-                      {{- option.name | escape -}}
+                    {%- liquid
+                      comment
+                        option.name is Shopify's own English label ("Best selling",
+                        "Alphabetically, A-Z" — which keeps Latin A-Z even where
+                        Shopify does translate it), and it never passes through this
+                        theme's locale file. option.value is the stable sort handle
+                        AND the query parameter, so it is what we key on and what
+                        must stay untranslated in the value attribute. Same idiom as
+                        sections/footer.liquid; Shopify's label stays as the fallback
+                        for a sort option this theme has not enumerated.
+                      endcomment
+                      assign sort_key = 'products.facets.sort_options.' | append: option.value | replace: '-', '_'
+                      assign sort_label = sort_key | t
+                      if sort_label contains 'Translation missing'
+                        assign sort_label = option.name
+                      endif
+                    -%}
+                    <option
+                      value="{{ option.value | escape }}"
+                      {% if option.value == sort_by %}selected="selected"{% endif %}
+                    >
+                      {{- sort_label | escape -}}
                     </option>
                   {%- endfor -%}
                 </select>
@@ -84,7 +127,9 @@
 
               {%- unless has_filters -%}
                   <noscript>
-                    <button type="submit" class="btn btn--ghost btn--sm">{{ 'products.facets.sort_button' | t }}</button>
+                    <button type="submit" class="btn btn--secondary btn--sm">
+                      {{ 'products.facets.sort_button' | t }}
+                    </button>
                   </noscript>
                 </form>
               {%- endunless -%}
@@ -108,15 +153,38 @@
           {%- endif -%}
 
           <div class="collection-layout__main">
-            <div class="facets-loading skeleton" aria-hidden="true">
+            <div class="facets-loading" aria-hidden="true">
               <span class="spinner"></span>
               <span class="visually-hidden">{{ 'general.accessibility.loading' | t }}</span>
             </div>
 
-            {%- comment -%} Active filter chips {%- endcomment -%}
             {%- if active_count > 0 -%}
               <div class="active-facets">
+                <span class="active-facets__label">{{ 'products.facets.filter_by_label' | t }}</span>
+
+                {%- comment -%}
+                  The chips mirror snippets/facets.liquid, so they run the same
+                  guarded locale lookups on the same Shopify-supplied labels —
+                  otherwise the chip text reads "In stock" and the Hebrew
+                  products.facets.remove_filter wrapper is announced by screen
+                  readers as the mixed-language "הסרת מסנן: Product type".
+                {%- endcomment -%}
                 {%- for filter in collection.filters -%}
+                  {%- liquid
+                    assign label_handle = filter.label | handleize | replace: '-', '_'
+                    assign facet_label_key = 'products.facets.filters.' | append: label_handle
+                    assign facet_label = facet_label_key | t
+                    if facet_label contains 'Translation missing'
+                      case label_handle
+                        when 'availability'
+                          assign facet_label = 'products.facets.availability' | t
+                        when 'price'
+                          assign facet_label = 'products.facets.price' | t
+                        else
+                          assign facet_label = filter.label
+                      endcase
+                    endif
+                  -%}
                   {%- if filter.type == 'price_range' -%}
                     {%- if filter.min_value.value != nil or filter.max_value.value != nil -%}
                       {%- liquid
@@ -127,43 +195,61 @@
                         class="chip chip--active active-facets__chip"
                         href="{{ filter.url_to_remove }}"
                         data-facet-remove
-                        aria-label="{{ 'products.facets.remove_filter' | t: name: filter.label }}"
+                        aria-label="{{ 'products.facets.remove_filter' | t: name: facet_label }}"
                       >
-                        <span>{{ filter.label | escape }}: {{ min_val | money }}&ndash;{{ max_val | money }}</span>
+                        <span>
+                          {{- facet_label | escape }}:
+                          <span dir="ltr">{{ min_val | money }}&ndash;{{ max_val | money }}</span>
+                        </span>
                         {% render 'icon', name: 'close', size: 14 %}
                       </a>
                     {%- endif -%}
                   {%- else -%}
                     {%- for value in filter.active_values -%}
+                      {%- liquid
+                        assign value_handle = value.label | handleize | replace: '-', '_'
+                        assign value_label_key = 'products.facets.values.' | append: value_handle
+                        assign value_label = value_label_key | t
+                        if value_label contains 'Translation missing'
+                          assign value_label = value.label
+                        endif
+                      -%}
                       <a
                         class="chip chip--active active-facets__chip"
                         href="{{ value.url_to_remove }}"
                         data-facet-remove
-                        aria-label="{{ 'products.facets.remove_filter' | t: name: value.label }}"
+                        aria-label="{{ 'products.facets.remove_filter' | t: name: value_label }}"
                       >
-                        <span>{{ value.label | escape }}</span>
+                        <span>{{ value_label | escape }}</span>
                         {% render 'icon', name: 'close', size: 14 %}
                       </a>
                     {%- endfor -%}
                   {%- endif -%}
                 {%- endfor -%}
-                <a class="active-facets__clear link" href="{{ results_url }}" data-facets-clear>
-                  {{ 'products.facets.clear_all' | t }}
+
+                <a class="active-facets__clear" href="{{ results_url }}" data-facets-clear>
+                  {% render 'icon', name: 'refresh', size: 15 %}
+                  <span>{{ 'products.facets.clear_all' | t }}</span>
                 </a>
               </div>
             {%- endif -%}
 
             {%- if collection.products.size > 0 -%}
-              <ul class="grid grid--4 collection-products" role="list">
+              <ul class="grid {{ grid_class }} collection-products" role="list">
                 {%- for product in collection.products -%}
                   {%- liquid
                     assign lazy_flag = true
-                    if forloop.index < 5
+                    if forloop.index <= columns
                       assign lazy_flag = false
                     endif
                   -%}
                   <li class="collection-products__item">
-                    {% render 'product-card', product: product, lazy: lazy_flag, class: 'reveal' %}
+                    {% render 'product-card',
+                      product: product,
+                      lazy: lazy_flag,
+                      sizes: card_sizes,
+                      class: 'reveal'
+                    %}
                   </li>
                 {%- endfor -%}
               </ul>
@@ -174,7 +260,9 @@
                 {% render 'icon', name: 'package', size: 48 %}
                 <h2 class="empty-state__title">{{ 'sections.collection.empty_title' | t }}</h2>
                 <p class="empty-state__text">{{ 'sections.collection.empty_body' | t }}</p>
-                <a href="{{ routes.all_products_collection_url }}" class="btn">{{ 'general.continue_shopping' | t }}</a>
+                <a href="{{ routes.all_products_collection_url }}" class="btn">
+                  {{ 'general.continue_shopping' | t }}
+                </a>
               </div>
             {%- else -%}
               <div class="empty-state">
@@ -201,10 +289,20 @@
       "type": "range",
       "id": "products_per_page",
       "label": "מוצרים בעמוד",
-      "min": 8,
-      "max": 36,
+      "min": 12,
+      "max": 48,
       "step": 4,
       "default": 24
+    },
+    {
+      "type": "range",
+      "id": "columns_desktop",
+      "label": "עמודות במסך רחב",
+      "info": "בנייד מוצגות שתי עמודות ובטאבלט שלוש, תמיד.",
+      "min": 3,
+      "max": 5,
+      "step": 1,
+      "default": 4
     },
     {
       "type": "checkbox",

@@ -10,42 +10,42 @@
 
 <section
   id="ServicesBar-{{ section.id }}"
-  class="services-bar{% if section.settings.alt_background %} services-bar--alt{% endif %}"
+  class="section section--tight services-bar{% if section.settings.alt_background %} section--alt{% endif %}"
 >
   <div class="container">
-    <ul class="services-bar__grid" style="--services-count: {{ columns }};" role="list">
+    <div class="grid services-bar__grid" style="--services-count: {{ columns }};">
       {%- if section.blocks.size > 0 -%}
         {%- for block in section.blocks -%}
-          <li class="services-bar__item reveal" {{ block.shopify_attributes }}>
+          <div class="card card--pad services-bar__item reveal" {{ block.shopify_attributes }}>
             <span class="services-bar__icon" aria-hidden="true">
               {%- render 'icon', name: block.settings.icon, size: 24 -%}
             </span>
-            <span class="services-bar__text">
+            <div class="services-bar__text">
               {%- if block.settings.title != blank -%}
                 <strong class="services-bar__title">{{ block.settings.title | escape }}</strong>
               {%- endif -%}
               {%- if block.settings.text != blank -%}
                 <span class="services-bar__sub">{{ block.settings.text | escape }}</span>
               {%- endif -%}
-            </span>
-          </li>
+            </div>
+          </div>
         {%- endfor -%}
       {%- else -%}
-        {%- assign fallback_items = 'truck|משלוחים לכל הצפון|אספקה מהירה עד האתר או העסק;;store|איסוף עצמי מהמחסן|ההזמנה מחכה לכם בקרית אתא;;headset|ייעוץ מקצועי|צוות עם ניסיון אמיתי מהשטח;;shield-check|מותגים מקוריים בלבד|אחריות מלאה מיבואן רשמי' | split: ';;' -%}
+        {%- assign fallback_items = 'truck|משלוחים לכל הארץ|אספקה עד האתר, העסק או הבית;;store|איסוף עצמי מהחנות|ההזמנה מחכה לכם בקרית ענבים;;headset|ייעוץ מקצועי|צוות עם 30+ שנות ניסיון בענף;;shield-check|מותגים מקוריים בלבד|אחריות מלאה מיבואן רשמי' | split: ';;' -%}
         {%- for item in fallback_items -%}
           {%- assign parts = item | split: '|' -%}
-          <li class="services-bar__item reveal">
+          <div class="card card--pad services-bar__item reveal">
             <span class="services-bar__icon" aria-hidden="true">
               {%- render 'icon', name: parts[0], size: 24 -%}
             </span>
-            <span class="services-bar__text">
+            <div class="services-bar__text">
               <strong class="services-bar__title">{{ parts[1] }}</strong>
               <span class="services-bar__sub">{{ parts[2] }}</span>
-            </span>
-          </li>
+            </div>
+          </div>
         {%- endfor -%}
       {%- endif -%}
-    </ul>
+    </div>
   </div>
 </section>
 
@@ -93,13 +93,13 @@
           "type": "text",
           "id": "title",
           "label": "כותרת",
-          "default": "משלוחים לכל הצפון"
+          "default": "משלוחים לכל הארץ"
         },
         {
           "type": "text",
           "id": "text",
           "label": "טקסט משנה",
-          "default": "אספקה מהירה עד האתר או העסק"
+          "default": "אספקה עד האתר, העסק או הבית"
         }
       ]
     }
@@ -112,16 +112,16 @@
           "type": "service",
           "settings": {
             "icon": "truck",
-            "title": "משלוחים לכל הצפון",
-            "text": "אספקה מהירה עד האתר או העסק"
+            "title": "משלוחים לכל הארץ",
+            "text": "אספקה עד האתר, העסק או הבית"
           }
         },
         {
           "type": "service",
           "settings": {
             "icon": "store",
-            "title": "איסוף עצמי מהמחסן",
-            "text": "ההזמנה מחכה לכם בקרית אתא"
+            "title": "איסוף עצמי מהחנות",
+            "text": "ההזמנה מחכה לכם בקרית ענבים"
           }
         },
         {
@@ -129,7 +129,7 @@
           "settings": {
             "icon": "headset",
             "title": "ייעוץ מקצועי",
-            "text": "צוות עם ניסיון אמיתי מהשטח"
+            "text": "צוות עם 30+ שנות ניסיון בענף"
           }
         },
         {

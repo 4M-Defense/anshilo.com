@@ -13,6 +13,9 @@ import {
   PRODUCTS_QUERY,
   SEARCH_QUERY,
   SHOP_QUERY,
+  buildCollectionRowsQuery,
+  buildCollectionsByHandleQuery,
+  collectionAlias,
 } from './queries';
 import type {
   Cart,
@@ -104,6 +107,50 @@ export async function getCollections(
     collections: { nodes: Collection[]; pageInfo: PageInfo };
   }>(COLLECTIONS_QUERY, { first, after: after ?? null });
   return data.collections;
+}
+
+/** הופך רשימת handles למשתני $h0..$hn של שאילתות ה-batch */
+function handleVariables(handles: readonly string[]): Record<string, string> {
+  const vars: Record<string, string> = {};
+  handles.forEach((handle, i) => {
+    vars[`h${i}`] = handle;
+  });
+  return vars;
+}
+
+/**
+ * מביא קטגוריות לפי רשימת handles בבקשה אחת, בסדר שהועבר.
+ * handles שלא קיימים בחנות מסוננים בשקט — כך שינוי בקטלוג לא שובר את המסך.
+ */
+export async function getCollectionsByHandle(
+  handles: readonly string[]
+): Promise<Collection[]> {
+  if (handles.length === 0) return [];
+  const data = await storefrontFetch<Record<string, Collection | null>>(
+    buildCollectionsByHandleQuery(handles.length),
+    handleVariables(handles)
+  );
+  return handles
+    .map((_, i) => data[collectionAlias(i)])
+    .filter((c): c is Collection => c != null);
+}
+
+/**
+ * מביא כמה קטגוריות יחד עם המוצרים הראשונים בכל אחת — שורות מסך הבית.
+ * קטגוריות ריקות או שאינן קיימות מסוננות.
+ */
+export async function getCollectionRows(
+  handles: readonly string[],
+  first = 10
+): Promise<CollectionWithProducts[]> {
+  if (handles.length === 0) return [];
+  const data = await storefrontFetch<Record<string, CollectionWithProducts | null>>(
+    buildCollectionRowsQuery(handles.length),
+    { first, ...handleVariables(handles) }
+  );
+  return handles
+    .map((_, i) => data[collectionAlias(i)])
+    .filter((c): c is CollectionWithProducts => c != null && c.products.nodes.length > 0);
 }
 
 const COLLECTION_SORT_MAP: Record<string, { sortKey: string; reverse: boolean }> = {

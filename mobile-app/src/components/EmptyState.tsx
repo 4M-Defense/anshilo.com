@@ -1,5 +1,5 @@
 import { StyleSheet, Text, View } from 'react-native';
-import { colors, radius, spacing, typography } from '@/theme';
+import { colors, layout, radius, rtl, spacing, type } from '@/theme';
 import { Button } from './Button';
 import { Icon } from './Icon';
 
@@ -12,12 +12,15 @@ export interface EmptyStateProps {
   onAction?: () => void;
 }
 
-/** מצב ריק ידידותי — אייקון בעיגול רך, כותרת, הסבר וכפתור פעולה אופציונלי */
+/**
+ * מצב ריק שקט — אייקון דיו בבועה שקועה, כותרת, הסבר וכפתור פעולה אופציונלי.
+ * האדום נשמר לכפתור בלבד; העיטור עצמו נייטרלי.
+ */
 export function EmptyState({ icon, title, text, actionLabel, onAction }: EmptyStateProps) {
   return (
     <View style={styles.wrap}>
       <View style={styles.iconWrap}>
-        <Icon name={icon} size={32} color={colors.accent} knockout={colors.accentSoft} />
+        <Icon name={icon} size={30} color={colors.ink} knockout={colors.surfaceSunken} />
       </View>
       <Text style={styles.title}>{title}</Text>
       {text != null && <Text style={styles.text}>{text}</Text>}
@@ -35,32 +38,30 @@ const styles = StyleSheet.create({
     padding: spacing.xxl,
   },
   iconWrap: {
-    width: 76,
-    height: 76,
+    width: 72,
+    height: 72,
     borderRadius: radius.pill,
-    backgroundColor: colors.accentSoft,
+    backgroundColor: colors.surfaceSunken,
+    borderWidth: layout.hairline,
+    borderColor: colors.border,
     alignItems: 'center',
     justifyContent: 'center',
   },
   title: {
+    ...type.subheading,
+    ...rtl.center,
     marginTop: spacing.lg,
-    fontSize: typography.h3,
     fontWeight: '800',
-    color: colors.ink,
-    textAlign: 'center',
-    writingDirection: 'rtl',
   },
   text: {
+    ...type.small,
+    ...rtl.center,
     marginTop: spacing.sm,
-    fontSize: typography.small,
-    lineHeight: typography.small + 7,
     color: colors.textMuted,
-    textAlign: 'center',
-    writingDirection: 'rtl',
-    maxWidth: 280,
+    maxWidth: 300,
   },
   button: {
     marginTop: spacing.xl,
-    minWidth: 180,
+    minWidth: 190,
   },
 });

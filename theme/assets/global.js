@@ -14,12 +14,39 @@
     };
   };
 
+  /* Mirrors Liquid's `| money`, because the same price is rendered by Liquid on
+     load and by JS on every variant change — hardcoding '₪' + 0-2 decimals made
+     the two disagree. layout/theme.liquid already passes shop.money_format in;
+     the tag strip is there because a merchant's format can carry markup
+     (`<span class=money>…</span>`) and callers insert this into textContent.
+     Same implementation as quick-order.js:13 — keep the two in step. */
   window.formatMoney = function (cents) {
-    const amount = (cents / 100).toLocaleString('he-IL', {
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 2
-    });
-    return '₪' + amount;
+    const format = (window.themeSettings && window.themeSettings.moneyFormat) || '₪{{amount}}';
+    /* Match the placeholder rather than testing for the two we happen to know.
+       Shopify also ships {{amount_with_comma_separator}},
+       {{amount_no_decimals_with_comma_separator}} and
+       {{amount_with_period_separator}}; checking only for {{amount}} and
+       {{amount_no_decimals}} left the format string UNSUBSTITUTED for the rest,
+       so a shop on any of them would render the literal
+       "₪{{amount_with_comma_separator}}" into textContent on every variant
+       change. The separator variants only differ in grouping, which
+       toLocaleString('he-IL') already produces, so the name is consulted for one
+       thing: whether decimals are wanted.
+       If no placeholder matches at all, fall back to a formatted number instead
+       of returning the raw format — a wrong separator is a blemish, echoing
+       template syntax at the customer is a bug. */
+    const match = format.match(/\{\{\s*(amount[a-z_]*)\s*\}\}/);
+    const noDecimals = match ? match[1].indexOf('no_decimals') > -1 : false;
+    const amount = noDecimals
+      ? Math.round(cents / 100).toLocaleString('he-IL')
+      : (cents / 100).toLocaleString('he-IL', {
+          minimumFractionDigits: 2,
+          maximumFractionDigits: 2
+        });
+    if (!match) return '₪' + amount;
+    /* Strip markup last: a merchant format can carry a wrapper such as
+       <span class=money>…</span>, and every caller writes this into textContent. */
+    return format.replace(match[0], amount).replace(/<[^>]*>/g, '');
   };
 
   const trapFocusHandlers = {};
@@ -139,6 +166,43 @@
     }
   });
 
+  /* ---------- Cart errors ----------
+     Shopify's Ajax Cart API answers in English — a 422 from /cart/add.js carries
+     `message: "Cart Error"` and `description: "You can only add 3 of X to the
+     cart."` — so the theme's own Hebrew strings have to win the precedence, not
+     lose it. The one thing worth salvaging from the English text is the NUMBER in
+     a quantity cap: cart.errors.quantity_error is the Hebrew sentence shipped for
+     exactly that case (layout/theme.liquid publishes it as
+     cartStrings.quantityError with a [quantity] placeholder) and nothing read it
+     until now. 422 alone is not enough to identify the cap — a sold-out variant
+     answers 422 too — so the text has to corroborate it. If Shopify ever
+     localizes the body the regex stops matching and we fall back to the generic
+     Hebrew sentence, which is the right way to fail. */
+  function cartErrorMessage(data, status) {
+    const strings = window.cartStrings || {};
+    const description = data && typeof data.description === 'string' ? data.description : '';
+    const capped = status === 422 && /can only add|only\s+\d+/i.test(description);
+    const quantity = description.match(/(\d+)/);
+    if (capped && quantity && strings.quantityError) {
+      return strings.quantityError.replace('[quantity]', quantity[1]);
+    }
+    return strings.error || '';
+  }
+
+  /* Errors thrown from here are already Hebrew, and `cartMessage` marks them as
+     such. A network failure produces a plain Error whose message is the browser's
+     own English text ("Failed to fetch"), so callers must never toast
+     `err.message` blind — they go through cartErrorText instead. */
+  function cartError(message) {
+    const err = new Error(message);
+    err.cartMessage = message;
+    return err;
+  }
+
+  window.cartErrorText = function (err) {
+    return (err && err.cartMessage) || (window.cartStrings && window.cartStrings.error) || '';
+  };
+
   /* ---------- Cart API ---------- */
   const Cart = {
     sectionsToRender() {
@@ -168,8 +232,7 @@
       });
       const data = await res.json();
       if (!res.ok) {
-        const message = data.description || data.message || window.cartStrings.error;
-        throw new Error(message);
+        throw cartError(cartErrorMessage(data, res.status));
       }
       await this.afterChange(data.sections);
       if (openDrawer && window.themeSettings.cartType === 'drawer') {
@@ -191,8 +254,7 @@
       });
       const data = await res.json();
       if (!res.ok) {
-        const message = data.description || data.message || window.cartStrings.error;
-        throw new Error(message);
+        throw cartError(cartErrorMessage(data, res.status));
       }
       await this.afterChange(data.sections);
       return data;
@@ -272,7 +334,7 @@
             window.ShiloToast(window.cartStrings.added, 'success');
           }
         } catch (err) {
-          window.ShiloToast(err.message || window.cartStrings.error, 'error');
+          window.ShiloToast(window.cartErrorText(err), 'error');
         } finally {
           this.submitBtn.classList.remove('btn--loading');
           this.submitBtn.removeAttribute('aria-busy');
@@ -311,7 +373,7 @@
           e.preventDefault();
           const line = parseInt(this.dataset.line, 10);
           this.closest('[data-cart-line]')?.classList.add('is-removing');
-          Cart.change(line, 0).catch((err) => window.ShiloToast(err.message, 'error'));
+          Cart.change(line, 0).catch((err) => window.ShiloToast(window.cartErrorText(err), 'error'));
         });
       }
     }
@@ -330,7 +392,7 @@
             const line = parseInt(this.dataset.line, 10);
             const qty = parseInt(input.value, 10);
             Cart.change(line, qty).catch((err) => {
-              window.ShiloToast(err.message, 'error');
+              window.ShiloToast(window.cartErrorText(err), 'error');
               Cart.afterChange();
             });
           }, 350)
@@ -385,26 +447,65 @@
   }
   document.addEventListener('shopify:section:load', initReveal);
 
-  /* ---------- Sticky header helper ---------- */
-  const header = () => document.querySelector('[data-sticky-header]');
-  let lastScroll = 0;
+  /* ---------- Sticky header helper ----------
+     Every class flip here invalidates style for the whole header subtree (12
+     departments plus every mega panel), so the work is coalesced to one update
+     per frame and classList is only touched on an actual state change — the old
+     handler re-queried the DOM and re-wrote both classes on every scroll event.
+
+     The stuck threshold is hysteretic (crosses at 48, releases at 32) because a
+     trackpad fling and iOS rubber-banding both re-cross a single threshold
+     several times inside one gesture, and each crossing costs a relayout of the
+     header. `is-hidden-up` keeps its own ±8px dead zone for the same reason. */
+  let headerEl = document.querySelector('[data-sticky-header]');
+  let lastScroll = window.scrollY;
+  let stuck = false;
+  let hiddenUp = false;
+  let ticking = false;
+
+  function updateHeader() {
+    ticking = false;
+    if (!headerEl) return;
+    const y = window.scrollY;
+
+    const nextStuck = stuck ? y > 32 : y > 48;
+    if (nextStuck !== stuck) {
+      stuck = nextStuck;
+      headerEl.classList.toggle('is-stuck', stuck);
+    }
+
+    let nextHidden = hiddenUp;
+    if (y > 320 && y > lastScroll + 8) nextHidden = true;
+    else if (y < lastScroll - 8 || y < 320) nextHidden = false;
+    if (nextHidden !== hiddenUp) {
+      hiddenUp = nextHidden;
+      headerEl.classList.toggle('is-hidden-up', hiddenUp);
+    }
+
+    lastScroll = y;
+  }
 
   window.addEventListener(
     'scroll',
     () => {
-      const el = header();
-      if (!el) return;
-      const y = window.scrollY;
-      el.classList.toggle('is-stuck', y > 40);
-      if (y > 320 && y > lastScroll + 8) {
-        el.classList.add('is-hidden-up');
-      } else if (y < lastScroll - 8 || y < 320) {
-        el.classList.remove('is-hidden-up');
-      }
-      lastScroll = y;
+      if (ticking) return;
+      ticking = true;
+      requestAnimationFrame(updateHeader);
     },
     { passive: true }
   );
+
+  /* A section re-render in the theme editor hands back a header without the
+     state classes, so the tracked state has to be reset and re-applied. */
+  document.addEventListener('shopify:section:load', () => {
+    headerEl = document.querySelector('[data-sticky-header]');
+    stuck = false;
+    hiddenUp = false;
+    updateHeader();
+  });
+
+  /* Reloading half-way down a page must not start with an expanded header. */
+  updateHeader();
 
   /* ---------- External links a11y ---------- */
   document.querySelectorAll('a[target="_blank"]:not([rel*="noopener"])').forEach((a) => {

@@ -3,7 +3,7 @@ import { StatusBar } from 'expo-status-bar';
 import { I18nManager } from 'react-native';
 import { CartProvider } from '@/state/CartContext';
 import { FavoritesProvider } from '@/state/FavoritesContext';
-import { colors } from '@/theme';
+import { colors, fontFamily, typography } from '@/theme';
 
 // כפיית RTL — הפלאגין expo-localization כבר כופה זאת ברמת ה-native;
 // זהו קו הגנה נוסף (Expo Go / ריצה ראשונה). נכנס לתוקף אחרי טעינה מחדש.
@@ -19,12 +19,19 @@ export default function RootLayout() {
         <StatusBar style="dark" />
         <Stack
           screenOptions={{
-            headerStyle: { backgroundColor: colors.bg },
-            headerTitleStyle: { fontWeight: '700', color: colors.ink },
+            // סרגל כותרת לבן עם קו שערה — הכותרת עצמה בדיו
+            headerStyle: { backgroundColor: colors.surface },
+            headerTitleStyle: {
+              fontFamily,
+              fontSize: typography.h3,
+              fontWeight: '800',
+              color: colors.ink,
+            },
             headerTintColor: colors.ink,
             headerShadowVisible: false,
             headerBackButtonDisplayMode: 'minimal',
-            contentStyle: { backgroundColor: colors.bg },
+            // הקנבס מאחורי הכרטיסים — אפור־תכלת בהיר
+            contentStyle: { backgroundColor: colors.page },
           }}
         >
           <Stack.Screen name="(tabs)" options={{ headerShown: false }} />

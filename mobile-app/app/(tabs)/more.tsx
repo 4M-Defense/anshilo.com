@@ -11,7 +11,7 @@ import {
   View,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { HazardStripe, Icon, SectionHeader } from '@/components';
+import { Icon, Rule, SectionHeader } from '@/components';
 import { STORE_INFO } from '@/config';
 import { colors, radius, shadows, spacing, typography } from '@/theme';
 
@@ -98,7 +98,7 @@ export default function MoreScreen() {
             <Text style={styles.brandExp}>{'‎30+‎ שנות ניסיון בענף הבניין'}</Text>
           </View>
         </View>
-        <HazardStripe height={6} />
+        <Rule />
       </View>
 
       {/* קיצורי דרך */}
@@ -162,7 +162,7 @@ export default function MoreScreen() {
       <SectionHeader title="קצת עלינו" />
       <View style={styles.aboutCard}>
         <Text style={styles.aboutText}>
-          כבר יותר משלושים שנה א.נ. שילו היא הכתובת של אנשי המקצוע ובעלי הבתים בקרית אתא
+          כבר יותר משלושים שנה א.נ. שילו היא הכתובת של אנשי המקצוע ובעלי הבתים בקרית ענבים
           והסביבה — חנות חומרי בניין, אספקה טכנית ומחסן עצים תחת קורת גג אחת. הצוות שלנו מכיר
           כל מוצר על המדף וישמח לעזור לכם למצוא בדיוק את מה שאתם צריכים, בין אם אתם בונים בית
           ובין אם מחליפים ברז. מוזמנים לבקר, להתקשר או לכתוב לנו — אצלנו תמיד יש מי שמקשיב.
