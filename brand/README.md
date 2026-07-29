@@ -18,6 +18,7 @@
 | **כותב טקסט לאתר או למודעה** | `voice/TONE-OF-VOICE.md` |
 | **מתקין חתימת מייל** | `email-signature/INSTALL.md` |
 | **מפתח, צריך את הצבעים בקוד** | `color/tokens.css` או `tokens.json` |
+| **צריך את הגופנים** | `type/fonts/` - מותקנים ישר מהתיקייה |
 | **רוצה את הנימוקים המלאים** | `DESIGN-LANGUAGE.md` |
 
 ---
@@ -36,7 +37,8 @@ brand/
 │   └── tokens.json               ← אותם ערכים ל-Figma / כלי בנייה
 │
 ├── type/
-│   └── TYPOGRAPHY.md             ← גופנים, סקאלה, כללי עברית
+│   ├── TYPOGRAPHY.md             ← גופנים, סקאלה, כללי עברית
+│   └── fonts/                    ← קבצי Heebo ו-Assistant + התקנה ורישיון
 │
 ├── logo/
 │   └── LOGO-USAGE.md             ← חוקי שימוש + שתי בעיות פתוחות

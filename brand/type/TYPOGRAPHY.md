@@ -161,8 +161,8 @@ theme/assets/heebo-var-latin-ext.woff2    theme/assets/assistant-var-latin-ext.w
 
 מי שמעצב חומר חדש - קטלוג, שילוט, מודעה - מקבל:
 
-1. את הקבצים מ-`theme/assets/*.woff2`, או להורדה מ-Google Fonts
-   (Heebo, Assistant). זהים.
+1. **את קבצי הגופנים - הם כבר בתיקייה, ב-`type/fonts/`.** אותם קבצים שרצים באתר.
+   הוראות התקנה ורישיון: `type/fonts/README.md`.
 2. את הסקאלה מסעיף 2.
 3. את שלושת האיסורים מסעיף 3: אין 300 לגוף, אין נטוי, אין CAPS.
 
