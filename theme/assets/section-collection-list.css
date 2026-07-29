@@ -75,6 +75,15 @@
   aspect-ratio: 16 / 9;
 }
 
+/* The feature tile is deliberately the odd one out, and it is wide: a square
+   department image contained in a 16/9 box would sit between two white bars.
+   Crop it instead - on a tile this large losing the top and bottom of the frame
+   reads as a hero, not as a mistake. `feature_first` is off on the homepage so
+   all nine tiles match, but the setting stays usable. */
+.collection-list__item--feature .collection-tile__media > img {
+  object-fit: cover;
+}
+
 .collection-list__item--feature .collection-tile__title {
   font-size: calc(1.22rem * var(--font-heading-scale));
 }

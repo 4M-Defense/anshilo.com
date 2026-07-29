@@ -182,7 +182,7 @@
         "heading": "קונים לפי מחלקה",
         "show_view_all": true,
         "columns": 3,
-        "feature_first": true,
+        "feature_first": false,
         "alt_background": true
       },
       "blocks": {
