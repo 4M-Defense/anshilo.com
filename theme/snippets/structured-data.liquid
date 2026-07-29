@@ -94,11 +94,17 @@
         "name": {{ shop_name | json }},
         "inLanguage": "he-IL",
         "publisher": { "@id": {{ shop.url | append: '#organization' | json }} },
+        {%- comment -%}
+          The braces in the URL template are literal output, not Liquid: a "{"
+          inside a {{ }} tag makes Shopify's Liquid lexer fail to find the closing
+          "}}" and the whole file is rejected.
+        {%- endcomment -%}
+        {%- assign search_endpoint = shop.url | append: routes.search_url -%}
         "potentialAction": {
           "@type": "SearchAction",
           "target": {
             "@type": "EntryPoint",
-            "urlTemplate": {{ shop.url | append: routes.search_url | append: '?q={search_term_string}' | json }}
+            "urlTemplate": "{{ search_endpoint }}?q={search_term_string}"
           },
           "query-input": "required name=search_term_string"
         }

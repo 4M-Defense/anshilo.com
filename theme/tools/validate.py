@@ -215,6 +215,15 @@ for path in LIQUID_FILES:
     if re.search(r"{%[^%]*{{", src):
         err(name, "found '{{' inside a '{% %}' tag")
 
+    # -- a literal brace inside an output tag breaks Shopify's Liquid lexer: it
+    #    scans for the first '}}' and gives up. Shopify's own theme-check does
+    #    NOT catch this, but the Admin API rejects the file outright.
+    for m in re.finditer(r"\{\{(.{0,300}?)\}\}", src, re.S):
+        inner = m.group(1)
+        if "{" in inner:
+            line = src[: m.start()].count("\n") + 1
+            err(name, f"line {line}: literal '{{' inside a {{{{ }}}} output tag — Shopify will reject the file")
+
     # -- schema block must be valid JSON, and setting ids must be unique
     schema_match = re.search(r"{%-?\s*schema\s*-?%}(.*?){%-?\s*endschema\s*-?%}", src, re.S)
     if schema_match:
