@@ -374,6 +374,18 @@ if os.path.exists(schema_file) and os.path.exists(data_file):
                 if setting.get("id"):
                     declared.add(setting["id"])
         current = (data.get("current") or {})
+        # A setting declared with an empty-string default makes Shopify reject the
+        # WHOLE schema file and silently replace it with "[]", which strips every
+        # colour, font and token from the theme. Omit `default` instead.
+        for group in schema:
+            for setting in group.get("settings", []) or []:
+                if setting.get("default") == "":
+                    err(
+                        "config/settings_schema.json",
+                        f"setting '{setting.get('id')}' has an empty \"default\" — "
+                        "Shopify rejects the entire schema; omit the key instead",
+                    )
+
         for key in current:
             if key == "blocks":
                 continue
