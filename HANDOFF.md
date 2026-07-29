@@ -599,3 +599,29 @@ the zip) and shipped that way in `8dbd2c9`; had another zip been built before
 the fix, the handoff file would have deployed to the storefront as a theme
 file. It was moved here and deleted from `theme/`. Check your cwd before
 heredoc appends.
+
+---
+
+## 14. GitHub integration — the deploy path that replaces §3 once connected
+
+A dedicated branch **`shopify-live`** exists: the contents of `theme/` at the
+branch ROOT (Shopify's GitHub integration requires root-level theme folders),
+minus `tools/`, `SPEC.md`, `DESIGN-SYSTEM.md`. The owner connects it once:
+**Online Store → Themes → Add theme → Connect from GitHub →
+`ofir-commits/anshilo.com` → branch `shopify-live`.**
+
+After that:
+
+- **Deploying = pushing.** Run `bash theme/tools/sync-shopify-live.sh` from
+  the dev branch. It validates, pulls shopify-live (the editor commits back to
+  it!), overlays `theme/`, **preserves `config/settings_data.json` from the
+  Shopify side** (that file is editor-owned once connected — the owner's badge
+  uploads and colour tweaks land there and must never be clobbered), commits
+  and pushes. No Admin API, no MCP, no zip — the connector outage class of
+  §13 disappears.
+- The connected theme keeps one stable id/preview URL forever; the v2–v7
+  theme pile stops growing. Once the owner confirms the connected theme, all
+  earlier previews can be deleted and §13's pending-upsert plan is OBSOLETE —
+  round 7 is already in `shopify-live`.
+- Two-way sync means `settings_data.json` history lives in git — the
+  badge-loss problem §13 documents can no longer happen.
