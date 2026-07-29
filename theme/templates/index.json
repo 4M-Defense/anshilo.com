@@ -78,7 +78,8 @@
           "type": "collection",
           "settings": {
             "collection": "צבע",
-            "icon": "paint-roller"
+            "icon": "paint-roller",
+            "photo_blend": true
           }
         },
         "r8": {
@@ -114,7 +115,8 @@
           "type": "collection",
           "settings": {
             "collection": "עץ",
-            "icon": "planks"
+            "icon": "planks",
+            "photo_blend": true
           }
         }
       },

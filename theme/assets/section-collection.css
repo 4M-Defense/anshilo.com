@@ -136,10 +136,14 @@
   padding-block: 0 clamp(2.5rem, 4vw, 4.5rem);
 }
 
+/* NOT sticky (owner report, round 7): the bar used to park at
+   --collection-stick, but the site header auto-hides on downward scroll, so
+   the parked bar was left hovering mid-air over the cards — "נשאר צף לבד".
+   Pinning it to 0 instead would jump every time the header hides/reveals.
+   It now scrolls with the page like any other row; on mobile the filter
+   button is at the top of the grid, one flick away. */
 .collection-toolbar {
-  position: sticky;
-  inset-block-start: var(--collection-stick);
-  z-index: 20;
+  position: relative;
   display: flex;
   align-items: center;
   flex-wrap: wrap;
@@ -150,8 +154,8 @@
   border-block-end: 1px solid var(--color-border);
 }
 
-/* Bleed the bar's own background over the page gutters so cards never appear
-   to slide out from underneath it. */
+/* Bleed the bar's own background over the page gutters so it reads as a
+   full-width rule even inside the padded container. */
 .collection-toolbar::before {
   content: "";
   position: absolute;
@@ -280,17 +284,12 @@
     align-items: start;
   }
 
+  /* NOT sticky, same round-7 owner report as the toolbar: a pinned panel
+     below an auto-hiding header floats detached once the header hides. The
+     sidebar now flows with the page — no height clamp, no inner scrollbar,
+     nothing left hovering. */
   .collection-layout__sidebar {
-    position: sticky;
-    inset-block-start: calc(var(--collection-stick) + 4.25rem);
-    /* Hard floor: whatever the offset resolves to (or becomes in the future),
-       the filters panel must never collapse below a usable height. */
-    max-block-size: max(18rem, calc(100vh - var(--collection-stick) - 6rem));
-    overflow-y: auto;
-    overscroll-behavior: contain;
     padding-inline-end: 0.35rem;
-    scrollbar-width: thin;
-    scrollbar-color: var(--color-border-strong) transparent;
   }
 }
 
@@ -789,10 +788,10 @@ details[open] > .facet__summary .facet__chevron { transform: rotate(180deg); }
   margin-block-end: clamp(1rem, 2vw, 1.5rem);
 }
 
+/* NOT sticky — same round-7 rule as the collection toolbar: anything pinned
+   below the auto-hiding header is left floating alone once the header hides. */
 .collection-index__jump {
-  position: sticky;
-  inset-block-start: var(--collection-stick);
-  z-index: 20;
+  position: relative;
   display: flex;
   align-items: center;
   gap: 0.75rem;

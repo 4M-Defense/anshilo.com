@@ -92,7 +92,13 @@
    four sides stay equal at every breakpoint and the plate stays square. */
 .category-rail__plate {
   display: block;
-  padding: 8%;
+  /* Slim ring: the owner asked for the image square to be as large as it can
+     be inside the card. The plate colour defaults (via the token's setting)
+     to the cream field baked into the designed department images, so plate
+     and image read as one surface; the white-background photo tiles are
+     multiply-blended onto it (see below), which lands their white exactly on
+     the same cream. */
+  padding: 2.5%;
   background-color: var(--color-tile-bg, var(--color-surface));
   border-radius: var(--radius-base);
 }
