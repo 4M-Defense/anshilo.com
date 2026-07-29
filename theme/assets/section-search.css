@@ -87,11 +87,15 @@
   text-overflow: ellipsis;
 }
 
+/* Catalogue titles mix Hebrew with Latin brand names and SKUs (`מקדחה Makita
+   HP1631K`). Inside dir="rtl" the bidi algorithm reorders the trailing Latin run
+   and its punctuation across the whole line; isolate keeps each run to itself. */
 .predictive-results__title {
   font-size: 0.93rem;
   font-weight: 600;
   line-height: 1.35;
   color: var(--color-ink);
+  unicode-bidi: isolate;
   display: -webkit-box;
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 2;

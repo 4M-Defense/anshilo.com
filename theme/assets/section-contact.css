@@ -84,12 +84,11 @@
 
 @media (min-width: 990px) {
   .contact-card {
-    /* --sticky-header-height was never set by anything, so only the fallback ever
-       applied. section-header.js publishes the real height as --header-reserve, but
-       on the header wrapper, which is not an ancestor of this card — so the fallback
-       still governs here. Kept as a var so it picks the value up for free if that
-       ever moves to :root; 112px is the compressed header's measured height. */
-    inset-block-start: calc(var(--header-reserve, 112px) + 1rem);
+    /* section-header.js now publishes the measured COMPRESSED header height as
+       --sticky-header-height on :root, so this resolves to the real value on every
+       page instead of always taking the fallback. Compressed is the right one: the
+       card only sticks once the page is scrolled and the header has collapsed. */
+    inset-block-start: calc(var(--sticky-header-height, 112px) + 1rem);
   }
 }
 

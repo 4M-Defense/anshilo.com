@@ -109,7 +109,16 @@
 
       <div class="product-sticky-bar__meta">
         <span class="product-sticky-bar__title">{{ product.title | escape }}</span>
-        <span class="product-sticky-bar__price" data-sticky-price>{{ current_variant.price | money }}</span>
+        {%- comment -%}
+          dir="ltr" isolates the money run the way snippets/price.liquid does for
+          every other price in the theme — without it the ₪ sign and the decimals
+          can reorder inside the RTL bar. It lives on the element rather than being
+          re-applied by JS because section-main-product.js updates this node with
+          textContent on every variant change, which keeps the attribute.
+        {%- endcomment -%}
+        <span class="product-sticky-bar__price" dir="ltr" data-sticky-price>
+          {{- current_variant.price | money -}}
+        </span>
       </div>
 
       <button

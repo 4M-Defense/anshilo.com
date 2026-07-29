@@ -77,29 +77,100 @@
   .category-rail__tile:hover .category-rail__title { color: var(--color-accent); }
 }
 
-/* Catalogue parts: contained, on white, with breathing room.
-   The twelve department images do not share a background - some are designed
-   tiles with their own colour baked into the pixels, others are raw product
-   shots - and no stylesheet can repaint the inside of a JPEG. What CAN be made
-   identical is the frame: state the white plate explicitly rather than
-   inheriting it from .media, give every tile the same padding, and draw a
-   hairline around the image area so a shot that happens to be white still reads
-   as "an image in a well" next to one that is coloured, instead of as a hole.
-   True uniformity needs the three odd images replaced - logged in
-   docs/STORE-HEALTH.md. */
-.category-rail__media {
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-sm);
-  padding: clamp(0.35rem, 1vw, 0.6rem);
+/* ---------- Department images: one well, one window ----------
+   The twelve collection images were never produced as a set - eight are designed
+   1080x1080 tiles with a colour baked into the pixels, three are raw product
+   shots, one of those portrait 333x500 - and no stylesheet can repaint the inside
+   of a JPEG. A filter cannot rescue it: it is a per-pixel function applied to
+   twelve different inputs, so it compresses the differences but never removes
+   them, and any dose strong enough to hide a colour step also fogs every product
+   in the row (the צבע department is sold on chroma). Blend modes fail from the
+   other side: multiply converges only on pure white (1 x C = C), so it would
+   unify the three raw shots' fields and turn the eight designed ones into eight
+   different, muddier colours; screen has white as a fixed point and so does
+   nothing to the raw shots at all. Hence: do not add a filter or a blend mode.
+   What CAN be identical is how much of the tile is theirs. The image is inset
+   into a small square window on a sunken well, so the field the eye reads as
+   "the background" is the well - one colour, on all twelve - and their pixels
+   become a centred chip inside a frame we draw. This does not make the pixels
+   match, it stops the mismatch from being the background; replacing the three
+   odd sources is still logged in docs/STORE-HEALTH.md.
+   The inset MUST live on this parent and not on .media: base.css absolutely
+   positions .media > img with inset: 0, and an absolutely positioned child
+   resolves inset against its containing block's PADDING box - so padding on
+   .media does not move the image at all. That is why the previous version of
+   this well rendered nowhere at any viewport. */
+.category-rail__plate {
+  /* The one knob for the row: the share of the tile that is ours. Usable band is
+     11-14%; below ~10% the well stops reading as the background and the whole
+     mechanism collapses. If a matched set of images ever arrives, drop this to
+     ~4% and the photos go near-full-bleed inside the same frame. */
+  --rail-window-inset: 12.5%;
+
+  display: block;
+  /* Percentage padding resolves against the containing block's inline size on
+     BOTH axes, so the four sides are equal by construction and stay equal at
+     every breakpoint - and the plate comes out square without an aspect-ratio. */
+  padding-block: var(--rail-window-inset);
+  padding-inline: var(--rail-window-inset);
+  /* Deliberately not white. White is the most likely field colour of the raw
+     product shots, and a white plate is precisely why one of those reads as a
+     hole next to a coloured tile; the step makes both families read as artwork
+     inside a chip. Token is the one settings_schema labels for image wells. */
+  background-color: var(--color-surface-sunken);
+  border-radius: var(--radius-base);
 }
 
-/* Icon plate - the default. Every tile is drawn by the theme, so the row is
-   uniform by construction: identical plate, identical square, identical stroke
-   weight, and the only thing that varies is the glyph. That is the whole point;
-   the collection images could not deliver it (see the comment in the section).
-   The accent tint is the same one the contact card's icons use, so the mark reads
-   as brand furniture rather than as a missing image. */
+/* The window. .media in base.css already supplies position, overflow, the square
+   and object-fit: contain, so nothing is ever cropped and every image lands at
+   the same rendered height. The white shows in exactly two places - the 333x500
+   portrait's inline letterbox gutters and the placeholder - and there it lets
+   that source's own near-white field appear to run to the window edge, so the
+   one portrait shows no letterbox seam. Scoped under the plate so the icon
+   fallback further down keeps its own accent plate untouched. */
+.category-rail__plate > .category-rail__media {
+  background-color: var(--color-surface);
+  border-radius: var(--radius-sm);
+}
+
+/* One shared lighting signature: the same rectangle and the same corner falloff
+   on all twelve, the cue a photographer uses to make a mixed set read as one
+   shoot. It is a plain alpha composite, so it behaves identically over white and
+   over colour - it co-signs the fields instead of claiming to equalise them.
+   Painted above the photo: the abspos img comes first in tree order and two
+   positioned siblings at z-index auto paint in tree order.
+   Both shadow offsets must stay 0 - box-shadow has no logical form, so a
+   directional offset here would be mirrored wrong in one writing direction. */
+.category-rail__plate > .category-rail__media::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  background-image: radial-gradient(
+    118% 118% at 50% 0%,
+    rgba(var(--color-ink-rgb), 0) 58%,
+    rgba(var(--color-ink-rgb), 0.06) 100%
+  );
+  box-shadow: inset 0 0 0 1px rgba(var(--color-ink-rgb), 0.09);
+}
+
+/* Missing image: same well, same window, same frame, only the glyph differs, so
+   a broken tile keeps its place in the row instead of becoming a grey square.
+   .placeholder-svg carries its own sunken background - which is the WELL colour,
+   so it has to be cleared here - and base.css scopes contain to img only. */
+.category-rail__plate > .category-rail__media > .placeholder-svg {
+  background: transparent;
+  object-fit: contain;
+}
+
+/* Icon plate - the rejected path, kept working but no longer the default. Drawing
+   the mark ourselves is uniform by construction, which is why it was tried, but
+   the owner read the glyphs as unattractive and asked for the photographs back;
+   tile_style now defaults to "image" and the well above carries the uniformity.
+   The branch stays so the setting still has two working values and a re-inserted
+   preset cannot render an empty tile. The accent tint is the same one the contact
+   card's icons use, so the mark reads as brand furniture, not a missing image. */
 .category-rail__media--icon {
   display: grid;
   place-items: center;

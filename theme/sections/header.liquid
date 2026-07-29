@@ -2,9 +2,22 @@
 {{ 'section-search.css' | asset_url | stylesheet_tag }}
 <script src="{{ 'section-header.js' | asset_url }}" defer="defer"></script>
 
+{%- comment -%}
+  Sticky off: the wrapper drops out of the sticky/fixed-height arrangement, so the
+  header has to go back into normal flow with it. .site-header is position:absolute
+  inside the sticky wrapper (see the note in section-header.css) and would otherwise
+  resolve against whatever the nearest positioned ancestor happens to be.
+{%- endcomment -%}
 {%- unless section.settings.enable_sticky -%}
   <style>
-    #shopify-section-{{ section.id }} { position: static; }
+    #shopify-section-{{ section.id }} {
+      position: static;
+      block-size: auto;
+    }
+    #shopify-section-{{ section.id }} .site-header {
+      position: relative;
+      inline-size: auto;
+    }
   </style>
 {%- endunless -%}
 
@@ -185,7 +198,30 @@
                   </div>
                 {%- endfor -%}
               </div>
-              <div class="header-search__results" data-search-results hidden aria-live="polite"></div>
+              <div class="header-search__results" data-search-results hidden></div>
+
+              {%- comment -%}
+                aria-live used to sit on the results div, which is replaced wholesale
+                on every keystroke — that announces the whole dropdown. Only the count
+                sentence should be announced, and the section that renders the results
+                is the side that knows the number, so it emits the sentence and
+                section-header.js copies it in here.
+              {%- endcomment -%}
+              <p class="visually-hidden" role="status" data-search-status></p>
+
+              {%- comment -%}
+                Client-side empty state. A failed or empty request must never close the
+                panel — that silence is what made this read as "the search does
+                nothing". section-header.js clones this and substitutes [terms],
+                the same placeholder idiom layout/theme.liquid uses for [quantity].
+              {%- endcomment -%}
+              <template data-search-empty>
+                <div class="predictive-results__empty">
+                  {% render 'icon', name: 'search', size: 30 %}
+                  <p class="predictive-results__empty-title">{{ 'general.search.no_results' | t: terms: '[terms]' }}</p>
+                  <p class="predictive-results__empty-hint">{{ 'general.search.no_results_hint' | t }}</p>
+                </div>
+              </template>
             </div>
           </form>
         </div>
@@ -273,7 +309,15 @@
                 </div>
               {%- endfor -%}
             </div>
-            <div class="header-search__results" data-search-results hidden aria-live="polite"></div>
+            <div class="header-search__results" data-search-results hidden></div>
+            <p class="visually-hidden" role="status" data-search-status></p>
+            <template data-search-empty>
+              <div class="predictive-results__empty">
+                {% render 'icon', name: 'search', size: 30 %}
+                <p class="predictive-results__empty-title">{{ 'general.search.no_results' | t: terms: '[terms]' }}</p>
+                <p class="predictive-results__empty-hint">{{ 'general.search.no_results_hint' | t }}</p>
+              </div>
+            </template>
           </div>
         </form>
       </div>
@@ -393,13 +437,6 @@
     </div>
   </nav>
 </header>
-
-{%- comment -%}
-  Height reserved for the rows that collapse when the header is stuck, so the
-  compression never shifts the document flow. Sized at runtime by
-  section-header.js (--header-reserve).
-{%- endcomment -%}
-<div class="site-header__reserve" aria-hidden="true" data-header-reserve></div>
 
 {%- comment -%}
   Mobile menu drawer. section-header.js re-parents it to document.body at

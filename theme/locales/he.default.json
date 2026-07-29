@@ -100,6 +100,7 @@
       "city": "עיר",
       "company": "חברה",
       "country": "מדינה",
+      "country_israel": "ישראל",
       "default": "כתובת ברירת מחדל",
       "delete": "מחיקה",
       "delete_confirm": "האם למחוק את הכתובת הזו?",
@@ -130,8 +131,21 @@
     },
     "order": {
       "billing_address": "כתובת לחיוב",
+      "cancel_reason": {
+        "customer": "בקשת הלקוח",
+        "declined": "התשלום נדחה",
+        "fraud": "חשד להונאה",
+        "inventory": "חוסר במלאי",
+        "other": "אחר",
+        "staff": "ביטול על ידי החנות"
+      },
       "cancelled_html": "ההזמנה בוטלה בתאריך {{ date }}",
       "cancelled_reason": "סיבה: {{ reason }}",
+      "carriers": {
+        "custom": "שילוח",
+        "israel_post": "דואר ישראל",
+        "other": "חברת שילוח"
+      },
       "date_html": "בוצעה בתאריך {{ date }}",
       "discount": "הנחה",
       "fulfilled_at_html": "נשלח בתאריך {{ date }}",
@@ -143,6 +157,26 @@
       "shipping": "משלוח",
       "shipping_address": "כתובת למשלוח",
       "sku": "מק\"ט",
+      "statuses": {
+        "financial": {
+          "authorized": "אושר",
+          "expired": "פג תוקף",
+          "paid": "שולם",
+          "partially_paid": "שולם חלקית",
+          "partially_refunded": "הוחזר חלקית",
+          "pending": "ממתין לתשלום",
+          "refunded": "הוחזר",
+          "voided": "בוטל"
+        },
+        "fulfillment": {
+          "fulfilled": "נשלח",
+          "on_hold": "בהמתנה",
+          "partial": "נשלח חלקית",
+          "restocked": "הוחזר למלאי",
+          "scheduled": "משלוח מתוזמן",
+          "unfulfilled": "טרם נשלח"
+        }
+      },
       "subtotal": "סכום ביניים",
       "tax": "מע\"מ",
       "title": "הזמנה {{ name }}",
@@ -333,11 +367,35 @@
       "filter_and_sort": "סינון ומיון",
       "filter_button": "סינון",
       "filter_by_label": "סינון לפי",
+      "filters": {
+        "available": "זמינות",
+        "brand": "מותג",
+        "collection": "קטגוריה",
+        "color": "צבע",
+        "colour": "צבע",
+        "diameter": "קוטר",
+        "in_stock": "זמינות",
+        "length": "אורך",
+        "material": "חומר",
+        "model": "דגם",
+        "on_sale": "מבצעים",
+        "product_type": "סוג מוצר",
+        "sale": "מבצעים",
+        "size": "מידה",
+        "style": "סוג",
+        "tag": "תגית",
+        "title": "דגם",
+        "type": "סוג",
+        "vendor": "מותג",
+        "weight": "משקל",
+        "width": "רוחב"
+      },
       "from": "מ-",
       "highest_price": "המחיר הגבוה ביותר הוא {{ price }}",
       "in_stock_only": "הצגת מוצרים במלאי בלבד",
       "no_results_body": "נסו להסיר חלק מהמסננים או לנקות את כולם.",
       "no_results_title": "לא נמצאו מוצרים",
+      "on_sale_only": "הצגת מוצרים במבצע בלבד",
       "price": "מחיר",
       "product_count": {
         "one": "מוצר אחד",
@@ -361,7 +419,26 @@
       "show_more": "הצגת עוד",
       "sort_button": "מיון",
       "sort_by_label": "מיון לפי:",
-      "to": "עד"
+      "sort_options": {
+        "best_selling": "הנמכרים ביותר",
+        "created_ascending": "לפי תאריך: מהמוקדם למאוחר",
+        "created_descending": "החדשים ביותר",
+        "manual": "מומלצים",
+        "price_ascending": "מחיר: מהזול ליקר",
+        "price_descending": "מחיר: מהיקר לזול",
+        "relevance": "הרלוונטיים ביותר",
+        "title_ascending": "לפי שם: א-ת",
+        "title_descending": "לפי שם: ת-א"
+      },
+      "to": "עד",
+      "values": {
+        "false": "לא",
+        "in_stock": "במלאי",
+        "no": "לא",
+        "out_of_stock": "אזל מהמלאי",
+        "true": "כן",
+        "yes": "כן"
+      }
     },
     "price": {
       "call_for_price": "מחיר בטלפון",
@@ -437,6 +514,7 @@
       "view_all": "לכל המוצרים"
     },
     "footer": {
+      "payment_methods": "אמצעי תשלום",
       "policies": {
         "contact": "פרטי תקשורת",
         "legal": "הצהרה משפטית",
@@ -446,8 +524,6 @@
         "subscription": "מדיניות מנויים",
         "terms": "תקנון האתר ותנאי שימוש"
       },
-
-      "payment_methods": "אמצעי תשלום",
       "rights": "כל הזכויות שמורות."
     },
     "header": {

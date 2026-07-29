@@ -10,14 +10,21 @@
   var DEBOUNCE = 320;
   var MAX_ROWS = 40;
 
+  /* Kept deliberately identical to window.formatMoney in global.js. Both used to
+     test only for {{amount}} and {{amount_no_decimals}} and so returned the raw,
+     unsubstituted format string for the three separator variants Shopify also
+     ships. This one had a second bug on top: the no-decimals branch returned
+     without the markup strip, so a merchant format wrapping the value in a span
+     leaked tags into the row. Matching the placeholder fixes both. */
   function formatMoney(cents, fallbackFormat) {
     var format = fallbackFormat || (window.themeSettings && window.themeSettings.moneyFormat) || '₪{{amount}}';
-    var value = (cents / 100).toLocaleString('he-IL', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-    if (format.indexOf('{{amount_no_decimals}}') > -1) {
-      value = Math.round(cents / 100).toLocaleString('he-IL');
-      return format.replace('{{amount_no_decimals}}', value);
-    }
-    return format.replace('{{amount}}', value).replace(/<[^>]*>/g, '');
+    var match = format.match(/\{\{\s*(amount[a-z_]*)\s*\}\}/);
+    var noDecimals = match ? match[1].indexOf('no_decimals') > -1 : false;
+    var value = noDecimals
+      ? Math.round(cents / 100).toLocaleString('he-IL')
+      : (cents / 100).toLocaleString('he-IL', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    if (!match) return '₪' + value;
+    return format.replace(match[0], value).replace(/<[^>]*>/g, '');
   }
 
   function debounce(fn, wait) {

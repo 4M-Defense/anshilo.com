@@ -43,12 +43,30 @@
 
         assign option_name = 'options-' | append: section_id | append: '-' | append: option.position
         assign select_id = 'Option-' | append: section_id | append: '-' | append: option.position
+
+        comment
+          option.name comes from the product in the Shopify admin. Shopify's own
+          default for an unnamed option is the literal 'Title', and merchants
+          routinely leave 'Color' / 'Size' / 'Material' as typed by an app or an
+          import — so a Hebrew product page showed "Title:" and "Size:". Relabel
+          off the handleized name the way sections/footer.liquid relabels policies,
+          sharing products.facets.filters with the facet sidebar so צבע/מידה cannot
+          drift between the two places a shopper sees them. option.name stays as
+          the fallback, which is what carries a name the owner already typed in
+          Hebrew. The option VALUES below are merchant data and are never mapped.
+        endcomment
+        assign option_handle = option.name | handleize | replace: '-', '_'
+        assign option_label_key = 'products.facets.filters.' | append: option_handle
+        assign option_label = option_label_key | t
+        if option_label contains 'Translation missing'
+          assign option_label = option.name
+        endif
       -%}
 
       {%- if use_select -%}
         <div class="product-variants__option">
           <label class="field__label" for="{{ select_id }}">
-            {{ option.name | escape }}:
+            {{ option_label | escape }}:
             <span data-selected-value>{{ option.selected_value | escape }}</span>
           </label>
           <div class="select-wrap">
@@ -74,7 +92,7 @@
       {%- else -%}
         <fieldset class="product-variants__option">
           <legend class="field__label">
-            {{ option.name | escape }}:
+            {{ option_label | escape }}:
             <span data-selected-value>{{ option.selected_value | escape }}</span>
           </legend>
           <div class="variant-pills">

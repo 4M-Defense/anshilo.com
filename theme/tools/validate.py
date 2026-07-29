@@ -150,6 +150,11 @@ KNOWN_FILTERS = {
     "color_to_hex", "color_to_hsl", "color_to_rgb", "hex_to_rgba",
     # urls / assets
     "asset_url", "asset_img_url", "file_url", "file_img_url", "global_asset_url",
+    # inline_asset_content inlines a theme asset (used for SVG). Listed ahead of
+    # first use: the Makita block documents dropping in an official vector wordmark
+    # and inlining it, and without this that commit would trip a false "unknown
+    # filter" error here.
+    "inline_asset_content",
     "image_url", "img_url", "img_tag", "image_tag", "link_to", "link_to_type",
     "link_to_tag", "link_to_add_tag", "link_to_remove_tag", "link_to_vendor",
     "within", "shopify_asset_url", "customer_login_link", "customer_logout_link",

@@ -100,6 +100,7 @@
       "city": "City",
       "company": "Company",
       "country": "Country",
+      "country_israel": "Israel",
       "default": "Default address",
       "delete": "Delete",
       "delete_confirm": "Delete this address?",
@@ -130,8 +131,21 @@
     },
     "order": {
       "billing_address": "Billing address",
+      "cancel_reason": {
+        "customer": "Customer request",
+        "declined": "Payment declined",
+        "fraud": "Suspected fraud",
+        "inventory": "Items unavailable",
+        "other": "Other",
+        "staff": "Cancelled by the store"
+      },
       "cancelled_html": "Order cancelled on {{ date }}",
       "cancelled_reason": "Reason: {{ reason }}",
+      "carriers": {
+        "custom": "Shipping",
+        "israel_post": "Israel Post",
+        "other": "Carrier"
+      },
       "date_html": "Placed on {{ date }}",
       "discount": "Discount",
       "fulfilled_at_html": "Fulfilled {{ date }}",
@@ -143,6 +157,26 @@
       "shipping": "Shipping",
       "shipping_address": "Shipping address",
       "sku": "SKU",
+      "statuses": {
+        "financial": {
+          "authorized": "Authorized",
+          "expired": "Expired",
+          "paid": "Paid",
+          "partially_paid": "Partially paid",
+          "partially_refunded": "Partially refunded",
+          "pending": "Payment pending",
+          "refunded": "Refunded",
+          "voided": "Voided"
+        },
+        "fulfillment": {
+          "fulfilled": "Fulfilled",
+          "on_hold": "On hold",
+          "partial": "Partially fulfilled",
+          "restocked": "Restocked",
+          "scheduled": "Scheduled",
+          "unfulfilled": "Unfulfilled"
+        }
+      },
       "subtotal": "Subtotal",
       "tax": "Tax",
       "title": "Order {{ name }}",
@@ -333,11 +367,35 @@
       "filter_and_sort": "Filter and sort",
       "filter_button": "Filter",
       "filter_by_label": "Filter by",
+      "filters": {
+        "available": "Availability",
+        "brand": "Brand",
+        "collection": "Category",
+        "color": "Color",
+        "colour": "Colour",
+        "diameter": "Diameter",
+        "in_stock": "Availability",
+        "length": "Length",
+        "material": "Material",
+        "model": "Model",
+        "on_sale": "On sale",
+        "product_type": "Product type",
+        "sale": "Sale",
+        "size": "Size",
+        "style": "Style",
+        "tag": "Tag",
+        "title": "Model",
+        "type": "Type",
+        "vendor": "Brand",
+        "weight": "Weight",
+        "width": "Width"
+      },
       "from": "From",
       "highest_price": "The highest price is {{ price }}",
       "in_stock_only": "In stock only",
       "no_results_body": "Try removing some filters or clearing them all.",
       "no_results_title": "No products found",
+      "on_sale_only": "On sale only",
       "price": "Price",
       "product_count": {
         "one": "1 product",
@@ -361,7 +419,26 @@
       "show_more": "Show more",
       "sort_button": "Sort",
       "sort_by_label": "Sort by:",
-      "to": "To"
+      "sort_options": {
+        "best_selling": "Best selling",
+        "created_ascending": "Date, old to new",
+        "created_descending": "Newest first",
+        "manual": "Featured",
+        "price_ascending": "Price, low to high",
+        "price_descending": "Price, high to low",
+        "relevance": "Most relevant",
+        "title_ascending": "Alphabetically, A-Z",
+        "title_descending": "Alphabetically, Z-A"
+      },
+      "to": "To",
+      "values": {
+        "false": "No",
+        "in_stock": "In stock",
+        "no": "No",
+        "out_of_stock": "Out of stock",
+        "true": "Yes",
+        "yes": "Yes"
+      }
     },
     "price": {
       "call_for_price": "Call for price",
@@ -438,6 +515,15 @@
     },
     "footer": {
       "payment_methods": "Payment methods",
+      "policies": {
+        "contact": "Contact information",
+        "legal": "Legal notice",
+        "privacy": "Privacy policy",
+        "refund": "Refund policy",
+        "shipping": "Shipping policy",
+        "subscription": "Subscription policy",
+        "terms": "Terms of service"
+      },
       "rights": "All rights reserved."
     },
     "header": {

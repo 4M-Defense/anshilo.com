@@ -129,16 +129,44 @@ collection images, and they were not produced as a set:
 
 The three in bold are raw product photographs rather than designed tiles, and the
 owner reported that their backgrounds do not match the rest. **No stylesheet can
-change the background baked into a JPEG**, so the theme does what it can: the well
-around every image is now explicitly identical (white plate, one hairline, equal
-padding, square) so a tile whose photo happens to be white still reads as an image
-in a frame rather than as a hole. `assets/section-category-rail.css` carries the
-reasoning.
+change the background baked into a JPEG.** Two approaches were tried and must not
+be tried again:
+
+- **An icon tile per department** — uniform by construction, since the theme draws
+  every mark. The owner rejected it on looks and asked for the photographs back.
+  `tile_style` now defaults to `image`; the icon branch survives only as a fallback.
+- **A `filter` or a `mix-blend-mode` over the images.** A filter is a per-pixel
+  function of twelve different inputs: it compresses their differences but never
+  removes them, and any dose strong enough to hide a colour step also fogs every
+  product in the row — `contrast(0.95)` moves white only to `#F8F8F8`, and reaching
+  the well colour needs about `0.88`, which visibly greys the tools baked into the
+  designed tiles. `multiply` converges on pure white only (`1 x C = C`), so it would
+  unify the three raw shots and turn the eight designed fields into eight different,
+  muddier colours. `screen` has white as a fixed point and so does nothing at all to
+  the raw shots. `color`/`hue` unify the hue axis and leave lightness untouched —
+  which is precisely the difference the owner is looking at.
+
+Also worth recording: the "identical well" this document previously described
+**never rendered**. It put `padding` on `.category-rail__media`, but `base.css`
+absolutely positions `.media > img` with `inset: 0`, and an absolutely positioned
+child resolves `inset` against its containing block's *padding* box — so the image
+covered the padding and the hairline sat directly under the photo's own edge.
+
+What ships instead is **one well, one window**: a uniform sunken plate
+(`--color-surface-sunken`) that is ours and always visible, with the image inset by
+12.5% into a smaller white square window carrying the same hairline and the same
+faint corner vignette on all twelve. `object-fit: contain` is kept, so nothing is
+cropped. Their pixels drop from roughly 74% of the tile's visual field to about 40%,
+and what is left is a small framed chip rather than "the background". This does not
+make the pixels match — it stops the mismatch from reading as the background.
+`assets/section-category-rail.css` carries the full reasoning.
 
 The real fix is to replace those three collection images with designed tiles
 matching the `collection-N.png` set. Until then the row will never be perfectly
 uniform. The `סולמות` one is worth replacing regardless: at 333×500 it is the only
-portrait image in a square grid.
+portrait image in a square grid. Even with the window treatment, `contain` leaves
+`סולמות` at 66.6% of its window's inline size, so that tile's subject still reads
+slightly smaller than the others.
 
 Note that no agent has been able to *see* any of these images — `cdn.shopify.com`
 is blocked from the build environment, and `WebFetch` against it returns 403. Every

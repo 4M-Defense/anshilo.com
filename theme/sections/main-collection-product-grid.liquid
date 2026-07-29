@@ -97,11 +97,28 @@
                   data-sort-select
                 >
                   {%- for option in collection.sort_options -%}
+                    {%- liquid
+                      comment
+                        option.name is Shopify's own English label ("Best selling",
+                        "Alphabetically, A-Z" — which keeps Latin A-Z even where
+                        Shopify does translate it), and it never passes through this
+                        theme's locale file. option.value is the stable sort handle
+                        AND the query parameter, so it is what we key on and what
+                        must stay untranslated in the value attribute. Same idiom as
+                        sections/footer.liquid; Shopify's label stays as the fallback
+                        for a sort option this theme has not enumerated.
+                      endcomment
+                      assign sort_key = 'products.facets.sort_options.' | append: option.value | replace: '-', '_'
+                      assign sort_label = sort_key | t
+                      if sort_label contains 'Translation missing'
+                        assign sort_label = option.name
+                      endif
+                    -%}
                     <option
                       value="{{ option.value | escape }}"
                       {% if option.value == sort_by %}selected="selected"{% endif %}
                     >
-                      {{- option.name | escape -}}
+                      {{- sort_label | escape -}}
                     </option>
                   {%- endfor -%}
                 </select>
@@ -145,7 +162,29 @@
               <div class="active-facets">
                 <span class="active-facets__label">{{ 'products.facets.filter_by_label' | t }}</span>
 
+                {%- comment -%}
+                  The chips mirror snippets/facets.liquid, so they run the same
+                  guarded locale lookups on the same Shopify-supplied labels —
+                  otherwise the chip text reads "In stock" and the Hebrew
+                  products.facets.remove_filter wrapper is announced by screen
+                  readers as the mixed-language "הסרת מסנן: Product type".
+                {%- endcomment -%}
                 {%- for filter in collection.filters -%}
+                  {%- liquid
+                    assign label_handle = filter.label | handleize | replace: '-', '_'
+                    assign facet_label_key = 'products.facets.filters.' | append: label_handle
+                    assign facet_label = facet_label_key | t
+                    if facet_label contains 'Translation missing'
+                      case label_handle
+                        when 'availability'
+                          assign facet_label = 'products.facets.availability' | t
+                        when 'price'
+                          assign facet_label = 'products.facets.price' | t
+                        else
+                          assign facet_label = filter.label
+                      endcase
+                    endif
+                  -%}
                   {%- if filter.type == 'price_range' -%}
                     {%- if filter.min_value.value != nil or filter.max_value.value != nil -%}
                       {%- liquid
@@ -156,10 +195,10 @@
                         class="chip chip--active active-facets__chip"
                         href="{{ filter.url_to_remove }}"
                         data-facet-remove
-                        aria-label="{{ 'products.facets.remove_filter' | t: name: filter.label }}"
+                        aria-label="{{ 'products.facets.remove_filter' | t: name: facet_label }}"
                       >
                         <span>
-                          {{- filter.label | escape }}:
+                          {{- facet_label | escape }}:
                           <span dir="ltr">{{ min_val | money }}&ndash;{{ max_val | money }}</span>
                         </span>
                         {% render 'icon', name: 'close', size: 14 %}
@@ -167,13 +206,21 @@
                     {%- endif -%}
                   {%- else -%}
                     {%- for value in filter.active_values -%}
+                      {%- liquid
+                        assign value_handle = value.label | handleize | replace: '-', '_'
+                        assign value_label_key = 'products.facets.values.' | append: value_handle
+                        assign value_label = value_label_key | t
+                        if value_label contains 'Translation missing'
+                          assign value_label = value.label
+                        endif
+                      -%}
                       <a
                         class="chip chip--active active-facets__chip"
                         href="{{ value.url_to_remove }}"
                         data-facet-remove
-                        aria-label="{{ 'products.facets.remove_filter' | t: name: value.label }}"
+                        aria-label="{{ 'products.facets.remove_filter' | t: name: value_label }}"
                       >
-                        <span>{{ value.label | escape }}</span>
+                        <span>{{ value_label | escape }}</span>
                         {% render 'icon', name: 'close', size: 14 %}
                       </a>
                     {%- endfor -%}

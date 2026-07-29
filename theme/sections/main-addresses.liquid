@@ -105,6 +105,21 @@
           <div class="field">
             <label class="field__label" for="AddressCountry_new">{{ 'customer.addresses.country' | t }}</label>
             <div class="select-wrap">
+              {%- comment -%}
+                DO NOT translate the value attribute or data-default: Shopify matches
+                the submitted address country against the ENGLISH country name, so
+                "ישראל" as a value silently breaks saving the address and, later,
+                checkout. Only the text between the tags is the shopper-facing label.
+
+                This replaces all_country_option_tags, which was the single
+                largest block of raw English in the theme: ~250 Shopify-generated
+                <option> elements whose labels cannot be reached from the locale
+                file, each carrying a data-provinces JSON whose province names are
+                English in every locale. This store ships from קרית ענבים to Israel
+                only, so the list is not just untranslatable, it is unused. If
+                international shipping is ever added, build the list from a Hebrew
+                country map — do not restore all_country_option_tags.
+              {%- endcomment -%}
               <select
                 class="field__select"
                 id="AddressCountry_new"
@@ -114,12 +129,18 @@
                 data-default="{{ form.country | default: 'Israel' }}"
                 autocomplete="country"
               >
-                {{ all_country_option_tags }}
+                <option value="Israel" selected data-provinces="[]">{{ 'customer.addresses.country_israel' | t }}</option>
               </select>
               {% render 'icon', name: 'chevron-down', size: 16, class: 'icon-chevron' %}
             </div>
           </div>
-          <div class="field" id="AddressProvinceContainer_new" style="display: none;">
+          {%- comment -%}
+            Israel has no provinces in Shopify's address schema, so this field can
+            never be populated. The inline display:none stays because Shopify's
+            CountryProvinceSelector drives it through style.display; hidden covers
+            the no-JS case.
+          {%- endcomment -%}
+          <div class="field" id="AddressProvinceContainer_new" style="display: none;" hidden>
             <label class="field__label" for="AddressProvince_new">{{ 'customer.addresses.province' | t }}</label>
             <div class="select-wrap">
               <select
@@ -260,22 +281,30 @@
                 <div class="field">
                   <label class="field__label" for="AddressCountry_{{ form.id }}">{{ 'customer.addresses.country' | t }}</label>
                   <div class="select-wrap">
+                    {%- comment -%}
+                      Israel-only, English value attribute — see the equivalent block
+                      in the new-address form above for why the value must not be
+                      translated. This form renders once per saved address, so the
+                      ~250 English options were multiplied by the address count.
+                    {%- endcomment -%}
                     <select
                       class="field__select"
                       id="AddressCountry_{{ form.id }}"
                       name="address[country]"
                       data-country-select
                       data-form-id="{{ form.id }}"
-                      data-default="{{ form.country }}"
+                      data-default="{{ form.country | default: 'Israel' }}"
                       autocomplete="country"
                     >
-                      {{ all_country_option_tags }}
+                      <option value="Israel" selected data-provinces="[]">
+                        {{- 'customer.addresses.country_israel' | t -}}
+                      </option>
                     </select>
                     {% render 'icon', name: 'chevron-down', size: 16, class: 'icon-chevron' %}
                   </div>
                 </div>
 
-                <div class="field" id="AddressProvinceContainer_{{ form.id }}" style="display: none;">
+                <div class="field" id="AddressProvinceContainer_{{ form.id }}" style="display: none;" hidden>
                   <label class="field__label" for="AddressProvince_{{ form.id }}">{{ 'customer.addresses.province' | t }}</label>
                   <div class="select-wrap">
                     <select

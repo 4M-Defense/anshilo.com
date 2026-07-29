@@ -59,38 +59,53 @@
                 <a class="category-rail__tile" href="{{ rail_collection.url }}">
                   {%- if use_icon -%}
                     {%- comment -%}
-                      Icon tiles, not collection images. The twelve department images
-                      were never produced as a set - most are designed 1080x1080
-                      tiles with a colour baked in, three are raw product shots - so
-                      the row could not be made uniform from them, and no stylesheet
-                      can repaint the inside of a JPEG. Falling back to each
-                      collection's first product photo was tried and is worse: two
-                      pairs of departments share a first product, and several of the
-                      rest are unrepresentative (תאורה resolves to a memorial candle,
-                      כלי עבודה to a file called Screenshot2024-07-18004225.png).
-                      Drawing the mark ourselves is the only option that is uniform by
-                      construction rather than by luck.
+                      The rejected path, kept as a working fallback. Icon tiles are
+                      uniform by construction - the theme draws every one - which is
+                      why they were tried: the twelve department images were never
+                      produced as a set (eight designed 1080x1080 tiles with a colour
+                      baked in, three raw product shots) and no stylesheet can repaint
+                      the inside of a JPEG. The owner rejected the glyphs on looks and
+                      asked for the photographs back, so tile_style now defaults to
+                      "image" and the row is unified by frame instead: a sunken well
+                      that is ours, with the photo inset into a small white window
+                      framed identically on all twelve (mechanism and the arithmetic
+                      ruling out filters and blend modes are in
+                      section-category-rail.css). Falling back to each collection's
+                      first product photo is still not an option - two pairs of
+                      departments share a first product and several of the rest are
+                      unrepresentative (תאורה resolves to a memorial candle, כלי עבודה
+                      to a file called Screenshot2024-07-18004225.png).
                     {%- endcomment -%}
                     <span class="category-rail__media category-rail__media--icon" aria-hidden="true">
                       {% render 'icon', name: block.settings.icon, size: 34 %}
                     </span>
                   {%- else -%}
-                  <span class="category-rail__media media media--square media--contain" aria-hidden="true">
-                    {%- if tile_image != blank -%}
-                      <img
-                        src="{{ tile_image | image_url: width: 400 }}"
-                        srcset="{{ tile_image | image_url: width: 200 }} 200w, {{ tile_image | image_url: width: 300 }} 300w, {{ tile_image | image_url: width: 400 }} 400w, {{ tile_image | image_url: width: 600 }} 600w"
-                        sizes="(min-width: 1100px) 15vw, (min-width: 750px) 23vw, 38vw"
-                        alt=""
-                        loading="lazy"
-                        decoding="async"
-                        width="{{ tile_image.width }}"
-                        height="{{ tile_image.height }}"
-                      >
-                    {%- else -%}
-                      {{ ph_name | placeholder_svg_tag: 'placeholder-svg' }}
-                    {%- endif -%}
-                  </span>
+                    {%- comment -%}
+                      The plate is the well and must wrap the image box: base.css
+                      absolutely positions .media > img with inset: 0, so padding on
+                      .media itself would not inset the photo. sizes is 3/4 of the
+                      tile's share of the viewport because the window is 75% of the
+                      plate on the inline axis; the old full-tile values would
+                      over-fetch by roughly 1.8x in area on every tile.
+                    {%- endcomment -%}
+                    <span class="category-rail__plate" aria-hidden="true">
+                      <span class="category-rail__media media media--square media--contain">
+                        {%- if tile_image != blank -%}
+                          <img
+                            src="{{ tile_image | image_url: width: 400 }}"
+                            srcset="{{ tile_image | image_url: width: 200 }} 200w, {{ tile_image | image_url: width: 300 }} 300w, {{ tile_image | image_url: width: 400 }} 400w, {{ tile_image | image_url: width: 600 }} 600w"
+                            sizes="(min-width: 1100px) 11vw, (min-width: 750px) 17vw, 28vw"
+                            alt=""
+                            loading="lazy"
+                            decoding="async"
+                            width="{{ tile_image.width }}"
+                            height="{{ tile_image.height }}"
+                          >
+                        {%- else -%}
+                          {{ ph_name | placeholder_svg_tag: 'placeholder-svg' }}
+                        {%- endif -%}
+                      </span>
+                    </span>
                   {%- endif -%}
                   <span class="category-rail__body">
                     <span class="category-rail__title">{{ tile_title | escape }}</span>
@@ -113,21 +128,27 @@
             -%}
             <li class="category-rail__item reveal">
               <a class="category-rail__tile" href="{{ rail_collection.url }}">
-                <span class="category-rail__media media media--square media--contain" aria-hidden="true">
-                  {%- if tile_image != blank -%}
-                    <img
-                      src="{{ tile_image | image_url: width: 400 }}"
-                      srcset="{{ tile_image | image_url: width: 200 }} 200w, {{ tile_image | image_url: width: 300 }} 300w, {{ tile_image | image_url: width: 400 }} 400w, {{ tile_image | image_url: width: 600 }} 600w"
-                      sizes="(min-width: 1100px) 15vw, (min-width: 750px) 23vw, 38vw"
-                      alt=""
-                      loading="lazy"
-                      decoding="async"
-                      width="{{ tile_image.width }}"
-                      height="{{ tile_image.height }}"
-                    >
-                  {%- else -%}
-                    {{ ph_name | placeholder_svg_tag: 'placeholder-svg' }}
-                  {%- endif -%}
+                {%- comment -%}
+                  Same well/window markup as the merchant-block loop above, so a
+                  store that has never configured blocks gets the identical row.
+                {%- endcomment -%}
+                <span class="category-rail__plate" aria-hidden="true">
+                  <span class="category-rail__media media media--square media--contain">
+                    {%- if tile_image != blank -%}
+                      <img
+                        src="{{ tile_image | image_url: width: 400 }}"
+                        srcset="{{ tile_image | image_url: width: 200 }} 200w, {{ tile_image | image_url: width: 300 }} 300w, {{ tile_image | image_url: width: 400 }} 400w, {{ tile_image | image_url: width: 600 }} 600w"
+                        sizes="(min-width: 1100px) 11vw, (min-width: 750px) 17vw, 28vw"
+                        alt=""
+                        loading="lazy"
+                        decoding="async"
+                        width="{{ tile_image.width }}"
+                        height="{{ tile_image.height }}"
+                      >
+                    {%- else -%}
+                      {{ ph_name | placeholder_svg_tag: 'placeholder-svg' }}
+                    {%- endif -%}
+                  </span>
                 </span>
                 <span class="category-rail__body">
                   <span class="category-rail__title">{{ rail_collection.title | escape }}</span>
@@ -173,12 +194,12 @@
       "type": "select",
       "id": "tile_style",
       "label": "מה מוצג באריח",
-      "info": "\"אייקון\" מבטיח שכל האריחים ייראו אותו דבר, כי הערכה מייצרת אותם בעצמה. \"תמונת הקטגוריה\" תלויה בתמונות שהועלו לחנות, ואלה לא נוצרו כסט אחיד. תמונה מותאמת בבלוק עצמו עוקפת את שתי האפשרויות.",
+      "info": "תמונת הקטגוריה מוצגת בתוך מסגרת אחידה, כך שכל האריחים נראים אותו דבר גם כשהתמונות עצמן שונות. תמונה מותאמת בבלוק עצמו עוקפת את שתי האפשרויות.",
       "options": [
-        { "value": "icon", "label": "אייקון (אחיד, מומלץ)" },
-        { "value": "image", "label": "תמונת הקטגוריה" }
+        { "value": "image", "label": "תמונת הקטגוריה" },
+        { "value": "icon", "label": "אייקון (גיבוי)" }
       ],
-      "default": "icon"
+      "default": "image"
     }
   ],
   "blocks": [

@@ -119,7 +119,7 @@ All vanilla, all `defer`, no framework.
 | File | Responsibility |
 |---|---|
 | `global.js` | drawers, overlay, toasts, cart add/update, reveal-on-scroll |
-| `section-header.js` | sticky compression, `--header-reserve`, mega menu, predictive search |
+| `section-header.js` | sticky compression, publishes `--header-h` + `--sticky-header-height`, mega menu, predictive search |
 | `section-main-product.js` | variant change, gallery, zoom, sticky add-to-cart |
 | `facets.js` | filter form, active chips, history state |
 | `quick-order.js` | SKU resolution, bulk paste, multi-line `/cart/add.js` |

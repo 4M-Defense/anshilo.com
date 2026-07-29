@@ -28,6 +28,37 @@
     else
       assign ful_class = ''
   endcase
+
+  comment
+    order.*_status_label and order.cancel_reason_label are Shopify platform
+    strings ("Paid", "Unfulfilled", "inventory") that never pass through this
+    theme's locale file — the cancel reason was the worst of them, rendering the
+    Hebrew customer.order.cancelled_reason wrapper as "סיבה: inventory". The
+    cases above already prove the stable handle is in hand; look the Hebrew up
+    off that handle the way sections/footer.liquid does and keep Shopify's label
+    as the fallback. Done outside the case arms so statuses that carry no badge
+    colour (scheduled, on_hold, restocked, expired) are translated too, and an
+    empty fulfillment handle — Liquid's value until something ships — is
+    normalised instead of falling through to Shopify's English "Unfulfilled".
+  endcomment
+  assign fin_key = 'customer.order.statuses.financial.' | append: order.financial_status
+  assign fin_label = fin_key | t
+  if fin_label contains 'Translation missing'
+    assign fin_label = order.financial_status_label
+  endif
+
+  assign ful_handle = order.fulfillment_status | default: 'unfulfilled'
+  assign ful_key = 'customer.order.statuses.fulfillment.' | append: ful_handle
+  assign ful_label = ful_key | t
+  if ful_label contains 'Translation missing'
+    assign ful_label = order.fulfillment_status_label
+  endif
+
+  assign cancel_key = 'customer.order.cancel_reason.' | append: order.cancel_reason
+  assign cancel_label = cancel_key | t
+  if cancel_label contains 'Translation missing'
+    assign cancel_label = order.cancel_reason_label
+  endif
 -%}
 
 <section class="section account-section">
@@ -54,8 +85,8 @@
           <time datetime="{{ order.created_at | date: '%Y-%m-%d' }}">
             {{- 'customer.order.date_html' | t: date: order_date -}}
           </time>
-          <span class="badge order-status order-status--lg {{ fin_class }}">{{ order.financial_status_label }}</span>
-          <span class="badge order-status order-status--lg {{ ful_class }}">{{ order.fulfillment_status_label }}</span>
+          <span class="badge order-status order-status--lg {{ fin_class }}">{{ fin_label | escape }}</span>
+          <span class="badge order-status order-status--lg {{ ful_class }}">{{ ful_label | escape }}</span>
         </div>
       </div>
 
@@ -81,7 +112,7 @@
           <p class="order-alert__title">{{ 'customer.order.cancelled_html' | t: date: cancelled_date }}</p>
           {%- if order.cancel_reason_label != blank -%}
             <p class="order-alert__reason">
-              {{- 'customer.order.cancelled_reason' | t: reason: order.cancel_reason_label -}}
+              {{- 'customer.order.cancelled_reason' | t: reason: cancel_label -}}
             </p>
           {%- endif -%}
         </div>
@@ -156,8 +187,24 @@
                               {{ 'customer.order.fulfilled_at_html' | t: date: fulfilled_date }}
                             </span>
                             {%- if line_item.fulfillment.tracking_company != blank or line_item.fulfillment.tracking_number != blank -%}
+                              {%- liquid
+                                comment
+                                  Carriers are mostly proper nouns that stay Latin
+                                  (UPS, DHL), but the ones with a real Hebrew name —
+                                  and Shopify's generic "Other"/"Custom" placeholders
+                                  — should not appear in English next to a Hebrew
+                                  tracking row. Guarded lookup, so any carrier not
+                                  enumerated passes through exactly as Shopify sent it.
+                                endcomment
+                                assign carrier_handle = line_item.fulfillment.tracking_company | handleize | replace: '-', '_'
+                                assign carrier_key = 'customer.order.carriers.' | append: carrier_handle
+                                assign carrier_label = carrier_key | t
+                                if carrier_label contains 'Translation missing'
+                                  assign carrier_label = line_item.fulfillment.tracking_company
+                                endif
+                              -%}
                               <span class="order-line__tracking-row text-muted">
-                                {{ line_item.fulfillment.tracking_company }}
+                                {{ carrier_label | escape }}
                                 {%- if line_item.fulfillment.tracking_number != blank %}
                                   <bdi dir="ltr">{{ line_item.fulfillment.tracking_number }}</bdi>
                                 {%- endif -%}
@@ -241,9 +288,16 @@
           {%- endfor -%}
 
           {%- for tax_line in order.tax_lines -%}
+            {%- comment -%}
+              tax_line.title is Shopify's own English tax name ("VAT", "Tax") and
+              cannot be reached from the locale file. The row is already labelled
+              מע"מ — the only Israeli tax this store charges — so the title adds no
+              information and is dropped rather than shown in English; the rate
+              still tells the shopper what was applied.
+            {%- endcomment -%}
             <div class="order-totals__row">
               <span class="order-totals__label">
-                {{- 'customer.order.tax' | t }} ({{ tax_line.title }} {{ tax_line.rate | times: 100 | round: 1 }}%)
+                {{- 'customer.order.tax' | t }} ({{ tax_line.rate | times: 100 | round: 1 }}%)
               </span>
               <span class="order-totals__value">{{ tax_line.price | money }}</span>
             </div>

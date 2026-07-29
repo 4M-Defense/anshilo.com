@@ -99,6 +99,35 @@
                           else
                             assign ful_class = ''
                         endcase
+
+                        comment
+                          order.*_status_label are Shopify platform strings ("Paid",
+                          "Unfulfilled") that never pass through this theme's locale
+                          file, so the badges were the only English left in the
+                          account area. The cases above already prove the stable
+                          handle is in hand; look the Hebrew up off that handle the
+                          way sections/footer.liquid does, keeping Shopify's label as
+                          the fallback for a status this theme has not enumerated.
+                          Looked up dynamically rather than inside the case arms so
+                          statuses that carry no badge colour (scheduled, on_hold,
+                          restocked, expired) are still translated.
+                          Liquid leaves fulfillment_status empty until something
+                          ships, while Shopify's label already says "Unfulfilled" —
+                          so an empty handle is normalised rather than left to fall
+                          through to that English.
+                        endcomment
+                        assign fin_key = 'customer.order.statuses.financial.' | append: order.financial_status
+                        assign fin_label = fin_key | t
+                        if fin_label contains 'Translation missing'
+                          assign fin_label = order.financial_status_label
+                        endif
+
+                        assign ful_handle = order.fulfillment_status | default: 'unfulfilled'
+                        assign ful_key = 'customer.order.statuses.fulfillment.' | append: ful_handle
+                        assign ful_label = ful_key | t
+                        if ful_label contains 'Translation missing'
+                          assign ful_label = order.fulfillment_status_label
+                        endif
                       -%}
                       <tr>
                         <td data-label="{{ 'customer.orders.order_number' | t }}">
@@ -114,10 +143,10 @@
                           </time>
                         </td>
                         <td data-label="{{ 'customer.orders.payment_status' | t }}">
-                          <span class="badge order-status {{ fin_class }}">{{ order.financial_status_label }}</span>
+                          <span class="badge order-status {{ fin_class }}">{{ fin_label | escape }}</span>
                         </td>
                         <td data-label="{{ 'customer.orders.fulfillment_status' | t }}">
-                          <span class="badge order-status {{ ful_class }}">{{ order.fulfillment_status_label }}</span>
+                          <span class="badge order-status {{ ful_class }}">{{ ful_label | escape }}</span>
                         </td>
                         <td data-label="{{ 'customer.orders.total' | t }}" class="orders-table__total">
                           {{ order.total_price | money }}

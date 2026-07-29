@@ -1,7 +1,7 @@
 /* =========================================================
    Shilo Pro — Header group JS
-   Announcement rotation, predictive search, mega menu,
-   sticky-compression height reserve, menu drawer adoption.
+   Announcement rotation, typeahead search, mega menu,
+   sticky header height publishing, menu drawer adoption.
    Loaded (deferred) by both announcement-bar and header sections,
    so the whole module is guarded against double execution.
    ========================================================= */
@@ -26,6 +26,67 @@
   }
 
   var searchInstances = [];
+
+  /* ---------- Typeahead configuration ----------
+     MIN_CHARS was 2, and the sub-minimum branch called closePanel(), so the first
+     letter typed actively CLOSED a panel that was showing popular searches — the
+     exact opposite of a typeahead. With options[prefix]=last a single Hebrew
+     letter is already a useful narrowing, and Hebrew queries are short. */
+  var DEBOUNCE_MS = 150;
+  var MIN_CHARS = 1;
+
+  /* Shopify's Predictive Search API (/search/suggest) is language-gated and Hebrew
+     is not on the supported list, so on this store it can never return a product
+     no matter what resources[type] asks for — that, and not the rendering, is why
+     the dropdown looked empty. #shopify-features is Shopify's own capability flag
+     (the merchant checkbox in themeSettings.predictiveSearch says nothing about
+     it), so the day Hebrew is added this flips back to the purpose-built typeahead
+     endpoint by itself. A missing or unparseable tag counts as unsupported. */
+  function predictiveApiSupported() {
+    var el = document.getElementById('shopify-features');
+    if (!el) return false;
+    try {
+      return JSON.parse(el.textContent).predictiveSearch === true;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  var usePredictiveApi = predictiveApiSupported();
+
+  function buildSearchUrl(q) {
+    var routes = window.routes || {};
+    if (usePredictiveApi) {
+      return routes.predictive_search_url +
+        '?q=' + encodeURIComponent(q) +
+        '&resources[type]=product,collection,page,article' +
+        '&resources[limit]=6' +
+        '&resources[limit_scope]=each' +
+        '&section_id=predictive-search';
+    }
+    /* Storefront search through the Section Rendering API — no language gate.
+       options[prefix]=last is what makes it match letter by letter on the term
+       being typed, and it is passed explicitly because the Search & Discovery app
+       can otherwise change the effective default. type=product only: storefront
+       search cannot return collections at all, so the קטגוריות group in the
+       dropdown is not available on this path. */
+    return (routes.search_url || '/search') +
+      '?q=' + encodeURIComponent(q) +
+      '&type=product' +
+      '&options[prefix]=last' +
+      '&options[unavailable_products]=last' +
+      '&section_id=predictive-search';
+  }
+
+  /* The query is echoed back into the empty state as markup, so it has to be
+     escaped — a search for `<b>` must not become one. */
+  function escapeHtml(value) {
+    return String(value)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;');
+  }
 
   /* Pointer activity flag — lets keyboard focus open the mega menu without a
      mouse click on <summary> opening and instantly re-closing it. */
@@ -108,7 +169,10 @@
     start();
   }
 
-  /* ---------- Predictive search ---------- */
+  /* ---------- Typeahead search ----------
+     Products come from storefront search on this store (see buildSearchUrl), not
+     from the Predictive Search API, so "predictive" here only names the merchant
+     setting and the section that renders the rows. */
   function initSearchForm(form) {
     if (!form || form.dataset.initialized === 'true') return;
     form.dataset.initialized = 'true';
@@ -121,10 +185,25 @@
     var popular = form.querySelector('[data-search-popular]');
     var clearBtn = form.querySelector('[data-search-clear]');
     var skeleton = form.querySelector('[data-search-skeleton]');
+    var status = form.querySelector('[data-search-status]');
+    var emptyTpl = form.querySelector('[data-search-empty]');
     var predictiveOn = !!(window.themeSettings && window.themeSettings.predictiveSearch) && !!slot;
     var cache = {};
     var cacheSize = 0;
     var controller = null;
+
+    /* Monotonic request token. The old guard compared input.value against the query
+       a response was for, which both discarded responses that were still the newest
+       one and could be fooled by the user retyping an earlier string. The token
+       discards exactly the superseded ones.
+       It is per form on purpose: the desktop and the mobile form are both in the
+       DOM at all times, and a shared counter would let one cancel the other's
+       renders. */
+    var seq = 0;
+
+    function announce(text) {
+      if (status) status.textContent = text || '';
+    }
 
     function openPanel() {
       panel.hidden = false;
@@ -143,13 +222,28 @@
       }
       form.classList.remove('is-searching');
       hideSkeleton();
+      announce('');
       panel.hidden = true;
       form.classList.remove('is-open');
       input.setAttribute('aria-expanded', 'false');
     }
 
     function showPopular() {
+      /* Invalidate any in-flight query, exactly as closePanel does. Without this
+         the panel silently reopens with stale results: type "מק", hit the clear
+         button (which assigns input.value programmatically, so no input event
+         fires), and when the "מק" response lands its token still equals seq, so
+         renderResults replaces the popular chips the user just asked for with
+         results for an empty box. Bumping seq is what actually fixes it; the
+         abort just stops paying for a request nobody will read. */
+      seq += 1;
+      if (controller) {
+        controller.abort();
+        controller = null;
+      }
+      form.classList.remove('is-searching');
       hideSkeleton();
+      announce('');
       if (slot) {
         slot.hidden = true;
         slot.innerHTML = '';
@@ -174,45 +268,75 @@
       openPanel();
     }
 
-    function renderResults(html) {
+    /* A failure or an empty result must never close the panel. Closing it is what
+       made a broken endpoint indistinguishable from "nothing happens"; the Hebrew
+       empty state at least tells the shopper the search ran. The markup and the
+       strings come from the <template> in sections/header.liquid so the icon and
+       the localization stay in Liquid. */
+    function renderEmpty(q) {
+      if (!slot) return;
+      hideSkeleton();
+      /* Function replacement, not a string: a query containing `$&` or `$'` would
+         otherwise be read as a replacement pattern rather than as text. */
+      slot.innerHTML = emptyTpl
+        ? emptyTpl.innerHTML.replace('[terms]', function () { return escapeHtml(q); })
+        : '';
+      slot.hidden = false;
+      if (popular) popular.hidden = true;
+      /* Open before announcing — a live region inside a hidden subtree is not read. */
+      openPanel();
+      var title = slot.querySelector('.predictive-results__empty-title');
+      announce(title ? title.textContent : '');
+    }
+
+    function renderResults(html, q) {
       if (!slot) return;
       hideSkeleton();
       if (!html || !html.trim()) {
-        closePanel();
+        renderEmpty(q);
         return;
       }
       slot.innerHTML = html;
       slot.hidden = false;
       if (popular) popular.hidden = true;
       openPanel();
+      /* The result count is rendered by the section (it is the side that knows the
+         number and has `| t`) into a visually-hidden node; only that sentence gets
+         announced, not the whole dropdown. */
+      var count = slot.querySelector('[data-search-count]');
+      announce(count ? count.textContent.trim() : '');
     }
 
     function fetchResults(q) {
+      var token = ++seq;
+      /* Abort on the cache path too: without this a superseded request ran to
+         completion and could leave `is-searching` stuck on the submit button. */
+      if (controller) {
+        controller.abort();
+        controller = null;
+      }
       if (Object.prototype.hasOwnProperty.call(cache, q)) {
-        renderResults(cache[q]);
+        form.classList.remove('is-searching');
+        renderResults(cache[q], q);
         return;
       }
-      if (controller) controller.abort();
       controller = new AbortController();
       form.classList.add('is-searching');
       showSkeleton();
 
-      var url = window.routes.predictive_search_url +
-        '?q=' + encodeURIComponent(q) +
-        '&resources[type]=product,collection,page,article' +
-        '&resources[limit]=6' +
-        '&resources[limit_scope]=each' +
-        '&section_id=predictive-search';
-
-      fetch(url, { signal: controller.signal })
+      fetch(buildSearchUrl(q), { signal: controller.signal })
         .then(function (res) {
           if (!res.ok) throw new Error('HTTP ' + res.status);
           return res.text();
         })
         .then(function (text) {
+          if (token !== seq) return;
           form.classList.remove('is-searching');
           var doc = new DOMParser().parseFromString(text, 'text/html');
           var results = doc.getElementById('PredictiveSearchResults');
+          /* Tolerate a missing node — section_id=predictive-search stops resolving
+             if that section file is ever renamed, and an empty string routes to the
+             empty state rather than to a blank panel. */
           var html = results ? results.innerHTML : '';
           if (cacheSize > 40) {
             cache = {};
@@ -220,12 +344,13 @@
           }
           cache[q] = html;
           cacheSize++;
-          if (input.value.trim() === q) renderResults(html);
+          renderResults(html, q);
         })
         .catch(function (err) {
           if (err && err.name === 'AbortError') return;
+          if (token !== seq) return;
           form.classList.remove('is-searching');
-          closePanel();
+          renderEmpty(q);
         });
     }
 
@@ -236,20 +361,32 @@
         showPopular();
         return;
       }
-      if (!predictiveOn || q.length < 2) {
+      if (!predictiveOn) {
         closePanel();
+        return;
+      }
+      /* Below the minimum, fall back to the popular chips — never to a closed
+         panel. Unreachable at MIN_CHARS = 1, kept so raising the knob stays safe. */
+      if (q.length < MIN_CHARS) {
+        showPopular();
         return;
       }
       fetchResults(q);
     }
 
-    input.addEventListener('input', debounce(onQueryChange, 250));
+    input.addEventListener('input', debounce(onQueryChange, DEBOUNCE_MS));
+
+    /* Android Hebrew keyboards compose: several letters can be committed with one
+       final input event, and some IMEs suppress input events mid-composition
+       entirely. compositionend fires at the commit, so the panel updates then
+       instead of waiting out another debounce. */
+    input.addEventListener('compositionend', onQueryChange);
 
     input.addEventListener('focus', function () {
       var q = input.value.trim();
       if (q.length === 0) {
         if (popular) showPopular();
-      } else if (predictiveOn && q.length >= 2) {
+      } else if (predictiveOn && q.length >= MIN_CHARS) {
         fetchResults(q);
       }
     });
@@ -356,10 +493,18 @@
       item.removeAttribute('open');
     }
 
+    /* Tracked rather than re-derived, so the scroll listener below can bail on a
+       single integer compare instead of walking 12 <details> per scroll event. */
+    var openCount = 0;
+
     dropdowns.forEach(function (item) {
       var summary = item.querySelector('summary');
 
       item.addEventListener('toggle', function () {
+        openCount = 0;
+        for (var i = 0; i < dropdowns.length; i++) {
+          if (dropdowns[i].open) openCount++;
+        }
         if (item.open) closeOthers(item);
       });
 
@@ -397,62 +542,80 @@
     window.addEventListener(
       'scroll',
       function () {
-        for (var i = 0; i < dropdowns.length; i++) {
-          if (dropdowns[i].hasAttribute('open')) {
-            clearTimers();
-            closeOthers(null);
-            return;
-          }
-        }
+        if (openCount === 0) return;
+        clearTimers();
+        closeOthers(null);
       },
       { passive: true }
     );
   }
 
-  /* ---------- Sticky compression: reserve the collapsing height ----------
-     Once stuck, the utility row and the nav row fold away and the main row
-     tightens. The spacer next to the header hands that lost height back to
-     the document — recomputed from the header's real height on every layout
-     tick, so the compression animation never shifts the page. */
-  function initStickyReserve(scope) {
-    var header = scope.querySelector('[data-sticky-header]');
+  /* ---------- Sticky header height ----------
+     The sticky wrapper's flow height is a constant and the header floats inside it
+     (see the long note in section-header.css), so all that is left to do is tell
+     CSS what that constant is. It is measured ONCE PER LAYOUT EPOCH — never on
+     scroll, and deliberately not from a ResizeObserver on the header, which is what
+     the old reserve spacer did: RO callbacks are delivered after layout but before
+     paint, so writing a custom property there forced a second layout in the same
+     frame, and because the animated height was fractional while the write was
+     rounded, the top of the document jittered by up to a pixel per frame and
+     Chrome's scroll anchoring kept adjusting the offset mid-gesture.
+
+     Math.ceil, never round: a height rounded down leaves the header's bottom edge
+     overhanging the first content below it.
+
+     Both states are read in one synchronous block. Nothing paints between
+     synchronous DOM writes, and .is-measuring suppresses the two transitions the
+     header still has — plus a final forced read while it is still suppressed, so
+     the next real style recalc compares against the finished state and the shadow
+     overlay does not animate away from a value the measurement briefly forced. */
+  function publishHeaderHeight(scope) {
+    var root = scope || document;
+    var header = root.querySelector('[data-sticky-header]') || root.querySelector('.site-header');
     if (!header) return;
 
     var wrapper = header.closest('.site-header-wrapper') || header.parentElement;
-    if (!wrapper) return;
+    var wasStuck = header.classList.contains('is-stuck');
 
-    var reserve = wrapper.querySelector('[data-header-reserve]');
-    if (!reserve || reserve.dataset.initialized === 'true') return;
-    reserve.dataset.initialized = 'true';
+    header.classList.add('is-measuring');
+    header.classList.remove('is-stuck');
+    var expanded = Math.ceil(header.getBoundingClientRect().height);
+    header.classList.add('is-stuck');
+    var collapsed = Math.ceil(header.getBoundingClientRect().height);
+    if (!wasStuck) header.classList.remove('is-stuck');
+    void header.offsetHeight;
+    header.classList.remove('is-measuring');
 
-    if (!('ResizeObserver' in window)) return;
+    if (wrapper && expanded > 0) wrapper.style.setProperty('--header-h', expanded + 'px');
 
-    var expanded = 0;
-    var lastWidth = window.innerWidth;
-
-    function sync() {
-      var height = header.offsetHeight;
-      if (!header.classList.contains('is-stuck') && height > expanded) expanded = height;
-      var delta = expanded - height;
-      wrapper.style.setProperty('--header-reserve', (delta > 0 ? Math.round(delta) : 0) + 'px');
+    /* Published on :root because five stylesheets offset their own sticky UI by
+       --sticky-header-height and, with nothing ever setting it, only ever saw their
+       fallbacks. They want the height that is on screen while the page is scrolled,
+       which is the compressed one. */
+    if (collapsed > 0) {
+      document.documentElement.style.setProperty('--sticky-header-height', collapsed + 'px');
     }
+  }
 
-    new ResizeObserver(sync).observe(header);
+  var lastHeaderWidth = window.innerWidth;
 
-    window.addEventListener('load', sync);
-    window.addEventListener(
-      'resize',
-      debounce(function () {
-        if (window.innerWidth === lastWidth) return;
-        lastWidth = window.innerWidth;
-        /* Breakpoint changes change the expanded height — re-learn it, but
-           only from a header that is currently showing all of its rows. */
-        if (!header.classList.contains('is-stuck')) expanded = header.offsetHeight;
-        sync();
-      }, 150)
-    );
+  window.addEventListener('load', function () { publishHeaderHeight(document); });
 
-    sync();
+  window.addEventListener(
+    'resize',
+    debounce(function () {
+      /* Only a width change can rewrap the 12-department nav row. A mobile URL bar
+         collapsing fires resize on height alone and must not cost a measurement. */
+      if (window.innerWidth === lastHeaderWidth) return;
+      lastHeaderWidth = window.innerWidth;
+      publishHeaderHeight(document);
+    }, 150)
+  );
+
+  /* Heebo and Assistant swap in after first paint and change where the nav row
+     wraps, which changes the expanded height. */
+  if (document.fonts && document.fonts.ready) {
+    document.fonts.ready.then(function () { publishHeaderHeight(document); });
   }
 
   /* ---------- Init ---------- */
@@ -462,7 +625,7 @@
     root.querySelectorAll('[data-announcements]').forEach(initAnnouncements);
     root.querySelectorAll('[data-header-search]').forEach(initSearchForm);
     root.querySelectorAll('[data-header-nav]').forEach(initNav);
-    initStickyReserve(root);
+    publishHeaderHeight(root);
   }
 
   if (document.readyState === 'loading') {

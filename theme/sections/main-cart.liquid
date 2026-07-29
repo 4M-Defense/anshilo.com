@@ -87,9 +87,26 @@
 
                     {%- unless item.product.has_only_default_variant -%}
                       <dl class="cart-line__options">
+                        {%- comment -%}
+                          option.name is the admin-side option name (Shopify's own
+                          default is the literal 'Title'; 'Color' / 'Size' are the
+                          usual leftovers), so an English "Size:" followed the shopper
+                          from the product page into the cart. Same guarded lookup and
+                          the same shared map as snippets/product-variant-picker.liquid,
+                          so the two never disagree. option.value is merchant data and
+                          is left exactly as entered.
+                        {%- endcomment -%}
                         {%- for option in item.options_with_values -%}
+                          {%- liquid
+                            assign option_handle = option.name | handleize | replace: '-', '_'
+                            assign option_label_key = 'products.facets.filters.' | append: option_handle
+                            assign option_label = option_label_key | t
+                            if option_label contains 'Translation missing'
+                              assign option_label = option.name
+                            endif
+                          -%}
                           <div class="cart-line__option">
-                            <dt>{{ option.name | escape }}:</dt>
+                            <dt>{{ option_label | escape }}:</dt>
                             <dd>{{ option.value | escape }}</dd>
                           </div>
                         {%- endfor -%}
@@ -324,8 +341,21 @@
                   role="list"
                   aria-label="{{ 'cart.general.payment_methods' | t }}"
                 >
+                  {%- comment -%}
+                    Shopify bakes an English <title> into each payment SVG ("Visa",
+                    "Mastercard"), which becomes the icon's accessible name and its
+                    hover tooltip — English announced inside a Hebrew page. The card
+                    brands are legitimately Latin as artwork, so the fix is to stop
+                    them being read out rather than to relabel them: the <ul> above
+                    already carries the Hebrew aria-label that names the whole group,
+                    so hiding the icons loses nothing.
+                    aria-hidden goes on an inner span, NOT on the <li>: hiding the li
+                    removes it from the accessibility tree, which leaves role="list"
+                    with zero listitem children (an aria-required-children
+                    violation) and announces the named group as empty.
+                  {%- endcomment -%}
                   {%- for type in shop.enabled_payment_types -%}
-                    <li>{{ type | payment_type_svg_tag: class: 'cart-summary__payment-icon' }}</li>
+                    <li><span aria-hidden="true">{{ type | payment_type_svg_tag: class: 'cart-summary__payment-icon' }}</span></li>
                   {%- endfor -%}
                 </ul>
               {%- endif -%}

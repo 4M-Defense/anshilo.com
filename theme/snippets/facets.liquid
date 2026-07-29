@@ -77,6 +77,39 @@
         {%- liquid
           assign facet_id = filter.param_name | handleize
 
+          comment
+            filter.label is Shopify's own string (Search & Discovery config, or
+            the product-data field name), so it never passes through this theme's
+            locale file and lands on the Hebrew storefront as "Availability",
+            "Price", "Product type". Same idiom as sections/footer.liquid: key off
+            the part Shopify keeps stable — the handleized label — substitute a
+            Hebrew string, and keep Shopify's label as the fallback so a filter
+            this theme has not enumerated, or one the merchant already named in
+            Hebrew, still renders. Locale keys here are snake_case, hence the
+            hyphen-to-underscore pass after handleize. A missing key makes `t`
+            return the literal "Translation missing: ...", which is worse than the
+            English it replaces — so every lookup is guarded on that text.
+
+            The two `when` arms below exist because products.facets.availability
+            and .price predate the map: they were written for exactly those two
+            Shopify facets and then never wired to anything. Consumed where they
+            already live rather than copied into the map, so each facet has one
+            Hebrew string and not two that can drift apart.
+          endcomment
+          assign label_handle = filter.label | handleize | replace: '-', '_'
+          assign facet_label_key = 'products.facets.filters.' | append: label_handle
+          assign facet_label = facet_label_key | t
+          if facet_label contains 'Translation missing'
+            case label_handle
+              when 'availability'
+                assign facet_label = 'products.facets.availability' | t
+              when 'price'
+                assign facet_label = 'products.facets.price' | t
+              else
+                assign facet_label = filter.label
+            endcase
+          endif
+
           assign facet_open = false
           if forloop.index <= 3
             assign facet_open = true
@@ -93,6 +126,22 @@
 
         {%- if filter.type == 'boolean' -%}
           {%- comment -%} A yes/no filter reads best as a switch, with no accordion. {%- endcomment -%}
+          {%- liquid
+            comment
+              A switch caption is an instruction, not a heading: Shopify labels the
+              availability boolean "In stock", which on a switch has to read "show
+              in-stock only" — which is precisely the never-wired
+              products.facets.in_stock_only string. Hence the '_only' suffix on the
+              handle: 'in_stock' resolves to that existing key, 'on_sale' to its new
+              sibling, and anything else falls back to the heading label above (still
+              Hebrew where the map knows it, Shopify's own label otherwise).
+            endcomment
+            assign switch_key = 'products.facets.' | append: label_handle | append: '_only'
+            assign switch_label = switch_key | t
+            if switch_label contains 'Translation missing'
+              assign switch_label = facet_label
+            endif
+          -%}
           <div class="facet facet--switch" data-facet="{{ filter.param_name | escape }}">
             <label class="facet-switch" for="Facet-{{ facet_id }}">
               <input
@@ -104,7 +153,7 @@
                 {% if filter.true_value.active %}checked{% endif %}
               >
               <span class="facet-switch__track" aria-hidden="true"></span>
-              <span class="facet-switch__text">{{ filter.label | escape }}</span>
+              <span class="facet-switch__text">{{ switch_label | escape }}</span>
               <span class="facet__count" aria-hidden="true">{{ filter.true_value.count }}</span>
             </label>
           </div>
@@ -117,7 +166,7 @@
           >
             <summary class="facet__summary">
               <span class="facet__label">
-                {{ filter.label | escape }}
+                {{ facet_label | escape }}
                 {%- if filter.active_values.size > 0 -%}
                   <span class="facet__selected">
                     {{- 'products.facets.selected' | t: count: filter.active_values.size -}}
@@ -251,6 +300,22 @@
                           assign value_disabled = true
                         endif
                         assign value_id = 'Facet-' | append: facet_id | append: '-' | append: forloop.index
+
+                        comment
+                          Most facet values are merchant data (brands, colours the
+                          owner typed in Hebrew) and must pass through untouched —
+                          only Shopify's own generated values leak English, and the
+                          availability facet is the one that always does ("In stock" /
+                          "Out of stock"). The guarded lookup translates exactly those
+                          and leaves everything else as Shopify sent it. value.value,
+                          which drives the URL, is never touched.
+                        endcomment
+                        assign value_handle = value.label | handleize | replace: '-', '_'
+                        assign value_label_key = 'products.facets.values.' | append: value_handle
+                        assign value_label = value_label_key | t
+                        if value_label contains 'Translation missing'
+                          assign value_label = value.label
+                        endif
                       -%}
                       <li class="facet__row" data-facet-row>
                         <label
@@ -266,7 +331,7 @@
                             {% if value.active %}checked{% endif %}
                             {% if value_disabled %}disabled aria-disabled="true"{% endif %}
                           >
-                          <span class="facet__value-label">{{ value.label | escape }}</span>
+                          <span class="facet__value-label">{{ value_label | escape }}</span>
                           <span class="facet__count" aria-hidden="true">{{ value.count }}</span>
                         </label>
                       </li>

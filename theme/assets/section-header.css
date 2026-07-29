@@ -96,43 +96,128 @@ a.announcement-bar__text:hover {
   }
 }
 
-/* ---------- Sticky wrapper (schema class on the section wrapper) ---------- */
+/* ---------- Sticky wrapper (schema class on the section wrapper) ----------
+   The wrapper's flow height is a CONSTANT and the header floats inside it. That
+   is the whole point: the header shrinks by ~110px when it compresses, and while
+   that height was part of the document flow (a live-measured spacer written from
+   a ResizeObserver, frame by frame) the top-of-document height jittered by up to
+   a pixel per frame, Chrome's scroll anchoring answered by nudging the scroll
+   offset, and reconciling that with the compositor's in-flight fling is what the
+   finger felt as a stutter. With a fixed wrapper, resizing the header relayouts
+   the header subtree and nothing else — the page below never moves, so scroll
+   anchoring never engages.
+   The values below are only a pre-JS fallback: section-header.js measures the
+   real expanded header once per layout epoch (DOMContentLoaded, fonts.ready,
+   debounced resize) and overwrites --header-h, because the one thing that is not
+   knowable at author time is whether the 12-department nav row has wrapped to a
+   second line at the current width and page-width setting. They are rounded a
+   few pixels GENEROUS on purpose: too large leaves a hairline gap under the
+   header for the one frame before JS corrects it, too small lets the header
+   overhang and hide the first content below it.
+   The wrapper must never gain overflow: hidden/clip — the mega panels and the
+   predictive-search panel are absolutely positioned inside the header and would
+   be cut off. It stays overflow: visible at z-index 80, panels paint at 85/86. */
 .site-header-wrapper {
+  --header-row-util: 44px;
+  --header-row-main: 140px;
+  --header-row-nav: 0px;
+  --header-h: calc(var(--header-row-util) + var(--header-row-main) + var(--header-row-nav));
   position: sticky;
   inset-block-start: 0;
   z-index: 80;
+  block-size: var(--header-h);
   pointer-events: none;
 }
 
+@media (min-width: 750px) {
+  .site-header-wrapper { --header-row-util: 40px; }
+}
+
+@media (min-width: 990px) {
+  .site-header-wrapper {
+    /* The mobile search row folds into the main row, and the nav row appears.
+       --header-row-nav is the TWO-line figure, not one: 48px per line
+       (--header-nav-h) + the 0.1rem row-gap + the 1px bottom border. That is not
+       pessimism, it is the documented normal case — see the wrap comment further
+       down in this file: the twelve department labels come to roughly 1,750px
+       against about 1,320px of usable width at the default page width, so
+       .site-nav wraps by design. A one-line 50px fallback left the wrapper ~47px
+       short, and because the wrapper's height IS the document flow height, every
+       section below it — the hero included — sat 47px too high until the deferred
+       script corrected it. Erring generous only risks a hairline gap for one
+       frame; erring short moves the whole page. */
+    --header-row-main: 88px;
+    --header-row-nav: 99px;
+  }
+}
+
+/* base.css hides .site-header when printing; without this the wrapper would
+   still reserve its height and every printout would start with a blank band. */
+@media print {
+  .site-header-wrapper {
+    position: static;
+    block-size: auto;
+  }
+}
+
+/* Absolute, not relative: the header has to be free to change height without
+   changing the wrapper's. It is still the containing block for its own panels —
+   .site-nav__panel--mega resolves against .site-header__nav and --flyout against
+   .site-nav__item, both inside the header — so nothing about the dropdowns
+   changes. sections/header.liquid restores position: relative when the merchant
+   turns the sticky behaviour off and the wrapper goes position: static. */
 .site-header {
-  position: relative;
+  position: absolute;
+  inset-block-start: 0;
+  inline-size: 100%;
   pointer-events: auto;
   background: var(--color-surface);
   border-block-end: 1px solid var(--color-border);
-  transition: transform var(--duration-base) var(--ease-out), box-shadow var(--duration-base) ease;
+  transition: transform var(--duration-base) var(--ease-out);
 }
 
-.site-header.is-stuck { box-shadow: var(--shadow-sm); }
+/* box-shadow cannot be handed to the compositor, so the resting shadow lives on
+   an inert overlay whose opacity is animated instead — the header repainted its
+   whole shadow on every frame of the hide-up slide before. inset: 0 tracks the
+   header's own box, which is exactly the visible header because the collapsing
+   rows collapse their boxes; pointer-events: none because the overlay covers the
+   entire header, and z-index: auto so the panels (85/86) still paint above it. */
+.site-header::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  box-shadow: var(--shadow-sm);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--duration-base) ease;
+}
+
+.site-header.is-stuck::after { opacity: 1; }
 
 .site-header.is-hidden-up {
   transform: translateY(-102%);
-  box-shadow: none;
 }
 
-/* Inert spacer that hands the document back exactly the height the header
-   loses while it compresses, so nothing ever shifts. section-header.js keeps
-   --header-reserve in sync with the header's real height, frame by frame. */
-.site-header__reserve {
-  block-size: var(--header-reserve, 0px);
-  pointer-events: none;
-}
+.site-header.is-hidden-up::after { opacity: 0; }
+
+/* Measurement guard — section-header.js toggles is-stuck synchronously to read
+   both heights, and must not start any transition doing it. */
+.site-header.is-measuring,
+.site-header.is-measuring::after { transition: none; }
 
 /* ---------- Row 1 — utility strip on ink ---------- */
+/* No transition on block-size. It is a layout-triggering property, so animating
+   it cost a style recalc + layout + paint of the header subtree on the main
+   thread for every one of the ~15 frames of the collapse, right at the start of
+   the gesture (--ease-out is easeOutExpo-shaped and front-loads ~80% of the
+   motion into the first four frames). The collapse is now a single discrete
+   layout on the class flip, which the hysteresis in global.js fires once.
+   Composited motion is kept where it is free: the shadow overlay, the hide-up
+   slide, and the panel animations. */
 .site-header__util {
   --header-util-h: 44px;
   block-size: var(--header-util-h);
   overflow: hidden;
-  transition: block-size var(--duration-base) var(--ease-out);
 }
 
 .site-header.is-stuck .site-header__util { block-size: 0; }
@@ -203,9 +288,10 @@ a.site-header__util-item:hover .icon { color: #fff; }
 }
 
 /* ---------- Row 2 — logo, search, actions ---------- */
+/* padding-block is layout-triggering too, so it snaps with the rest of the
+   collapse instead of animating. A ~6px step is imperceptible on its own. */
 .site-header__main {
   padding-block: 0.5rem;
-  transition: padding-block var(--duration-base) var(--ease-out);
 }
 
 .site-header.is-stuck .site-header__main { padding-block: 0.35rem; }
@@ -251,8 +337,6 @@ a.site-header__util-item:hover .icon { color: #fff; }
   max-inline-size: min(var(--logo-width, 260px), 58vw);
   max-block-size: 46px;
   object-fit: contain;
-  transition: max-block-size var(--duration-base) var(--ease-out),
-    max-inline-size var(--duration-base) var(--ease-out);
 }
 
 .site-header__logo-text {
@@ -490,8 +574,9 @@ a.site-header__util-item:hover .icon { color: #fff; }
    (The full-width `--mega` panel would survive, since its containing block is
    `.site-header__nav`, an ancestor of the scroller - but the flyouts would not.)
    So: items keep their natural width, nothing truncates, nothing clips, and the row
-   takes a second line when it has to. The sticky header measures its own height
-   live into --header-reserve, so a variable nav height costs nothing. */
+   takes a second line when it has to. That wrap is also the reason the sticky
+   wrapper's fixed height cannot simply be hardcoded: section-header.js measures the
+   expanded header once per layout epoch and publishes it as --header-h. */
 .site-header__nav-inner {
   display: flex;
   align-items: stretch;
@@ -986,12 +1071,15 @@ details[open] > .menu-drawer__toggle .icon-chevron { transform: rotate(180deg); 
   .site-header__nav {
     display: block;
     border-block-end: 1px solid var(--color-border);
-    transition: block-size var(--duration-base) var(--ease-out),
-      border-color var(--duration-base) ease;
   }
 
   /* Compressed state: utility + nav rows fold away, leaving logo + search +
-     actions. The burger takes over so the catalogue stays one tap away. */
+     actions. The burger takes over so the catalogue stays one tap away.
+     Every declaration in this block is untransitioned on purpose — see the note
+     on .site-header__util. They all resolve in the same single layout pass.
+     The nav row never animated anyway: its base block-size is `auto`, and
+     auto → 0 is not interpolable without interpolate-size/calc-size, so the row
+     already snapped in one frame while the reserve spacer was still chasing it. */
   .site-header.is-stuck .site-header__main { padding-block: 0.4rem; }
   .site-header.is-stuck .site-header__row { min-block-size: 52px; }
   .site-header.is-stuck .site-header__logo-img {
@@ -1001,9 +1089,13 @@ details[open] > .menu-drawer__toggle .icon-chevron { transform: rotate(180deg); 
   .site-header.is-stuck .header-search__input { min-block-size: 48px; }
   .site-header.is-stuck .site-header__burger { display: inline-flex; margin-inline-start: -8px; }
 
+  /* border-block-end-width goes with it, or the collapsed row would leave a
+     stray 1px rule under the compressed header. */
   .site-header.is-stuck .site-header__nav {
     block-size: 0;
+    border-block-end-width: 0;
     overflow: hidden;
+    pointer-events: none;
   }
 }
 
@@ -1011,9 +1103,9 @@ details[open] > .menu-drawer__toggle .icon-chevron { transform: rotate(180deg); 
 @media (prefers-reduced-motion: reduce) {
   .announcement-bar__item,
   .site-header,
+  .site-header::after,
   .site-header__util,
   .site-header__nav,
-  .site-header__reserve,
   .site-header__main,
   .site-header__logo-img,
   .header-search__panel,

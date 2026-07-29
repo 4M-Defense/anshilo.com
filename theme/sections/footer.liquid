@@ -384,8 +384,20 @@
 
       {%- if section.settings.show_payment_icons and shop.enabled_payment_types.size > 0 -%}
         <ul class="footer__payments" role="list" aria-label="{{ 'sections.footer.payment_methods' | t }}">
+          {%- comment -%}
+            Shopify bakes an English <title> into each payment SVG ("Visa",
+            "American Express"), which becomes the icon's accessible name and its
+            hover tooltip — English announced inside a Hebrew page. The card brands
+            are legitimately Latin as artwork, so the fix is to stop them being read
+            out rather than to relabel them: the <ul> above already carries the
+            Hebrew aria-label naming the whole group, so hiding the icons loses
+            nothing. aria-hidden goes on an inner span, NOT on the <li>: hiding the
+            li removes it from the accessibility tree, leaving role="list" with zero
+            listitem children (an aria-required-children violation) and announcing
+            the named group as empty.
+          {%- endcomment -%}
           {%- for type in shop.enabled_payment_types -%}
-            <li>{{ type | payment_type_svg_tag: class: 'footer__payment-icon' }}</li>
+            <li><span aria-hidden="true">{{ type | payment_type_svg_tag: class: 'footer__payment-icon' }}</span></li>
           {%- endfor -%}
         </ul>
       {%- endif -%}

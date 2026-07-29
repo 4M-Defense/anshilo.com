@@ -367,9 +367,15 @@
         typeof variant.compare_at_price === 'number' &&
         variant.compare_at_price > variant.price;
 
+      /* dir="ltr" on both money spans is not decoration: it mirrors
+         snippets/price.liquid exactly. The server render isolates the money run,
+         and rebuilding the markup here without the attribute silently broke that
+         the instant a shopper picked a variant — the ₪ sign and the decimals can
+         reorder inside the RTL page, and on sale items the current and compare-at
+         runs sit adjacent, which is where it shows most. */
       let html =
         '<div class="price price--large' + (onSale ? ' price--on-sale' : '') + '">' +
-        '<span class="price__current">' +
+        '<span class="price__current" dir="ltr">' +
         '<span class="visually-hidden">' +
         (onSale ? strings.salePrice || '' : strings.regularPrice || '') +
         '</span>' +
@@ -377,7 +383,7 @@
         '</span>';
       if (onSale) {
         html +=
-          '<s class="price__compare">' +
+          '<s class="price__compare" dir="ltr">' +
           '<span class="visually-hidden">' + (strings.regularPrice || '') + '</span>' +
           window.formatMoney(variant.compare_at_price) +
           '</s>';
