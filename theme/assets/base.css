@@ -898,6 +898,14 @@ summary::-webkit-details-marker { display: none; }
 
 .field + .field, .form__row + .field, .field + .form__row { margin-block-start: 1rem; }
 
+/* The stacking margin above must NOT reach inside a row. The two fields in a
+   .form__row are adjacent siblings, so `.field + .field` was matching the second
+   one and pushing it down 1rem — in the two-column layout at 750px that left the
+   phone input sitting a whole rem below the name input beside it, which is what
+   made the contact form look crooked. The grid gap already owns spacing in both
+   directions, so zero it out at every width. */
+.form__row > .field + .field { margin-block-start: 0; }
+
 .form__row {
   display: grid;
   gap: 1rem;

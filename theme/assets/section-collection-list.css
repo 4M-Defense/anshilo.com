@@ -34,6 +34,31 @@
   flex: 1 1 auto;
 }
 
+/* Uniform tile faces.
+   The department images do not share a background: most are the store's designed
+   1080x1080 tiles, but כלים נטענים (900x900), ברזים (800x800) and סולמות
+   (333x500) are raw product shots on white — so those three read as white holes
+   next to the designed ones, and the portrait one was being cropped in half by a
+   4:3 cover.
+   Square + contain + a white well makes every tile read the same. A 1:1 image
+   contained in a 1:1 box is a perfect fit, so the designed tiles still fill edge
+   to edge and lose nothing; anything off-ratio letterboxes into white that blends
+   with the well instead of being cropped. Overriding base.css's absolute-fill
+   img needs `position: static` so the grid can centre it.
+   Swapping the three product shots for designed tiles is the real fix — logged in
+   docs/STORE-HEALTH.md. */
+.collection-list__item .collection-tile__media {
+  aspect-ratio: 1 / 1;
+  background: var(--color-surface);
+  display: grid;
+  place-items: center;
+}
+
+.collection-list__item .collection-tile__media > img {
+  position: static;
+  object-fit: contain;
+}
+
 .collection-list__tile-text {
   display: flex;
   flex-direction: column;

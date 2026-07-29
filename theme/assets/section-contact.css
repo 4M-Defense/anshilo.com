@@ -71,8 +71,12 @@
 
 @media (min-width: 990px) {
   .contact-card {
-    position: sticky;
-    inset-block-start: calc(var(--sticky-header-height, 96px) + 1rem);
+    /* --sticky-header-height was never set by anything, so only the fallback ever
+       applied. section-header.js publishes the real height as --header-reserve, but
+       on the header wrapper, which is not an ancestor of this card — so the fallback
+       still governs here. Kept as a var so it picks the value up for free if that
+       ever moves to :root; 112px is the compressed header's measured height. */
+    inset-block-start: calc(var(--header-reserve, 112px) + 1rem);
   }
 }
 

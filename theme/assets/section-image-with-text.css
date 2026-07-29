@@ -27,9 +27,31 @@
   box-shadow: var(--shadow-sm);
 }
 
-/* Collection images are often logos or flat graphics — give them air
-   so they read as artwork inside the frame instead of a cropped photo. */
-.image-text__media--pad { padding: clamp(1.5rem, 4vw, 3rem); }
+/* Logo mode. A brand logo is not a photograph and must never be scaled up.
+   The Makita collection image is the brand wordmark at 500x200; the old code
+   inferred "contain + padding" for any collection image and base.css stretches a
+   .media img to fill the frame, so a 500px source was being drawn across roughly
+   600 CSS px - about 1.2x on a 1x screen and 2.4x on a phone. That is why it
+   looked cheap.
+   Sizing the image intrinsically and capping it at 300px keeps the 500px source
+   at worst 1.7x, which is crisp, and the white plate plus generous air makes it
+   read as a deliberate brand mark rather than a failed photo. `position: static`
+   is required to escape base.css's absolute inset-0 fill so the grid can centre it. */
+.image-text__media--logo {
+  display: grid;
+  place-items: center;
+  background: var(--color-surface);
+  padding: clamp(1.75rem, 5vw, 3.5rem);
+}
+
+.image-text__media--logo > img {
+  position: static;
+  inline-size: auto;
+  block-size: auto;
+  max-inline-size: min(300px, 100%);
+  max-block-size: 100%;
+  object-fit: contain;
+}
 
 /* ----- Copy side ----- */
 .image-text__content {

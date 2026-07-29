@@ -92,7 +92,7 @@
                     href="{{ settings.social_facebook }}"
                     target="_blank"
                     rel="noopener"
-                    aria-label="{{ 'general.social.facebook' | t }} — {{ 'general.accessibility.link_opens_new_tab' | t }}"
+                    aria-label="{{ 'general.social.facebook' | t }} - {{ 'general.accessibility.link_opens_new_tab' | t }}"
                   >
                     {% render 'icon', name: 'facebook', size: 18 %}
                   </a>
@@ -105,7 +105,7 @@
                     href="{{ settings.social_instagram }}"
                     target="_blank"
                     rel="noopener"
-                    aria-label="{{ 'general.social.instagram' | t }} — {{ 'general.accessibility.link_opens_new_tab' | t }}"
+                    aria-label="{{ 'general.social.instagram' | t }} - {{ 'general.accessibility.link_opens_new_tab' | t }}"
                   >
                     {% render 'icon', name: 'instagram', size: 18 %}
                   </a>
@@ -118,7 +118,7 @@
                     href="{{ settings.social_tiktok }}"
                     target="_blank"
                     rel="noopener"
-                    aria-label="{{ 'general.social.tiktok' | t }} — {{ 'general.accessibility.link_opens_new_tab' | t }}"
+                    aria-label="{{ 'general.social.tiktok' | t }} - {{ 'general.accessibility.link_opens_new_tab' | t }}"
                   >
                     {% render 'icon', name: 'tiktok', size: 18 %}
                   </a>
@@ -131,7 +131,7 @@
                     href="{{ settings.social_youtube }}"
                     target="_blank"
                     rel="noopener"
-                    aria-label="{{ 'general.social.youtube' | t }} — {{ 'general.accessibility.link_opens_new_tab' | t }}"
+                    aria-label="{{ 'general.social.youtube' | t }} - {{ 'general.accessibility.link_opens_new_tab' | t }}"
                   >
                     {% render 'icon', name: 'youtube', size: 18 %}
                   </a>
@@ -180,14 +180,24 @@
 
           <ul class="footer__contact" role="list">
             {%- if settings.store_address != blank -%}
+              {%- comment -%}
+                Prefer the shop's own Google listing when one is configured: it is the
+                page with their real hours, photos and reviews. The constructed Maps
+                search is only a fallback for when that setting is empty, and it can
+                land on the wrong pin for a kibbutz address.
+              {%- endcomment -%}
               {%- capture map_query -%}{{ shop.name }} {{ settings.store_address }}{%- endcapture -%}
+              {%- assign map_href = map_query | url_encode | prepend: 'https://www.google.com/maps/search/?api=1&query=' -%}
+              {%- if settings.store_google != blank -%}
+                {%- assign map_href = settings.store_google -%}
+              {%- endif -%}
               <li>
                 <a
                   class="footer__contact-item"
-                  href="https://www.google.com/maps/search/?api=1&amp;query={{ map_query | url_encode }}"
+                  href="{{ map_href | escape }}"
                   target="_blank"
                   rel="noopener"
-                  aria-label="{{ 'general.contact.address' | t }}: {{ settings.store_address | escape }} — {{ 'general.accessibility.link_opens_new_tab' | t }}"
+                  aria-label="{{ 'general.contact.address' | t }}: {{ settings.store_address | escape }} - {{ 'general.accessibility.link_opens_new_tab' | t }}"
                 >
                   {% render 'icon', name: 'map-pin', size: 18 %}
                   <span>{{ settings.store_address }}</span>
@@ -238,7 +248,7 @@
               href="{{ wa_href }}"
               target="_blank"
               rel="noopener"
-              aria-label="{{ 'general.contact.whatsapp_cta' | t }} — {{ 'general.accessibility.link_opens_new_tab' | t }}"
+              aria-label="{{ 'general.contact.whatsapp_cta' | t }} - {{ 'general.accessibility.link_opens_new_tab' | t }}"
             >
               {% render 'icon', name: 'whatsapp', size: 18 %}
               <span>{{ 'general.contact.whatsapp_cta' | t }}</span>
@@ -333,10 +343,40 @@
             </a>
           </li>
         {%- endif -%}
+        {%- comment -%}
+          policy.title comes from the Shopify admin, where these pages were left on
+          their English defaults ("Refund policy", "Terms of service"), so the only
+          English text on an otherwise Hebrew site was sitting in the footer. Label
+          them from the locale file instead, matched on the policy handle, and keep
+          policy.title as the fallback so a policy type this theme has not seen — or
+          one the owner has since renamed in Hebrew themselves — still gets a label.
+          Wording follows the store's existing "אודותינו" menu.
+        {%- endcomment -%}
         {%- for policy in shop.policies -%}
           {%- if policy != blank -%}
+            {%- liquid
+              assign policy_handle = policy.url | split: '/' | last
+              case policy_handle
+                when 'refund-policy'
+                  assign policy_label = 'sections.footer.policies.refund' | t
+                when 'shipping-policy'
+                  assign policy_label = 'sections.footer.policies.shipping' | t
+                when 'privacy-policy'
+                  assign policy_label = 'sections.footer.policies.privacy' | t
+                when 'terms-of-service'
+                  assign policy_label = 'sections.footer.policies.terms' | t
+                when 'contact-information'
+                  assign policy_label = 'sections.footer.policies.contact' | t
+                when 'subscription-policy'
+                  assign policy_label = 'sections.footer.policies.subscription' | t
+                when 'legal-notice'
+                  assign policy_label = 'sections.footer.policies.legal' | t
+                else
+                  assign policy_label = policy.title
+              endcase
+            -%}
             <li>
-              <a class="footer__legal-link" href="{{ policy.url }}">{{ policy.title | escape }}</a>
+              <a class="footer__legal-link" href="{{ policy.url }}">{{ policy_label | escape }}</a>
             </li>
           {%- endif -%}
         {%- endfor -%}
@@ -366,7 +406,7 @@
       "id": "about_text",
       "label": "תיאור קצר של החנות",
       "info": "הלוגו נלקח מהגדרות התבנית.",
-      "default": "<p>א.נ. שילו — חומרי בניין, כלי עבודה, ציוד טכני ומחסן עצים בקיבוץ קרית ענבים. מעל 30 שנה של שירות מקצועי לקבלנים, לנגרים ולמשק הבית.</p>"
+      "default": "<p>א.נ. שילו - חומרי בניין, כלי עבודה, ציוד טכני ומחסן עצים בקיבוץ קרית ענבים. מעל 30 שנה של שירות מקצועי לקבלנים, לנגרים ולמשק הבית.</p>"
     },
     {
       "type": "checkbox",
@@ -422,7 +462,7 @@
       "type": "checkbox",
       "id": "show_newsletter",
       "label": "הצגת שורת הרשמה לניוזלטר",
-      "info": "בדף הבית קיים בלוק ניוזלטר נפרד — הפעילו כאן רק אם הוא הוסר משם.",
+      "info": "בדף הבית קיים בלוק ניוזלטר נפרד - הפעילו כאן רק אם הוא הוסר משם.",
       "default": false
     },
     {
@@ -435,7 +475,7 @@
       "type": "text",
       "id": "newsletter_text",
       "label": "טקסט הניוזלטר",
-      "default": "מבצעים, חידושים בקטלוג וטיפים של מקצוענים — ישירות למייל."
+      "default": "מבצעים, חידושים בקטלוג וטיפים של מקצוענים - ישירות למייל."
     },
     {
       "type": "header",

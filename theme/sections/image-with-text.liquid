@@ -3,12 +3,17 @@
 {%- liquid
   assign feature_collection = section.settings.collection
   assign feature_image = section.settings.image
-  assign feature_contain = false
 
   if feature_image == blank and feature_collection != blank and feature_collection.image != blank
     assign feature_image = feature_collection.image
-    assign feature_contain = true
   endif
+
+  # How the image fills the frame used to be INFERRED - a collection image was
+  # assumed to be a logo and got contain+padding. That was wrong in both
+  # directions: the עץ collection image is a photograph and was letterboxed
+  # instead of filling its frame, while the makita one really is a wordmark and
+  # got stretched past its own resolution. It is a choice, so make it a setting.
+  assign media_fit = section.settings.media_fit | default: 'cover'
 
   assign feature_alt = feature_image.alt
   if feature_alt == blank
@@ -28,8 +33,23 @@
   <div class="container">
     <div class="image-text{% if section.settings.flip %} image-text--flip{% endif %}">
       <div class="image-text__media-wrap reveal">
-        <div class="image-text__media media{% if feature_contain %} media--contain image-text__media--pad{% endif %}">
-          {%- if feature_image != blank -%}
+        <div class="image-text__media media{% if media_fit == 'logo' %} image-text__media--logo{% endif %}">
+          {%- if feature_image != blank and media_fit == 'logo' -%}
+            {%- comment -%}
+              A logo renders at most 300 CSS px wide (see the stylesheet), so 600px
+              covers a 2x screen. Asking for more than the source has only makes
+              Shopify hand back the original at a URL that claims to be larger,
+              which is how the blurry Makita mark got past review in the first place.
+            {%- endcomment -%}
+            <img
+              src="{{ feature_image | image_url: width: 600 }}"
+              width="{{ feature_image.width }}"
+              height="{{ feature_image.height }}"
+              alt="{{ feature_alt | escape }}"
+              loading="lazy"
+              decoding="async"
+            >
+          {%- elsif feature_image != blank -%}
             <img
               src="{{ feature_image | image_url: width: 900 }}"
               srcset="{{ feature_image | image_url: width: 450 }} 450w,
@@ -86,7 +106,18 @@
       "type": "collection",
       "id": "collection",
       "label": "קטגוריה (גיבוי לתמונה)",
-      "info": "אם לא נבחרה תמונה — תוצג תמונת הקטגוריה, והכפתור יקשר אליה."
+      "info": "אם לא נבחרה תמונה - תוצג תמונת הקטגוריה, והכפתור יקשר אליה."
+    },
+    {
+      "type": "select",
+      "id": "media_fit",
+      "label": "אופן הצגת התמונה",
+      "info": "\"תמונה\" ממלאת את כל המסגרת. \"לוגו\" מציגה את הסמל במלואו על רקע לבן, בגודל שלא חורג מהרזולוציה שלו כדי שיישאר חד.",
+      "options": [
+        { "value": "cover", "label": "תמונה (ממלאת את המסגרת)" },
+        { "value": "logo", "label": "לוגו מותג (על רקע לבן)" }
+      ],
+      "default": "cover"
     },
     {
       "type": "checkbox",
@@ -104,13 +135,13 @@
       "type": "text",
       "id": "heading",
       "label": "כותרת",
-      "default": "עץ, לוחות וקורות — בחיתוך לפי מידה"
+      "default": "עץ, לוחות וקורות - בחיתוך לפי מידה"
     },
     {
       "type": "richtext",
       "id": "text",
       "label": "טקסט",
-      "default": "<p>במחסן העצים שלנו תמצאו עץ גושני, לוחות, קורות ופרופילים — עם חיתוך מדויק לפי המידות שאתם צריכים. הצוות מלווה אתכם משלב התכנון ועד ההעמסה על הרכב, בדיוק כמו שאנחנו עושים כאן כבר יותר מ־30 שנה.</p>"
+      "default": "<p>במחסן העצים שלנו תמצאו עץ גושני, לוחות, קורות ופרופילים - עם חיתוך מדויק לפי המידות שאתם צריכים. הצוות מלווה אתכם משלב התכנון ועד ההעמסה על הרכב, בדיוק כמו שאנחנו עושים כאן כבר יותר מ-30 שנה.</p>"
     },
     {
       "type": "text",

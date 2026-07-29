@@ -11,7 +11,7 @@
       "moderated": "Please note, comments need to be approved before they are published.",
       "name": "Name",
       "next_article": "Next article",
-      "no_comments": "No comments on this article yet — we'd love to hear what you think.",
+      "no_comments": "No comments on this article yet - we'd love to hear what you think.",
       "post": "Post comment",
       "previous_article": "Previous article",
       "published_on": "Published on {{ date }}",
@@ -29,7 +29,7 @@
       "empty_tag": "No articles found for the topic you chose",
       "empty_tag_hint": "Try another topic, or go back to the full list of articles.",
       "latest_post": "Latest article",
-      "onboarding_excerpt": "This is where the article intro will appear — professional tips, product comparisons and recommendations from our team, straight from the Kiryat Ata warehouse.",
+      "onboarding_excerpt": "This is where the article intro will appear - professional tips, product comparisons and recommendations from our team, straight from the Kiryat Ata warehouse.",
       "onboarding_title": "Sample guide: how to choose the right tool for every job",
       "read_more": "Read more",
       "title": "Blog"
@@ -46,7 +46,7 @@
       "discount": "Discount",
       "each": "each",
       "empty": "Your cart is empty",
-      "empty_hint": "All the professional gear in one place — waiting in our catalog.",
+      "empty_hint": "All the professional gear in one place - waiting in our catalog.",
       "item_count": {
         "one": "1 item",
         "other": "{{ count }} items"
@@ -267,7 +267,7 @@
       "login_form_password_label": "Password",
       "login_form_password_placeholder": "Your password",
       "login_form_submit": "Enter",
-      "subtitle": "We're renovating — just the way you like it. Back soon!",
+      "subtitle": "We're renovating - just the way you like it. Back soon!",
       "title": "Under construction"
     },
     "search": {
@@ -283,7 +283,7 @@
       "placeholder": "What are you looking for? Drill, paint, screws...",
       "popular": "Popular searches",
       "products": "Products",
-      "prompt": "Type a product name, brand or SKU — and we'll find it for you.",
+      "prompt": "Type a product name, brand or SKU - and we'll find it for you.",
       "results_with_count": {
         "one": "1 result for \"{{ terms }}\"",
         "other": "{{ count }} results for \"{{ terms }}\""

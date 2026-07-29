@@ -20,7 +20,7 @@
         "a2": {
           "type": "announcement",
           "settings": {
-            "text": "יותר מ־30 שנה בענף הבנייה — ייעוץ מקצועי בטלפון 02-534-3422",
+            "text": "יותר מ-30 שנה בענף הבנייה - ייעוץ מקצועי בטלפון 02-534-3422",
             "icon": "headset",
             "link": "/pages/contact"
           }
@@ -43,7 +43,7 @@
         "enable_sticky": true,
         "show_account": true,
         "show_utility_bar": true,
-        "utility_message": "משלוח חינם בהזמנה מעל ₪399",
+        "utility_message": "משלוח חינם בהזמנה מעל",
         "contact_page": "contact",
         "mega_all_label": "לכל הקטגוריה"
       }

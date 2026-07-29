@@ -80,7 +80,7 @@
               <p class="fw-700">{{ 'general.contact.error' | t }}</p>
               <ul>
                 {%- for field in form.errors -%}
-                  <li>{{ form.errors.translated_fields[field] }} — {{ form.errors.messages[field] }}</li>
+                  <li>{{ form.errors.translated_fields[field] }} - {{ form.errors.messages[field] }}</li>
                 {%- endfor -%}
               </ul>
             </div>
@@ -353,7 +353,7 @@
       "type": "textarea",
       "id": "subheading",
       "label": "טקסט פתיחה",
-      "default": "יש לכם שאלה על מוצר, מלאי או הזמנה? השאירו הודעה או התקשרו — צוות המומחים שלנו כאן בשבילכם."
+      "default": "יש לכם שאלה על מוצר, מלאי או הזמנה? השאירו הודעה או התקשרו - צוות המומחים שלנו כאן בשבילכם."
     },
     {
       "type": "header",
@@ -369,7 +369,7 @@
       "type": "textarea",
       "id": "form_note",
       "label": "הערה מעל הטופס",
-      "default": "נחזור אליכם בתוך יום עסקים אחד. לעניינים דחופים — עדיף להתקשר או לשלוח וואטסאפ."
+      "default": "נחזור אליכם בתוך יום עסקים אחד. לעניינים דחופים - עדיף להתקשר או לשלוח וואטסאפ."
     },
     {
       "type": "header",
@@ -403,7 +403,7 @@
       "id": "map_embed",
       "label": "קוד הטמעה למפה (iframe)",
       "info": "ברירת המחדל מציגה את קיבוץ קרית ענבים. אפשר להדביק כאן קוד הטמעה אחר מגוגל מפות, או להשאיר ריק כדי להסתיר את המפה.",
-      "default": "<iframe src=\"https://www.google.com/maps?q=%D7%A7%D7%99%D7%91%D7%95%D7%A6+%D7%A7%D7%A8%D7%99%D7%AA+%D7%A2%D7%A0%D7%91%D7%99%D7%9D&hl=iw&z=14&output=embed\" width=\"600\" height=\"420\" loading=\"lazy\" referrerpolicy=\"no-referrer-when-downgrade\" title=\"מפה — א.נ. שילו, קיבוץ קרית ענבים\"></iframe>"
+      "default": "<iframe src=\"https://www.google.com/maps?q=%D7%A7%D7%99%D7%91%D7%95%D7%A6+%D7%A7%D7%A8%D7%99%D7%AA+%D7%A2%D7%A0%D7%91%D7%99%D7%9D&hl=iw&z=14&output=embed\" width=\"600\" height=\"420\" loading=\"lazy\" referrerpolicy=\"no-referrer-when-downgrade\" title=\"מפה - א.נ. שילו, קיבוץ קרית ענבים\"></iframe>"
     }
   ]
 }

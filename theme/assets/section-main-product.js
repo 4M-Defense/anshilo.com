@@ -350,7 +350,7 @@
             const exists = combinationExists(position, option.value, selected);
             option.textContent = exists || !unavailableSuffix
               ? label
-              : label + ' — ' + unavailableSuffix;
+              : label + ' - ' + unavailableSuffix;
           });
           return;
         }

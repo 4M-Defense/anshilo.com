@@ -77,10 +77,21 @@
   .category-rail__tile:hover .category-rail__title { color: var(--color-accent); }
 }
 
-/* Catalogue parts: contained, on white, with breathing room. */
+/* Catalogue parts: contained, on white, with breathing room.
+   The twelve department images do not share a background - some are designed
+   tiles with their own colour baked into the pixels, others are raw product
+   shots - and no stylesheet can repaint the inside of a JPEG. What CAN be made
+   identical is the frame: state the white plate explicitly rather than
+   inheriting it from .media, give every tile the same padding, and draw a
+   hairline around the image area so a shot that happens to be white still reads
+   as "an image in a well" next to one that is coloured, instead of as a hole.
+   True uniformity needs the three odd images replaced - logged in
+   docs/STORE-HEALTH.md. */
 .category-rail__media {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
   border-radius: var(--radius-sm);
-  padding: clamp(0.3rem, 1vw, 0.55rem);
+  padding: clamp(0.35rem, 1vw, 0.6rem);
 }
 
 /* ---------- Copy ---------- */

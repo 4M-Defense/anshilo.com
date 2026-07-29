@@ -183,7 +183,7 @@
                     {%- if line_item.sku != blank -%}
                       <bdi dir="ltr">{{ line_item.sku }}</bdi>
                     {%- else -%}
-                      <span aria-hidden="true">—</span>
+                      <span aria-hidden="true">-</span>
                     {%- endif -%}
                   </td>
                   <td data-label="{{ 'customer.order.price' | t }}" class="order-line__price">

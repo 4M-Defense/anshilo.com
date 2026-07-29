@@ -25,7 +25,7 @@
       <div>
         <p class="back-in-stock__title">{{ 'products.product.sold_out' | t }}</p>
         <p class="back-in-stock__text text-meta">
-          נשלח לכם הודעה ברגע שהמוצר חוזר למלאי — בלי התחייבות.
+          נשלח לכם הודעה ברגע שהמוצר חוזר למלאי - בלי התחייבות.
         </p>
       </div>
     </div>
@@ -82,7 +82,7 @@
             if target.sku != blank
               assign wa_message = wa_message | append: ' (מקט ' | append: target.sku | append: ')'
             endif
-            assign wa_message = wa_message | append: ' — יש במחסן?'
+            assign wa_message = wa_message | append: ' - יש במחסן?'
             if wa contains '?'
               assign wa_link = wa
             else

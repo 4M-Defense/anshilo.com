@@ -217,7 +217,7 @@
 
     matchCell.innerHTML =
       '<span class="quick-order__suggest">' +
-      '<span class="text-meta">אין התאמה מדויקת — התכוונתם ל:</span>' +
+      '<span class="text-meta">אין התאמה מדויקת - התכוונתם ל:</span>' +
       '<span class="quick-order__suggest-list">' + options + '</span>' +
       '</span>';
 

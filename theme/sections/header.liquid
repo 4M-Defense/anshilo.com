@@ -310,6 +310,7 @@
                           {%- for child in link.links -%}
                             <div class="site-nav__col">
                               <a class="site-nav__col-title{% if child.active or child.child_active %} is-active{% endif %}" href="{{ child.url }}">
+                                {% render 'nav-thumb', link: child, size: 40 %}
                                 <span>{{ child.title | escape }}</span>
                                 {% render 'icon', name: 'arrow-right', size: 13, class: 'icon--dir' %}
                               </a>
@@ -358,10 +359,13 @@
                         {%- for child in link.links -%}
                           <li>
                             <a
-                              class="site-nav__sublink{% if child.active %} is-active{% endif %}"
+                              class="site-nav__sublink site-nav__sublink--thumbed{% if child.active %} is-active{% endif %}"
                               href="{{ child.url }}"
                               {% if child.active %}aria-current="page"{% endif %}
-                            >{{ child.title | escape }}</a>
+                            >
+                              {% render 'nav-thumb', link: child, size: 34 %}
+                              <span>{{ child.title | escape }}</span>
+                            </a>
                           </li>
                         {%- endfor -%}
                       </ul>

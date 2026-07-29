@@ -107,3 +107,39 @@ content" שפוגעים בדירוג.
 
 זה מתורגם ישירות למהירות טעינה, לציון Core Web Vitals ולדירוג בגוגל — ובחנות
 של 1,918 מוצרים, מהירות וחיפוש הם היתרון התחרותי האמיתי.
+
+## Department images do not share a background (theme cannot fix this)
+
+`המחלקות שלנו` on the homepage (the `category-rail` section) shows twelve
+collection images, and they were not produced as a set:
+
+| Collection | Image | Size |
+|---|---|---|
+| כלי עבודה | `4130a548…webp` | 1080×1080 |
+| ציוד חשמלי | `f082ae24…jpg` | 1080×1080 |
+| תאורה | `8d6e9263…jpg` | 1080×1080 |
+| אינסטלציה | `collection-1.1.png` | 1080×1080 |
+| ניקיון ותחזוקת הבית | `collection-2.png` | 1080×1080 |
+| צבע | `collection-5.1.png` | 1080×1080 |
+| עץ | `collection-7.png` | 1080×1080 |
+| ציוד טכני | `Untitled_design_12.png` | 1080×1080 |
+| **כלים נטענים** | `kodhot-300x300.webp` | 900×900 |
+| **ברזים** | `Cat_495013_8922.jpg` | 800×800 |
+| **סולמות** | `e23d5580…_333x500.webp` | **333×500, portrait** |
+
+The three in bold are raw product photographs rather than designed tiles, and the
+owner reported that their backgrounds do not match the rest. **No stylesheet can
+change the background baked into a JPEG**, so the theme does what it can: the well
+around every image is now explicitly identical (white plate, one hairline, equal
+padding, square) so a tile whose photo happens to be white still reads as an image
+in a frame rather than as a hole. `assets/section-category-rail.css` carries the
+reasoning.
+
+The real fix is to replace those three collection images with designed tiles
+matching the `collection-N.png` set. Until then the row will never be perfectly
+uniform. The `סולמות` one is worth replacing regardless: at 333×500 it is the only
+portrait image in a square grid.
+
+Note that no agent has been able to *see* any of these images — `cdn.shopify.com`
+is blocked from the build environment, and `WebFetch` against it returns 403. Every
+statement above is from file metadata plus the owner's own report.

@@ -7,7 +7,7 @@
 {%- endcomment -%}
 {%- liquid
   assign share_url = shop.url | append: article.url
-  assign share_text = article.title | append: ' — ' | append: share_url
+  assign share_text = article.title | append: ' - ' | append: share_url
   assign published_date = article.published_at | date: format: 'month_day_year'
 -%}
 

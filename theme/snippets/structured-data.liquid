@@ -76,6 +76,12 @@
           delimited string and split back out.
         {%- endcomment -%}
         {%- capture social_raw -%}
+          {%- comment -%}
+            The Google Business Profile goes in sameAs, not hasMap: it is a page
+            about the business, and hasMap would assert that the URL resolves to a
+            map — which cannot be verified for a share.google short link.
+          {%- endcomment -%}
+          {%- if settings.store_google != blank -%}{{ settings.store_google }}|{%- endif -%}
           {%- if settings.social_facebook != blank -%}{{ settings.social_facebook }}|{%- endif -%}
           {%- if settings.social_instagram != blank -%}{{ settings.social_instagram }}|{%- endif -%}
           {%- if settings.social_youtube != blank -%}{{ settings.social_youtube }}|{%- endif -%}
