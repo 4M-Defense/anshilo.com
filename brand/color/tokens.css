@@ -1,0 +1,39 @@
+/* א.נ. שילו - טוקני מותג.
+   מיוצא מ-theme/config/settings_data.json של החנות, לא נכתב מחדש.
+   אם צבע משתנה באתר, הוא משתנה כאן. זה לא מסמך השראה, זה מקור אמת. */
+:root {
+  --shilo-accent: #D81E29;  /* אדום המותג. כפתורים, מחירים, מצבים פעילים. לא לשטחים גדולים. */
+  --shilo-accent-hover: #B3151F;  /* אדום במעבר עכבר */
+  --shilo-ink: #0F1729;  /* נייבי המותג. הדר, פוטר, כותרות */
+  --shilo-text: #16202F;  /* טקסט גוף */
+  --shilo-text-muted: #5B6779;  /* טקסט משני. הבהיר ביותר שמותר לטקסט */
+  --shilo-background: #FFFFFF;  /* כרטיסים ומשטחים */
+  --shilo-page: #F4F6F9;  /* רקע עמודי קטלוג */
+  --shilo-surface-alt: #F7F9FC;  /* סקשן מתחלף */
+  --shilo-surface-sunken: #EDF1F6;  /* בורות תמונה, שלדי טעינה */
+  --shilo-border: #E3E8EF;  /* קווי הפרדה */
+  --shilo-border-strong: #848E9F;  /* מסגרות שדות קלט */
+  --shilo-tile-bg: #EFE9DF;  /* קרם. המשטח האחיד מאחורי תמונות המחלקות */
+  --shilo-success: #0B7A46;  /* במלאי */
+  --shilo-warning: #B45309;  /* מלאי מוגבל */
+  --shilo-danger: #C81E1E;  /* שגיאה, אזל מהמלאי */
+  --shilo-highlight: #FFB224;  /* ענבר. הדגשת מבצעים */
+  --shilo-whatsapp: #25D366;  /* צבע צד שלישי. לא צבע מותג, לא לשימוש אחר */
+
+  --shilo-radius-sm: 8px;
+  --shilo-radius-base: 10px;
+  --shilo-radius-card: 16px;
+  --shilo-radius-lg: 22px;
+  --shilo-radius-pill: 999px;
+
+  --shilo-page-width: 1400px;
+  --shilo-gutter: clamp(1rem, 3vw, 2.5rem);
+  --shilo-duration-fast: 140ms;
+  --shilo-duration-base: 240ms;
+  --shilo-ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+
+  --shilo-font-heading: "Heebo", "Assistant", "Segoe UI", Arial, sans-serif;
+  --shilo-font-body: "Assistant", "Heebo", "Segoe UI", Arial, sans-serif;
+  /* אימייל ודפוס בלבד - ראה type/TYPOGRAPHY.md */
+  --shilo-font-email: Arial, "Helvetica Neue", Helvetica, sans-serif;
+}
