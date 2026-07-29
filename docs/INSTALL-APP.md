@@ -97,7 +97,7 @@ npx tsc --noEmit
 |---|---|---|
 | Apple Developer Program | 99$ לשנה | חובה ל-iOS |
 | Google Play Developer | 25$ חד־פעמי | חובה לאנדרואיד |
-| חשבון Expo (EAS) | חינם להתחלה | לבניית הקבצים בענן |
+| חשבון Expo (EAS) | חינם להתחלה | לבניית הקבצים בענן. `eas.json` כבר מוגדר עם שלושה פרופילים: development, preview, production |
 | אייקון אפליקציה | — | 1024×1024, ללא שקיפות |
 | מסכי צילום | — | לפי מידות החנויות |
 | מדיניות פרטיות | — | חובה בשתי החנויות; אפשר להפנות לעמוד באתר |
@@ -107,11 +107,11 @@ npx tsc --noEmit
 ```bash
 npm install -g eas-cli
 eas login
-eas build:configure          # יוצר eas.json
-eas build --platform ios     # בונה בענן
-eas build --platform android
-eas submit --platform ios    # שולח לבדיקה
-eas submit --platform android
+# eas.json כבר קיים בריפוזיטורי — אין צורך ב-build:configure
+eas build --platform ios --profile production        # בונה בענן
+eas build --platform android --profile production
+eas submit --platform ios --profile production       # שולח לבדיקה
+eas submit --platform android --profile production
 ```
 
 הבדיקה באפל לוקחת בדרך כלל 1–3 ימים, בגוגל בין כמה שעות ליום.

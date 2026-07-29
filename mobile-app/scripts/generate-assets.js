@@ -28,8 +28,8 @@ const { PNG } = require('pngjs');
 const ASSETS_DIR = path.join(__dirname, '..', 'assets');
 
 /* צבעי המותג — תואמים ל-src/theme.ts */
-const ACCENT = [0xf9, 0x73, 0x16]; // colors.accent  #F97316
-const INK = [0x12, 0x16, 0x1c]; // colors.ink     #12161C
+const ACCENT = [0xd8, 0x1e, 0x29]; // colors.accent  #D81E29
+const INK = [0x0f, 0x17, 0x29]; // colors.ink     #0F1729
 
 /** מקדם דגימת-היתר: מציירים בגודל פי SS ומקטינים בממוצע */
 const SS = 4;
