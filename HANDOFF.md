@@ -37,8 +37,9 @@ Branch: `claude/shopify-store-modern-design-746p2i` · PR: [#1](https://github.c
 | **myshopify domain** | `3007b3-4.myshopify.com` (**not** `anshilo.myshopify.com` — verified via `shop.myshopifyDomain`) |
 | Shop id | `58110246991` |
 | Live theme (**never write to it**) | `שמירה 1` — `gid://shopify/OnlineStoreTheme/141469646927`, role MAIN |
-| **Working preview theme** | `שילו 2026 — העיצוב החדש ⭐` — `gid://shopify/OnlineStoreTheme/148368425039`, `/t/24` |
-| Preview URL | `https://anshilo.com/?preview_theme_id=148368425039` |
+| **Working preview theme** | `שילו 2026 — העיצוב החדש v3 ⭐` — `gid://shopify/OnlineStoreTheme/148371210319` |
+| Preview URL | `https://anshilo.com/?preview_theme_id=148371210319` |
+| Superseded, owner can delete | `שילו 2026 — העיצוב החדש ⭐` — `148368425039` (the v2 preview; v3 is a full zip import, so it is a new theme) |
 | Disposable theme, owner told to delete | `למחיקה — ייבוא כושל (בלי צבעים)` — `148368293967` |
 | Owner's original copy, mostly untouched | `עותק של שמירה 1` — `148357644367` (12 asset files + one test txt were written to it early on; it is otherwise still an Empire copy) |
 | New navigation menu | handle `shilo-2026-main`, `gid://shopify/Menu/236720193615` — 12 departments, 127 items, 3 levels |
@@ -64,7 +65,7 @@ mutation Upsert($themeId: ID!, $files: [OnlineStoreThemeFilesUpsertFileInput!]!)
 ```
 
 ```json
-{ "themeId": "gid://shopify/OnlineStoreTheme/148368425039",
+{ "themeId": "gid://shopify/OnlineStoreTheme/148371210319",
   "files": [{ "filename": "assets/section-header.css",
               "body": { "type": "TEXT", "value": "<the file, JSON-escaped>" } }] }
 ```
@@ -139,47 +140,24 @@ palette colour, run the validator — it will tell you if you broke AA.
 
 ---
 
-## 5. Deployed theme vs repo — known differences
+## 5. Deployed theme vs repo — currently identical
 
-The deployed theme is byte-identical to the repo **except**:
+**There is no delta.** Theme `148371210319` was created by a full zip import of the
+repo, and every file was verified by comparing the `size` the Admin API reports to
+the local byte count — 126 files, all exact, including the four that the import
+traps below would have silently mangled.
 
-- `assets/base.css` — the repo carries two small changes not yet deployed:
-  - The `--color-success` alpha tints moved from `rgba(14,138,79,…)` to
-    `rgba(11,122,70,…)` to follow the new green. Imperceptible at 8–24% alpha.
-  - `html { scroll-padding-block-start }` is `var(--header-reserve, 112px)` in the
-    repo and `var(--sticky-header-height, 96px)` on the deployed copy. **Neither
-    variable resolves on `html`** — `section-header.js` sets `--header-reserve` on
-    the header wrapper, and `--sticky-header-height` was never set anywhere — so
-    the live difference is just the fallback: anchor targets (the A–Z jump bar on
-    `/collections`, in-page filter links) currently land 16px higher than intended,
-    slightly under the sticky header. 112px is the measured correct value.
+Two things worth knowing when you next deploy:
 
-  Deploying this file costs more than it is worth right now: at 46KB the escaped
-  body exceeds what one tool result will return, so it has to be split into chunks
-  and reassembled by hand, which risks corrupting a stylesheet the whole site
-  depends on for a 16px scroll offset. Deploy it as part of the next substantive
-  change to that file, when the payload is being sent anyway.
-- Eight files carry a changed `default:` fallback for `logo_width` (175 → 260) that
-  is **not** deployed: `sections/header.liquid` (plus a comment rewrite),
-  `sections/footer.liquid`, `sections/main-login.liquid`,
-  `sections/main-register.liquid`, `sections/main-password.liquid`,
-  `sections/main-reset-password.liquid`, `sections/main-activate-account.liquid`,
-  `templates/gift_card.liquid`. Every one is a no-op on the storefront:
-  `settings_data.json` always sets `logo_width`, so the fallback never fires. They
-  were aligned only so the repo does not contradict the schema default. Deploy them
-  opportunistically if you are touching those files anyway.
-
-Note that `config/settings_data.json` will always differ in **size** from the repo
-copy: Shopify strips blank lines and prepends its own auto-generated header comment
-on write. Compare values, not bytes. Both the accessibility fix and the horizontal
-logo were verified that way.
-
-Everything else matches byte-for-byte, verified by comparing the `size` returned by
-`themeFilesUpsert` to the local byte count: `assets/section-header.css` 25,540,
-`config/settings_schema.json` 8,743, `snippets/structured-data.liquid` 11,097,
-`layout/theme.liquid` 14,008.
-
----
+- **A zip import preserves `config/settings_data.json` byte-for-byte** (2,356 bytes
+  here). `themeFilesUpsert` does not: it strips blank lines and prepends its own
+  auto-generated header comment, so the same file comes back as 1,989 bytes. If you
+  upsert that file, compare values, not bytes.
+- **A zip import creates a NEW theme**, so the preview URL changes. That is the
+  trade: it deploys everything for almost no token cost, while `themeFilesUpsert`
+  keeps the URL but costs tokens proportional to the size of every file you send.
+  For a sweep touching 30+ files the zip is the only sane route; for one or two
+  files, upsert.
 
 ## 6. THE APP — connecting it to the store
 
@@ -283,7 +261,7 @@ Get screenshots — home scrolled, a collection page, a product page, the cart, 
 menu drawer — and fix what they show. **Batch the fixes**: each CSS file costs a
 full-file upsert, so collecting several findings before deploying is much cheaper.
 
-If you have storefront access: `node theme/tools/shoot.mjs 148368425039 /tmp/shots`
+If you have storefront access: `node theme/tools/shoot.mjs 148371210319 /tmp/shots`
 does it automatically and audits each page for horizontal overflow, broken images,
 Liquid errors, leftover Empire assets and undersized tap targets.
 
