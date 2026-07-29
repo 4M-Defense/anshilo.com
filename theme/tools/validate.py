@@ -405,6 +405,83 @@ if os.path.exists(schema_file) and os.path.exists(data_file):
 
 
 # --------------------------------------------------------------------------
+# 7. Colour contrast (WCAG 2.1 AA) on the palette in settings_data.json
+#
+# The palette is a legal matter for an Israeli storefront, not only a design
+# one, and two pairs did fail once: the in-stock green sat at 4.41:1 on white
+# (it appears on every product card) and the input border at 1.50:1 against
+# 3.00 required by 1.4.11 for UI component boundaries.
+# --------------------------------------------------------------------------
+
+
+def _luminance(hex_colour: str) -> float:
+    h = hex_colour.lstrip("#")
+    if len(h) == 3:
+        h = "".join(c * 2 for c in h)
+    channels = [int(h[i : i + 2], 16) / 255 for i in (0, 2, 4)]
+    linear = [c / 12.92 if c <= 0.03928 else ((c + 0.055) / 1.055) ** 2.4 for c in channels]
+    return 0.2126 * linear[0] + 0.7152 * linear[1] + 0.0722 * linear[2]
+
+
+def _contrast(a: str, b: str) -> float:
+    la, lb = _luminance(a), _luminance(b)
+    hi, lo = max(la, lb), min(la, lb)
+    return (hi + 0.05) / (lo + 0.05)
+
+
+# (label, foreground setting, background setting, minimum ratio)
+# 4.5 = AA body text; 3.0 = AA large text and non-text UI boundaries.
+CONTRAST_PAIRS = [
+    ("body text on card", "color_text", "color_background", 4.5),
+    ("body text on catalogue canvas", "color_text", "color_page", 4.5),
+    ("body text on alt section", "color_text", "color_surface_alt", 4.5),
+    ("muted text on card", "color_text_muted", "color_background", 4.5),
+    ("muted text on catalogue canvas", "color_text_muted", "color_page", 4.5),
+    ("muted text on alt section", "color_text_muted", "color_surface_alt", 4.5),
+    ("price / accent on card", "color_accent", "color_background", 4.5),
+    ("in-stock on card", "color_success", "color_background", 4.5),
+    ("in-stock on catalogue canvas", "color_success", "color_page", 4.5),
+    ("low stock on card", "color_warning", "color_background", 4.5),
+    ("error / sold out on card", "color_danger", "color_background", 4.5),
+    ("sale price on card", "color_sale", "color_background", 4.5),
+    ("heading ink on card (large)", "color_ink", "color_background", 3.0),
+    ("input border vs card", "color_border_strong", "color_background", 3.0),
+    ("input border vs canvas", "color_border_strong", "color_page", 3.0),
+]
+
+if os.path.exists(data_file):
+    try:
+        palette = (json.loads(read(data_file)).get("current") or {})
+    except json.JSONDecodeError:
+        palette = {}
+
+    for label, fg_key, bg_key, need in CONTRAST_PAIRS:
+        fg, bg = palette.get(fg_key), palette.get(bg_key)
+        if not (isinstance(fg, str) and isinstance(bg, str)):
+            continue
+        if not (fg.startswith("#") and bg.startswith("#")):
+            continue
+        got = _contrast(fg, bg)
+        if got + 0.005 < need:
+            err(
+                "config/settings_data.json",
+                f"contrast {got:.2f}:1 for {label} ({fg_key} {fg} on {bg_key} {bg}) "
+                f"— WCAG AA needs {need:.1f}:1",
+            )
+
+    # White text sits on the accent and ink buttons; both must clear AA.
+    for label, bg_key in (("white on accent button", "color_accent"),
+                          ("white on accent hover", "color_accent_hover"),
+                          ("white on ink surface", "color_ink")):
+        bg = palette.get(bg_key)
+        if isinstance(bg, str) and bg.startswith("#"):
+            got = _contrast("#FFFFFF", bg)
+            if got + 0.005 < 4.5:
+                err("config/settings_data.json",
+                    f"contrast {got:.2f}:1 for {label} ({bg_key} {bg}) — WCAG AA needs 4.5:1")
+
+
+# --------------------------------------------------------------------------
 # Report
 # --------------------------------------------------------------------------
 

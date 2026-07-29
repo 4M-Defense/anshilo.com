@@ -23,7 +23,7 @@ Branch: `claude/shopify-store-modern-design-746p2i` · PR: [#1](https://github.c
 
 | Fact | Consequence |
 |---|---|
-| **`anshilo.com` is blocked by the agent proxy.** `curl` returns `CONNECT tunnel failed, 403`. | You **cannot** load the storefront, screenshot it, or verify HTML. Don't waste calls trying, and don't disable TLS or unset `HTTPS_PROXY`. Verify through the Admin API and the static checkers instead. `theme/tools/shoot.mjs` exists and works — it just needs a network that can reach the store. |
+| **`anshilo.com` is blocked by the agent proxy.** `curl` returns `CONNECT tunnel failed, 403`. Also tested and blocked: `3007b3-4.myshopify.com` and `cdn.shopify.com` (both return `000`). `storage.googleapis.com` and `fonts.gstatic.com` are open. | You **cannot** load the storefront, screenshot it, or verify HTML. Don't waste calls trying, and don't disable TLS or unset `HTTPS_PROXY`. Verify through the Admin API and the static checkers instead. `theme/tools/shoot.mjs` exists and works — it just needs a network that can reach the store. |
 | **The org hit its monthly spend limit** during the build. | Subagents/Workflows may fail with `You've hit your org's monthly spend limit`. Assume you are working alone unless a call proves otherwise. |
 | `fonts.googleapis.com` / `fonts.gstatic.com` **are** reachable. | Font subsets were downloaded from there. |
 | `registry.npmjs.org` is reachable. | `npm install` works. |
@@ -130,6 +130,13 @@ two-pass grouping.
 The 3 validator warnings are `#eef1f6` in the two layouts (it is the literal value
 of the `--color-on-ink` token, so it belongs there) and `#ccc` in a print rule.
 
+`validate.py` also runs a **WCAG 2.1 AA contrast audit** over the palette in
+`settings_data.json` — 18 pairs, 4.5:1 for text and 3.0:1 for UI boundaries. It
+found two real failures (the in-stock green at 4.41:1 on white, which shows on
+every product card, and the input border at 1.50:1 against the 3.0:1 that 1.4.11
+requires). Both are fixed and the guard now blocks a regression. If you change a
+palette colour, run the validator — it will tell you if you broke AA.
+
 ---
 
 ## 5. Deployed theme vs repo — known differences
@@ -137,7 +144,17 @@ of the `--color-on-ink` token, so it belongs there) and `#ccc` in a print rule.
 The deployed theme is byte-identical to the repo **except**:
 
 - `snippets/structured-data.liquid` — the deployed copy has an abbreviated header
-  comment. Functionally identical. Will self-correct on the next full deploy.
+  comment. Functionally identical.
+- `assets/base.css` — the repo carries two small changes not yet deployed: the
+  `--color-success` alpha tints moved from `rgba(14,138,79,…)` to
+  `rgba(11,122,70,…)` to follow the new green (imperceptible at 8–24% alpha), and
+  `scroll-padding-block-start` now reads `--header-reserve` instead of a variable
+  no one ever set. Deploy it whenever you next touch that file; nothing is broken
+  meanwhile except the anchor offset on the A–Z jump bar.
+
+Note that `config/settings_data.json` will always differ in **size** from the repo
+copy: Shopify strips blank lines and prepends its own auto-generated header comment
+on write. Compare values, not bytes. The accessibility fix was verified that way.
 
 Everything else, including `assets/section-header.css` at 24,780 bytes, matches.
 
@@ -266,6 +283,16 @@ The theme handles all of these gracefully, but fixing the data is better:
 150 products priced ₪0 · 151 sold out · ~15 published collections with no products
 · one product with an inventory of 48,229,732 (a model number typed into the
 quantity field) · duplicate accessibility pages · a page titled "404".
+
+**Do not "fix" the empty collections by unpublishing them.** It looks like an easy
+win and it is a regression: four of them (נורות, תאורת חוץ OUTDOOR, תאורת פנים
+INDOOR, תאורה לאווירה נפיצה) are linked from `link-list-2`, which the **live**
+theme renders. Unpublishing them turns working links on the real site into 404s.
+The fix is either to add products or to remove the menu entries — both are the
+owner's decision about their catalogue, not a code change.
+
+Accessibility is **done** for the palette: the audit is now part of
+`validate.py` and both failures are fixed and deployed.
 
 ### 5. No independent code review has run
 

@@ -12,8 +12,12 @@
 html {
   -webkit-text-size-adjust: 100%;
   scroll-behavior: smooth;
-  /* Anchor jumps and in-page filter links must clear the sticky header. */
-  scroll-padding-block-start: var(--sticky-header-height, 96px);
+  /* Anchor jumps — the A-Z jump bar on /collections, in-page filter links — must
+     land below the sticky header. section-header.js publishes the header's live
+     height as --header-reserve, but it sets it on the header wrapper, so `html`
+     cannot read it; the fallback is the compressed header's height (announcement
+     strip + main row) and is what actually applies. */
+  scroll-padding-block-start: var(--header-reserve, 112px);
   /* Opt out of forced browser dark-mode inversion — the palette is deliberate. */
   color-scheme: light;
   /* Subtle scrollbars everywhere, matching the hairline language. */
@@ -564,7 +568,7 @@ summary::-webkit-details-marker { display: none; }
   block-size: 7px;
   border-radius: 50%;
   background: currentColor;
-  box-shadow: 0 0 0 3px rgba(14, 138, 79, 0.15);
+  box-shadow: 0 0 0 3px rgba(11, 122, 70, 0.15);
 }
 .stock-dot--out { color: var(--color-text-muted); }
 .stock-dot--out::before { box-shadow: 0 0 0 3px rgba(var(--color-text-rgb), 0.1); }
@@ -964,8 +968,8 @@ summary::-webkit-details-marker { display: none; }
   padding: 0.85rem 1.1rem;
   font-weight: 600;
   color: var(--color-success);
-  background: rgba(14, 138, 79, 0.08);
-  border: 1px solid rgba(14, 138, 79, 0.24);
+  background: rgba(11, 122, 70, 0.08);
+  border: 1px solid rgba(11, 122, 70, 0.24);
   border-radius: var(--radius-base);
 }
 

@@ -42,8 +42,8 @@ Defined in `layout/theme.liquid` from theme settings. Use the CSS var, never the
 | `--color-text` | `#16202F` | Body copy |
 | `--color-text-muted` | `#5B6779` | Meta, vendor, helper text |
 | `--color-border` | `#E3E8EF` | Hairlines, card borders |
-| `--color-border-strong` | `#CBD4E0` | Inputs, dividers needing weight |
-| `--color-success` | `#0E8A4F` | In stock |
+| `--color-border-strong` | `#848E9F` | Inputs, dividers needing weight |
+| `--color-success` | `#0B7A46` | In stock |
 | `--color-warning` | `#B45309` | Low stock |
 | `--color-danger` | `#C81E1E` | Errors, out of stock |
 | `--color-highlight` | `#FFB224` | Offers / "מבצע" badge (amber) |

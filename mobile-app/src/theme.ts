@@ -50,10 +50,10 @@ export const colors = {
   /** קווי שערה וגבולות כרטיס */
   border: '#E3E8EF',
   /** גבול עם משקל — שדות קלט, מפרידים */
-  borderStrong: '#CBD4E0',
+  borderStrong: '#848E9F',
 
   /** במלאי */
-  success: '#0E8A4F',
+  success: '#0B7A46',
   successSoft: '#E8F6EE',
   /** מלאי מתדלדל */
   warning: '#B45309',
