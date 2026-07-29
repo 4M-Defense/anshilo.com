@@ -37,9 +37,9 @@ Branch: `claude/shopify-store-modern-design-746p2i` · PR: [#1](https://github.c
 | **myshopify domain** | `3007b3-4.myshopify.com` (**not** `anshilo.myshopify.com` — verified via `shop.myshopifyDomain`) |
 | Shop id | `58110246991` |
 | Live theme (**never write to it**) | `שמירה 1` — `gid://shopify/OnlineStoreTheme/141469646927`, role MAIN |
-| **Working preview theme** | `שילו 2026 — העיצוב החדש v4 ⭐` — `gid://shopify/OnlineStoreTheme/148372193359` |
-| Preview URL | `https://anshilo.com/?preview_theme_id=148372193359` |
-| Superseded, owner can delete | `148368425039` (v2) and `148371210319` (v3). Each zip import mints a new theme, so these accumulate — delete them from the admin. |
+| **Working preview theme** | `שילו 2026 — העיצוב החדש v5 ⭐` — `gid://shopify/OnlineStoreTheme/148375371855` |
+| Preview URL | `https://anshilo.com/?preview_theme_id=148375371855` |
+| Superseded, owner can delete | `148368425039` (v2), `148371210319` (v3) and `148372193359` (v4). Each zip import mints a new theme, so these accumulate — delete them from the admin. |
 | Disposable theme, owner told to delete | `למחיקה — ייבוא כושל (בלי צבעים)` — `148368293967` |
 | Owner's original copy, mostly untouched | `עותק של שמירה 1` — `148357644367` (12 asset files + one test txt were written to it early on; it is otherwise still an Empire copy) |
 | New navigation menu | handle `shilo-2026-main`, `gid://shopify/Menu/236720193615` — 12 departments, 127 items, 3 levels |
@@ -65,7 +65,7 @@ mutation Upsert($themeId: ID!, $files: [OnlineStoreThemeFilesUpsertFileInput!]!)
 ```
 
 ```json
-{ "themeId": "gid://shopify/OnlineStoreTheme/148372193359",
+{ "themeId": "gid://shopify/OnlineStoreTheme/148375371855",
   "files": [{ "filename": "assets/section-header.css",
               "body": { "type": "TEXT", "value": "<the file, JSON-escaped>" } }] }
 ```
@@ -142,7 +142,7 @@ palette colour, run the validator — it will tell you if you broke AA.
 
 ## 5. Deployed theme vs repo — currently identical
 
-**There is no delta.** Theme `148372193359` was created by a full zip import of the
+**There is no delta.** Theme `148375371855` was created by a full zip import of the
 repo, and every file was verified by comparing the `size` the Admin API reports to
 the local byte count — 127 files, all exact, including the four that the import
 traps below would have silently mangled.
@@ -261,7 +261,7 @@ Get screenshots — home scrolled, a collection page, a product page, the cart, 
 menu drawer — and fix what they show. **Batch the fixes**: each CSS file costs a
 full-file upsert, so collecting several findings before deploying is much cheaper.
 
-If you have storefront access: `node theme/tools/shoot.mjs 148372193359 /tmp/shots`
+If you have storefront access: `node theme/tools/shoot.mjs 148375371855 /tmp/shots`
 does it automatically and audits each page for horizontal overflow, broken images,
 Liquid errors, leftover Empire assets and undersized tap targets.
 
