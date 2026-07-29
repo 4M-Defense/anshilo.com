@@ -141,6 +141,7 @@
         {%- elsif is_new -%}
           <span class="badge badge--new">{{ 'products.product.new' | t }}</span>
         {%- endif -%}
+        {% render 'product-labels', product: product, limit: 2 %}
       </div>
 
       {%- if quick_add_enabled and product.available -%}

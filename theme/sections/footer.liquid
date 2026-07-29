@@ -40,7 +40,7 @@
   endif
 
   assign has_social = false
-  if settings.social_facebook != blank or settings.social_instagram != blank or settings.social_tiktok != blank or settings.social_youtube != blank
+  if settings.social_facebook != blank or settings.social_instagram != blank or settings.social_tiktok != blank or settings.social_youtube != blank or settings.store_google != blank
     assign has_social = true
   endif
 
@@ -62,7 +62,7 @@
               assign logo_ratio = settings.logo.aspect_ratio | default: 2.5
               assign logo_height = logo_width | divided_by: logo_ratio | round
             -%}
-            <a href="{{ routes.root_url }}" class="footer__logo" aria-label="{{ shop.name | escape }}">
+            <a href="{{ routes.root_url }}" class="footer__logo{% if section.settings.logo_treatment == 'bare' %} footer__logo--bare{% endif %}" aria-label="{{ shop.name | escape }}">
               <img
                 src="{{ settings.logo | image_url: width: logo_width_2x }}"
                 srcset="{{ settings.logo | image_url: width: logo_width }} 1x, {{ settings.logo | image_url: width: logo_width_2x }} 2x"
@@ -108,6 +108,19 @@
                     aria-label="{{ 'general.social.instagram' | t }} - {{ 'general.accessibility.link_opens_new_tab' | t }}"
                   >
                     {% render 'icon', name: 'instagram', size: 18 %}
+                  </a>
+                </li>
+              {%- endif -%}
+              {%- if settings.store_google != blank -%}
+                <li>
+                  <a
+                    class="footer__social-link"
+                    href="{{ settings.store_google }}"
+                    target="_blank"
+                    rel="noopener"
+                    aria-label="{{ 'general.social.google' | t }} - {{ 'general.accessibility.link_opens_new_tab' | t }}"
+                  >
+                    {% render 'icon', name: 'google', size: 18 %}
                   </a>
                 </li>
               {%- endif -%}
@@ -419,6 +432,17 @@
       "label": "תיאור קצר של החנות",
       "info": "הלוגו נלקח מהגדרות התבנית.",
       "default": "<p>א.נ. שילו - חומרי בניין, כלי עבודה, ציוד טכני ומחסן עצים בקיבוץ קרית ענבים. מעל 30 שנה של שירות מקצועי לקבלנים, לנגרים ולמשק הבית.</p>"
+    },
+    {
+      "type": "select",
+      "id": "logo_treatment",
+      "label": "תצוגת הלוגו על הרקע הכהה",
+      "info": "\"משטח בהיר\" מתאים לכל לוגו, כולל לוגו עם רקע לבן. \"ללא רקע\" מיועד ללוגו שקוף בגוון בהיר שמעוצב לשבת ישירות על רקע כהה.",
+      "options": [
+        { "value": "plate", "label": "משטח בהיר (מומלץ)" },
+        { "value": "bare", "label": "ללא רקע" }
+      ],
+      "default": "plate"
     },
     {
       "type": "checkbox",

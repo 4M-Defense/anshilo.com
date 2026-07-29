@@ -10,12 +10,16 @@
    ========================================================= */
 
 /* Distance from the top of the viewport at which sticky UI parks itself.
-   facets.js keeps --collection-sticky-offset in sync with the real, currently
-   compressed height of the sticky site header. */
+   section-header.js publishes the COMPRESSED sticky-header height on :root as
+   --sticky-header-height — the right value here, because by the time anything
+   sticks the page is scrolled and the header has collapsed. (A JS measurement
+   of the header's current box was tried and removed: at scroll-top it reads
+   the EXPANDED header — ~225px with the two-line department row — and the
+   sidebar's max-block-size arithmetic below collapsed to nothing.) */
 .collection-hero,
 .collection-grid,
 .collection-index {
-  --collection-stick: var(--collection-sticky-offset, var(--sticky-header-height, 96px));
+  --collection-stick: var(--sticky-header-height, 96px);
 }
 
 /* =========================================================
@@ -279,7 +283,9 @@
   .collection-layout__sidebar {
     position: sticky;
     inset-block-start: calc(var(--collection-stick) + 4.25rem);
-    max-block-size: calc(100vh - var(--collection-stick) - 6rem);
+    /* Hard floor: whatever the offset resolves to (or becomes in the future),
+       the filters panel must never collapse below a usable height. */
+    max-block-size: max(18rem, calc(100vh - var(--collection-stick) - 6rem));
     overflow-y: auto;
     overscroll-behavior: contain;
     padding-inline-end: 0.35rem;

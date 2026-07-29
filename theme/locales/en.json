@@ -1,4 +1,20 @@
 {
+  "accessibility_widget": {
+    "big_cursor": "Large cursor",
+    "close": "Close accessibility menu",
+    "contrast": "High contrast",
+    "font_size": "Text size",
+    "font_size_value": "{{ percent }}%",
+    "grayscale": "Grayscale",
+    "invert": "Invert colors",
+    "links": "Highlight links",
+    "open": "Open accessibility menu",
+    "readable_font": "Readable font",
+    "reset": "Reset accessibility settings",
+    "statement": "Accessibility statement",
+    "stop_motion": "Stop animations",
+    "title": "Accessibility menu"
+  },
   "blog": {
     "article": {
       "comment_form_title": "Leave a comment",
@@ -336,6 +352,7 @@
     "social": {
       "facebook": "Facebook",
       "follow_title": "Follow us",
+      "google": "Our Google page",
       "instagram": "Instagram",
       "tiktok": "TikTok",
       "twitter": "Twitter",

@@ -198,6 +198,7 @@
         --color-sale: {{ settings.color_sale }};
         --color-highlight: {{ settings.color_highlight }};
         --color-highlight-rgb: {{ settings.color_highlight.rgb | replace: ' ', ', ' }};
+        --color-tile-bg: {{ settings.color_tile_bg | default: settings.color_highlight }};
 
         --color-on-accent: #ffffff;
         --color-on-ink: #eef1f6;
@@ -291,6 +292,14 @@
     {%- comment -%} Floating contact dock — mobile-first, real store details {%- endcomment -%}
     {%- if settings.show_contact_dock -%}
       {% render 'contact-dock' %}
+    {%- endif -%}
+
+    {%- comment -%}
+      In-theme accessibility widget (replaces the Sense RTL app's block).
+      Floats at inline-start, opposite the contact dock.
+    {%- endcomment -%}
+    {%- if settings.a11y_enabled -%}
+      {% render 'accessibility-widget' %}
     {%- endif -%}
 
     {%- comment -%}

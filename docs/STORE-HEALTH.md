@@ -152,21 +152,54 @@ absolutely positions `.media > img` with `inset: 0`, and an absolutely positione
 child resolves `inset` against its containing block's *padding* box — so the image
 covered the padding and the hairline sat directly under the photo's own edge.
 
-What ships instead is **one well, one window**: a uniform sunken plate
-(`--color-surface-sunken`) that is ours and always visible, with the image inset by
-12.5% into a smaller white square window carrying the same hairline and the same
-faint corner vignette on all twelve. `object-fit: contain` is kept, so nothing is
-cropped. Their pixels drop from roughly 74% of the tile's visual field to about 40%,
-and what is left is a small framed chip rather than "the background". This does not
-make the pixels match — it stops the mismatch from reading as the background.
-`assets/section-category-rail.css` carries the full reasoning.
+**Superseded (round 5).** The "one well, one window" treatment that replaced it
+(sunken plate + inset white window + hairline + vignette) shipped and the owner
+read it as a square inside a square. What ships now, at the owner's request, is
+**one flat coloured field**: a single plate painted with the new `--color-tile-bg`
+token (setting "רקע אריחי המחלקות", default amber `#FFB224`), 8% uniform padding,
+the image `contain`ed directly on it — no inner window, no frame, no vignette.
 
-The real fix is to replace those three collection images with designed tiles
-matching the `collection-N.png` set. Until then the row will never be perfectly
-uniform. The `סולמות` one is worth replacing regardless: at 333×500 it is the only
-portrait image in a square grid. Even with the window treatment, `contain` leaves
-`סולמות` at 66.6% of its window's inline size, so that tile's subject still reads
-slightly smaller than the others.
+The blanket-blend-mode rejection above still holds, but selectively `multiply` is
+exactly right: it maps pure white onto the plate colour (`1 × C = C`), so an
+opaque product photo shot on white melts into the amber seamlessly, while the
+product itself survives. The rail therefore gained a per-block checkbox
+("צילום מוצר על רקע לבן - מיזוג לרקע") that applies `mix-blend-mode: multiply`
+(+ `isolation: isolate` so the blend stays inside the plate). It is switched ON
+for exactly the three raw photo tiles — כלים נטענים, ברזים, סולמות — in
+`templates/index.json`, and OFF for the designed tiles, whose baked-in field
+colours multiply would tint and darken. Nobody in this environment can render the
+images (`cdn.shopify.com` is proxy-blocked), so the ON/OFF split follows the file
+metadata above; **a human should eyeball the row once** and flip a checkbox in the
+theme editor if a tile was misclassified.
+
+The same amber token is now also the field behind the header mega-menu thumbnails
+(`.nav-thumb` in `assets/section-header.css`). There it ships **without** any
+blend: the thumb pool includes brand wordmarks (the מותגים panel), and multiply
+would discolour them — Makita's teal multiplies to a dark green. Menu items carry
+no per-item flags, so selective blending is not possible there.
+
+The real fix is still to replace the three photo sources with designed tiles
+matching the `collection-N.png` set. The `סולמות` one is worth replacing
+regardless: at 333×500 it is the only portrait image in a square grid, so its
+subject reads smaller than the others inside `contain`.
+
+### Menu collections with no image at all (header thumbnails)
+
+The mega-menu shows a thumbnail per entry **only when every sibling in that panel
+group has a real collection image** — a row where some entries have art and some
+do not reads as broken, and the first-product fallback was checked against the
+live catalogue and rejected: ניקוי כללי וחיטוי and ניקוי רצפות share the exact
+same first product (דלי הפלא VILEDA), as do רסטוליום and תרסיסי צבע (ספריי 2X),
+so the same photo would render twice inside one panel.
+
+These 14 menu collections have **no image**; because of them, four panels
+currently render text-only (ניקיון ותחזוקה entirely; the level-2 rows of
+אינסטלציה וברזים, צבע ואיטום and קמפינג ופנאי). Upload an image per collection
+in the admin and the thumbnails appear on their own — no code change needed:
+
+ניקוי כללי וחיטוי · ניקוי רצפות · אביזרי ניקוי · כביסה · מטבח וכלים · בישום ·
+רצפות · רהיטים ושטיחים · מתכות ותכשיטים · תרסיסי צבע · רסטוליום ·
+אמבטיה ושירותים · אמריקן איגל · המבצעים שלנו (משפיע רק על שיתופים, לא על התפריט)
 
 Note that no agent has been able to *see* any of these images — `cdn.shopify.com`
 is blocked from the build environment, and `WebFetch` against it returns 403. Every

@@ -427,6 +427,14 @@
   line-height: 1.24;
 }
 
+/* Merchant tag-labels ("תווית:" tags) under the title. */
+.product-info__labels {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-block-start: 0.55rem;
+}
+
 .product-info__sku {
   margin: 0;
   font-size: 0.83rem;

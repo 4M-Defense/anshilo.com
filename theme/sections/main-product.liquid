@@ -121,6 +121,11 @@
 
             <h1 class="product-info__title">{{ product.title | escape }}</h1>
 
+            {%- capture product_labels -%}{% render 'product-labels', product: product, limit: 4 %}{%- endcapture -%}
+            {%- if product_labels contains 'badge' -%}
+              <div class="product-info__labels">{{ product_labels }}</div>
+            {%- endif -%}
+
             {%- if section.settings.show_sku -%}
               <p class="product-info__sku" data-sku-wrap {% if current_variant.sku == blank %}hidden{% endif %}>
                 {{ 'products.product.sku' | t }}:

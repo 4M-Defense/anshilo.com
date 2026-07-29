@@ -5,7 +5,6 @@
    - replaces #ProductGridContainer content + history.pushState
    - handles popstate, AJAX pagination, chip removal, loading overlay
    - collapses long filter option lists behind "show more"
-   - keeps --collection-sticky-offset in sync with the sticky header height
    - also powers the collapsible collection description in the banner
    ========================================================= */
 (function () {
@@ -328,51 +327,13 @@
     });
   }
 
-  /* ---------- Sticky offset ----------
-     The site header is sticky and compresses as you scroll, so the toolbar and
-     the A–Z jump bar cannot hard-code where to park. Publish the header's real
-     height as a custom property and let CSS consume it. */
-  var stickyOffsetBound = false;
-
-  function initStickyOffset() {
-    if (stickyOffsetBound) return;
-
-    var header =
-      document.querySelector('[data-sticky-header]') || document.querySelector('.site-header');
-    if (!header) return;
-
-    stickyOffsetBound = true;
-    var last = -1;
-
-    function sync() {
-      var height = Math.round(header.getBoundingClientRect().height);
-      if (height === last) return;
-      last = height;
-      document.documentElement.style.setProperty('--collection-sticky-offset', height + 'px');
-    }
-
-    var queued = false;
-    function schedule() {
-      if (queued) return;
-      queued = true;
-      requestAnimationFrame(function () {
-        queued = false;
-        sync();
-      });
-    }
-
-    sync();
-
-    if ('ResizeObserver' in window) {
-      new ResizeObserver(schedule).observe(header);
-    } else {
-      window.addEventListener('resize', schedule);
-    }
-
-    // The compression is driven by scroll position, not by a resize event.
-    window.addEventListener('scroll', schedule, { passive: true });
-    window.addEventListener('load', schedule);
-  }
+  /* Sticky offsets are NOT measured here. section-header.js publishes the
+     compressed header height as --sticky-header-height on :root, and that is
+     exactly the value sticky collection UI needs (by the time anything is
+     stuck, the page is scrolled and the header has collapsed). A previous
+     version measured the header itself per scroll frame; at the top of the
+     page that reads the EXPANDED header (~225px with a two-line nav row) and
+     the sidebar's max-block-size arithmetic collapsed to nothing. */
 
   /* ---------- Collapsible collection description (banner) ---------- */
   function initCollapsibleDesc() {
@@ -410,7 +371,6 @@
     openDesktopFacets(document);
     initFacetLists(document);
     initCollapsibleDesc();
-    initStickyOffset();
   }
 
   if (document.readyState === 'loading') {
@@ -423,6 +383,5 @@
     openDesktopFacets(document);
     initFacetLists(document);
     initCollapsibleDesc();
-    initStickyOffset();
   });
 })();

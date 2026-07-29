@@ -710,8 +710,12 @@ summary::-webkit-details-marker { display: none; }
 
 .product-card__media img.product-card__img--secondary { opacity: 0; }
 @media (hover: hover) {
-  .product-card:hover .product-card__media img.product-card__img--primary { opacity: 0; }
-  .product-card:hover .product-card__media img.product-card__img--secondary { opacity: 1; }
+  /* The primary image may only fade when a secondary image actually exists to
+     replace it — the snippet emits the secondary <img> (and this modifier class)
+     only when the product has more than one media. Unscoped, this rule blanked
+     every single-image card on hover. */
+  .product-card:hover .product-card__media--has-secondary img.product-card__img--primary { opacity: 0; }
+  .product-card:hover .product-card__media--has-secondary img.product-card__img--secondary { opacity: 1; }
   .product-card:hover .product-card__media--has-secondary img { transform: none; }
   .product-card:hover .product-card__media:not(.product-card__media--has-secondary) img { transform: scale(1.04); }
 }

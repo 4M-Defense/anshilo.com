@@ -41,7 +41,8 @@
           "type": "collection",
           "settings": {
             "collection": "כלים-נטענים",
-            "icon": "battery"
+            "icon": "battery",
+            "photo_blend": true
           }
         },
         "r3": {
@@ -69,7 +70,8 @@
           "type": "collection",
           "settings": {
             "collection": "ברזים",
-            "icon": "droplet"
+            "icon": "droplet",
+            "photo_blend": true
           }
         },
         "r7": {
@@ -83,7 +85,8 @@
           "type": "collection",
           "settings": {
             "collection": "סולמות",
-            "icon": "ladder"
+            "icon": "ladder",
+            "photo_blend": true
           }
         },
         "r9": {

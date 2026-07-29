@@ -1,6 +1,6 @@
 # HANDOFF — א.נ. שילו · Shilo Pro v2
 
-**Current state: round 4 shipped. Start at §10 for what just changed, then §2.**
+**Current state: round 5 shipped. Start at §11 for what just changed, then §2.**
 
 **Written by the previous agent. Read this before touching anything.**
 Run `git log --oneline` for the current head — the list in §9 stops at the commit
@@ -41,9 +41,9 @@ Branch: `claude/shopify-store-modern-design-746p2i` · PR: [#1](https://github.c
 | **myshopify domain** | `3007b3-4.myshopify.com` (**not** `anshilo.myshopify.com` — verified via `shop.myshopifyDomain`) |
 | Shop id | `58110246991` |
 | Live theme (**never write to it**) | `שמירה 1` — `gid://shopify/OnlineStoreTheme/141469646927`, role MAIN |
-| **Working preview theme** | `שילו 2026 — העיצוב החדש v5 ⭐` — `gid://shopify/OnlineStoreTheme/148375371855` |
-| Preview URL | `https://anshilo.com/?preview_theme_id=148375371855` |
-| Superseded, owner can delete | `148368425039` (v2), `148371210319` (v3) and `148372193359` (v4). Each zip import mints a new theme, so these accumulate — delete them from the admin. |
+| **Working preview theme** | `שילו 2026 — העיצוב החדש v6 ⭐` — `gid://shopify/OnlineStoreTheme/148376649807` |
+| Preview URL | `https://anshilo.com/?preview_theme_id=148376649807` |
+| Superseded, owner can delete | `148368425039` (v2), `148371210319` (v3), `148372193359` (v4) and `148375371855` (v5). Each zip import mints a new theme, so these accumulate — delete them from the admin. |
 | Disposable theme, owner told to delete | `למחיקה — ייבוא כושל (בלי צבעים)` — `148368293967` |
 | Owner's original copy, mostly untouched | `עותק של שמירה 1` — `148357644367` (12 asset files + one test txt were written to it early on; it is otherwise still an Empire copy) |
 | New navigation menu | handle `shilo-2026-main`, `gid://shopify/Menu/236720193615` — 12 departments, 127 items, 3 levels |
@@ -144,19 +144,17 @@ palette colour, run the validator — it will tell you if you broke AA.
 
 ---
 
-## 5. Deployed theme vs repo — one known delta
+## 5. Deployed theme vs repo — no known delta
 
-**One file is ahead of the deployed theme:** `sections/main-addresses.liquid`. It
-carries the country-select data-loss guard (see §10) and nothing else. It is not
-deployed because the preview theme is unpublished, so no real customer can save an
-address through it, and a single 21KB upsert was not worth spending on a path nobody
-can currently reach. **Send it with your next deploy** — the fix matters the moment
-the theme is published. Everything else matches.
+**The repo and theme `148376649807` (v6) match.** The previous round's one gap —
+`sections/main-addresses.liquid` with the country-select data-loss guard — went
+out with the v6 zip import and its size was verified (21,335 bytes, exact).
 
-Theme `148375371855` was created by a full zip import of the
-repo, and every file was verified by comparing the `size` the Admin API reports to
-the local byte count — 127 files, all exact, including the four that the import
-traps below would have silently mangled.
+v6 was created by a full zip import of the repo; the 25 files that round 5
+changed or added (plus main-addresses and both config files) were verified by
+comparing the `size` the Admin API reports to the local byte count — 25/25
+exact, `config/settings_schema.json` at 10,548 bytes (the empty-default trap
+did not fire), `config/settings_data.json` byte-identical at 2,355.
 
 Two things worth knowing when you next deploy:
 
@@ -490,3 +488,45 @@ rediscover them.
   both blocked from this environment. Every claim above was verified through the Admin
   API, `validate.py`, `node --check` and static reading — never with eyes. §7.1 still
   stands and is still the highest-value remaining task.
+
+---
+
+## 11. Round 5 — what changed, and what is knowingly left
+
+Six reported problems fixed + both paid apps replaced with in-theme code.
+Deployed as theme **v6 `148376649807`** (zip import — the volume was ~24 files /
+390KB, far past the §3 threshold where per-file upserts stop making sense).
+`validate.py`: 0 errors, 4 warnings (the 3 known ones + a new deliberate one:
+`#0000ee` in `accessibility.css` is the universal link-blue of the forced
+high-contrast mode — a theme token there would defeat the override).
+
+### What changed
+
+| Area | Root cause / decision | Where |
+|---|---|---|
+| White block over the footer about-text | `filter: brightness(0) invert(1)` turns every opaque pixel white; the shop logo is a non-transparent 500×100 PNG | `section-footer.css` (white plate, no filter), `footer.liquid` (new `logo_treatment` select, default "plate") |
+| Google Business link | `settings.store_google` now renders as a social icon | new `google` icon in `icon.liquid` (69 icons now), `footer.liquid` + `main-contact.liquid` social rows (both `has_social` gates updated), menu-drawer action button in `header.liquid`, `general.social.google` in both locales |
+| "המחלקות שלנו" square-in-square | Owner wants one flat amber field | new global token `--color-tile-bg` (setting `color_tile_bg`, default `#FFB224`), flat plate + selective `mix-blend-mode: multiply` via per-block `photo_blend` checkbox — ON for the 3 photo tiles (r2/r6/r8) in `templates/index.json`. Full reasoning in `docs/STORE-HEALTH.md` |
+| Header nav thumbs uneven | 14 menu collections have no image (list in STORE-HEALTH); first-product fallback rejected — real duplicate pairs verified via Admin API | `header.liquid`: thumbs are all-or-nothing per sibling group; `.nav-thumb` now sits on `--color-tile-bg`, **no blend** (would discolour brand wordmarks) |
+| Product image vanishes on hover | `base.css` faded `__img--primary` unconditionally; secondary img only exists when `media.size > 1` | `base.css` — fade scoped to `.product-card__media--has-secondary`; single-image cards now get the scale(1.04) zoom that was already written |
+| Collection filters collapse | `facets.js#initStickyOffset` measured the EXPANDED header (~225px) at scroll-top and its value overrode the correct one; `max-block-size` went ≈0 | `initStickyOffset` deleted (function + both calls + scroll/RO listeners); `section-collection.css` consumes `--sticky-header-height` directly + `max(18rem, …)` floor. Mobile facets drawer verified independent (plain fixed drawer) |
+| **Sense RTL app ($7.75/mo)** | Its RTL/font/translation jobs are moot on an RTL-native theme; its accessibility widget needed replacing | new in-theme widget: `snippets/accessibility-widget.liquid`, `assets/accessibility.{css,js}`, `accessibility` icon, settings group "נגישות" (`a11y_enabled` default ON, `a11y_statement_link`), 14 locale keys `accessibility_widget.*`, rendered from `theme.liquid`. Font-size steps 100/110/125%, contrast, grayscale, invert, link highlight, readable font, stop motion, big cursor; persists in `localStorage['shilo.a11y.v1']`. The app's embed in `settings_data.json` is now `"disabled": true` (kept so the owner can re-enable) |
+| **TA/BSS Labels app ($5/mo)** | Config lives on the app's servers (embed `bss-pl-config-data` has empty settings; `appInstallations`/`scriptTags` scopes denied) — **could not be read**; owner must copy their label list out of the app before uninstalling | tag-driven labels: any product tag starting `תווית:` renders as an amber badge — `snippets/product-labels.liquid`, wired into `product-card.liquid` (max 2) and `main-product.liquid` (max 4, under the title), setting `enable_tag_labels` default ON. Owner-facing migration + safe-cancellation guide (incl. the "don't uninstall Sense RTL before publishing — the LIVE theme depends on it for RTL" warning): `docs/INSTALL-THEME.md` §7 |
+
+### Knowingly left / needs eyes
+
+- **Nobody has seen any of this rendered.** Same §2 blocks apply. The rail's
+  multiply ON/OFF split follows documented file metadata (8 designed tiles vs 3
+  photos); if a tile was misclassified the fix is one checkbox in the theme
+  editor (רצועת מחלקות → the block → "צילום מוצר על רקע לבן").
+- The 14 imageless menu collections (STORE-HEALTH list) keep four menu panels
+  text-only until the owner uploads images — by design, not a bug.
+- The a11y high-contrast mode uses blanket `!important` overrides; product
+  imagery is exempted. Extreme edge cases (inline-styled third-party embeds)
+  may resist it.
+- The BSS label inventory could not be exported from here. Until the owner
+  copies their rules into `תווית:` tags, the new theme shows only the automatic
+  badges (sale % / new / sold-out) — the BSS embed itself stays functional on
+  the new theme while the app is installed.
+- `whatsapp-button` + `essential-announcer` app embeds also duplicate built-in
+  theme features; flagged to the owner in INSTALL-THEME §7, their call.

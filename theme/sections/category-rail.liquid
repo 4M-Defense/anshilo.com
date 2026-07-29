@@ -81,14 +81,16 @@
                     </span>
                   {%- else -%}
                     {%- comment -%}
-                      The plate is the well and must wrap the image box: base.css
-                      absolutely positions .media > img with inset: 0, so padding on
-                      .media itself would not inset the photo. sizes is 3/4 of the
-                      tile's share of the viewport because the window is 75% of the
-                      plate on the inline axis; the old full-tile values would
-                      over-fetch by roughly 1.8x in area on every tile.
+                      One flat coloured plate (token --color-tile-bg) with the image
+                      contained inside it. The plate wraps the image box because
+                      base.css absolutely positions .media > img with inset: 0, so
+                      padding on .media itself would not inset the photo. photo_blend
+                      marks opaque product photos shot on white: multiply melts that
+                      white into the plate colour (see section-category-rail.css and
+                      docs/STORE-HEALTH.md). sizes stays a step below the tile's
+                      viewport share because the window is ~84% of the plate.
                     {%- endcomment -%}
-                    <span class="category-rail__plate" aria-hidden="true">
+                    <span class="category-rail__plate{% if block.settings.photo_blend %} category-rail__plate--blend{% endif %}" aria-hidden="true">
                       <span class="category-rail__media media media--square media--contain">
                         {%- if tile_image != blank -%}
                           <img
@@ -129,8 +131,9 @@
             <li class="category-rail__item reveal">
               <a class="category-rail__tile" href="{{ rail_collection.url }}">
                 {%- comment -%}
-                  Same well/window markup as the merchant-block loop above, so a
-                  store that has never configured blocks gets the identical row.
+                  Same plate markup as the merchant-block loop above, so a store
+                  that has never configured blocks gets the identical row (without
+                  per-tile blend flags, which only blocks can carry).
                 {%- endcomment -%}
                 <span class="category-rail__plate" aria-hidden="true">
                   <span class="category-rail__media media media--square media--contain">
@@ -243,6 +246,13 @@
           "id": "image",
           "label": "תמונה מותאמת",
           "info": "אופציונלי. אם לא נבחרה - תוצג תמונת הקטגוריה."
+        },
+        {
+          "type": "checkbox",
+          "id": "photo_blend",
+          "label": "צילום מוצר על רקע לבן - מיזוג לרקע",
+          "info": "סמנו כשהתמונה היא צילום מוצר על רקע לבן: הרקע הלבן ייבלע בצבע האריח והמוצר יישאר. אל תסמנו לגרפיקות מעוצבות עם צבע רקע משלהן - המיזוג יכהה אותן.",
+          "default": false
         },
         {
           "type": "text",

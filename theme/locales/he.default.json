@@ -1,4 +1,20 @@
 {
+  "accessibility_widget": {
+    "big_cursor": "סמן גדול",
+    "close": "סגירת תפריט נגישות",
+    "contrast": "ניגודיות גבוהה",
+    "font_size": "גודל טקסט",
+    "font_size_value": "{{ percent }}%",
+    "grayscale": "גווני אפור",
+    "invert": "היפוך צבעים",
+    "links": "הדגשת קישורים",
+    "open": "פתיחת תפריט נגישות",
+    "readable_font": "גופן קריא",
+    "reset": "איפוס הגדרות נגישות",
+    "statement": "הצהרת נגישות",
+    "stop_motion": "עצירת אנימציות",
+    "title": "תפריט נגישות"
+  },
   "blog": {
     "article": {
       "comment_form_title": "כתיבת תגובה",
@@ -336,6 +352,7 @@
     "social": {
       "facebook": "פייסבוק",
       "follow_title": "עקבו אחרינו",
+      "google": "הדף שלנו בגוגל",
       "instagram": "אינסטגרם",
       "tiktok": "טיקטוק",
       "twitter": "טוויטר",
