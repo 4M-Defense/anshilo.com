@@ -47,9 +47,34 @@
                 assign tile_image = block.settings.image | default: rail_collection.image | default: rail_collection.featured_image
                 assign ph_index = forloop.index0 | modulo: 6 | plus: 1
                 assign ph_name = 'collection-' | append: ph_index
+
+                # An explicit per-block image always wins: if the owner ever supplies
+                # a matched set of designed tiles, dropping them in is enough.
+                assign use_icon = false
+                if section.settings.tile_style == 'icon' and block.settings.image == blank
+                  assign use_icon = true
+                endif
               -%}
               <li class="category-rail__item reveal" {{ block.shopify_attributes }}>
                 <a class="category-rail__tile" href="{{ rail_collection.url }}">
+                  {%- if use_icon -%}
+                    {%- comment -%}
+                      Icon tiles, not collection images. The twelve department images
+                      were never produced as a set - most are designed 1080x1080
+                      tiles with a colour baked in, three are raw product shots - so
+                      the row could not be made uniform from them, and no stylesheet
+                      can repaint the inside of a JPEG. Falling back to each
+                      collection's first product photo was tried and is worse: two
+                      pairs of departments share a first product, and several of the
+                      rest are unrepresentative (תאורה resolves to a memorial candle,
+                      כלי עבודה to a file called Screenshot2024-07-18004225.png).
+                      Drawing the mark ourselves is the only option that is uniform by
+                      construction rather than by luck.
+                    {%- endcomment -%}
+                    <span class="category-rail__media category-rail__media--icon" aria-hidden="true">
+                      {% render 'icon', name: block.settings.icon, size: 34 %}
+                    </span>
+                  {%- else -%}
                   <span class="category-rail__media media media--square media--contain" aria-hidden="true">
                     {%- if tile_image != blank -%}
                       <img
@@ -66,6 +91,7 @@
                       {{ ph_name | placeholder_svg_tag: 'placeholder-svg' }}
                     {%- endif -%}
                   </span>
+                  {%- endif -%}
                   <span class="category-rail__body">
                     <span class="category-rail__title">{{ tile_title | escape }}</span>
                     {%- if section.settings.show_count -%}
@@ -142,6 +168,17 @@
       "id": "alt_background",
       "label": "רקע אפור בהיר",
       "default": false
+    },
+    {
+      "type": "select",
+      "id": "tile_style",
+      "label": "מה מוצג באריח",
+      "info": "\"אייקון\" מבטיח שכל האריחים ייראו אותו דבר, כי הערכה מייצרת אותם בעצמה. \"תמונת הקטגוריה\" תלויה בתמונות שהועלו לחנות, ואלה לא נוצרו כסט אחיד. תמונה מותאמת בבלוק עצמו עוקפת את שתי האפשרויות.",
+      "options": [
+        { "value": "icon", "label": "אייקון (אחיד, מומלץ)" },
+        { "value": "image", "label": "תמונת הקטגוריה" }
+      ],
+      "default": "icon"
     }
   ],
   "blocks": [
@@ -153,6 +190,32 @@
           "type": "collection",
           "id": "collection",
           "label": "קטגוריה"
+        },
+        {
+          "type": "select",
+          "id": "icon",
+          "label": "אייקון",
+          "options": [
+            { "value": "hammer", "label": "כלי עבודה / פטיש" },
+            { "value": "wrench", "label": "מפתח" },
+            { "value": "battery", "label": "כלים נטענים / סוללה" },
+            { "value": "bolt", "label": "חשמל" },
+            { "value": "lightbulb", "label": "תאורה" },
+            { "value": "pipe", "label": "אינסטלציה / צינור" },
+            { "value": "droplet", "label": "ברזים / מים" },
+            { "value": "paint-roller", "label": "צבע" },
+            { "value": "ladder", "label": "סולמות" },
+            { "value": "spray", "label": "ניקיון" },
+            { "value": "hard-hat", "label": "ציוד טכני" },
+            { "value": "tent", "label": "קמפינג" },
+            { "value": "planks", "label": "עץ ולוחות" },
+            { "value": "ruler", "label": "מדידה" },
+            { "value": "package", "label": "אחר / חבילה" },
+            { "value": "shield-check", "label": "אבטחה" },
+            { "value": "key", "label": "מנעולים" },
+            { "value": "store", "label": "כללי" }
+          ],
+          "default": "package"
         },
         {
           "type": "image_picker",

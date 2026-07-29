@@ -94,6 +94,35 @@
   padding: clamp(0.35rem, 1vw, 0.6rem);
 }
 
+/* Icon plate - the default. Every tile is drawn by the theme, so the row is
+   uniform by construction: identical plate, identical square, identical stroke
+   weight, and the only thing that varies is the glyph. That is the whole point;
+   the collection images could not deliver it (see the comment in the section).
+   The accent tint is the same one the contact card's icons use, so the mark reads
+   as brand furniture rather than as a missing image. */
+.category-rail__media--icon {
+  display: grid;
+  place-items: center;
+  aspect-ratio: 1 / 1;
+  background: var(--color-accent-soft);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  color: var(--color-accent);
+  transition: background-color var(--duration-base) ease, color var(--duration-base) ease;
+}
+
+.category-rail__media--icon .icon {
+  inline-size: clamp(28px, 4vw, 38px);
+  block-size: clamp(28px, 4vw, 38px);
+}
+
+@media (hover: hover) {
+  .category-rail__tile:hover .category-rail__media--icon {
+    background: var(--color-accent);
+    color: var(--color-on-accent);
+  }
+}
+
 /* ---------- Copy ---------- */
 .category-rail__body {
   display: flex;

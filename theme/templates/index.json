@@ -24,79 +24,92 @@
       "type": "category-rail",
       "settings": {
         "heading": "המחלקות שלנו",
-        "show_count": true
+        "show_count": true,
+        "tile_style": "icon"
       },
       "blocks": {
         "r1": {
           "type": "collection",
           "settings": {
-            "collection": "כלי-עבודה"
+            "collection": "כלי-עבודה",
+            "icon": "hammer"
           }
         },
         "r2": {
           "type": "collection",
           "settings": {
-            "collection": "כלים-נטענים"
+            "collection": "כלים-נטענים",
+            "icon": "battery"
           }
         },
         "r3": {
           "type": "collection",
           "settings": {
-            "collection": "שקעים-ומפסקים"
+            "collection": "שקעים-ומפסקים",
+            "icon": "bolt"
           }
         },
         "r4": {
           "type": "collection",
           "settings": {
-            "collection": "תאורה"
+            "collection": "תאורה",
+            "icon": "lightbulb"
           }
         },
         "r5": {
           "type": "collection",
           "settings": {
-            "collection": "אינסטלציה"
+            "collection": "אינסטלציה",
+            "icon": "pipe"
           }
         },
         "r6": {
           "type": "collection",
           "settings": {
-            "collection": "ברזים"
+            "collection": "ברזים",
+            "icon": "droplet"
           }
         },
         "r7": {
           "type": "collection",
           "settings": {
-            "collection": "צבע"
+            "collection": "צבע",
+            "icon": "paint-roller"
           }
         },
         "r8": {
           "type": "collection",
           "settings": {
-            "collection": "סולמות"
+            "collection": "סולמות",
+            "icon": "ladder"
           }
         },
         "r9": {
           "type": "collection",
           "settings": {
-            "collection": "ניקיון-ותחזוקת-הבית"
+            "collection": "ניקיון-ותחזוקת-הבית",
+            "icon": "spray"
           }
         },
         "r10": {
           "type": "collection",
           "settings": {
-            "collection": "ציוד-טכני"
+            "collection": "ציוד-טכני",
+            "icon": "hard-hat"
           }
         },
         "r11": {
           "type": "collection",
           "settings": {
-            "collection": "קמפינג"
+            "collection": "קמפינג",
+            "icon": "tent"
           }
         },
         "r12": {
           "type": "collection",
           "settings": {
-            "collection": "עץ"
+            "collection": "עץ",
+            "icon": "planks"
           }
         }
       },
