@@ -1,45 +1,150 @@
+import { Platform, type TextStyle, type ViewStyle } from 'react-native';
+
 /**
- * מערכת העיצוב של האפליקציה — תואמת אחד-לאחד לת'ים "Shilo Pro" באתר.
+ * מערכת העיצוב של האפליקציה — מראה (mirror) של אסימוני ה-CSS של ת'ים
+ * "Shilo Pro" v2 "Clarity" באתר (theme/DESIGN-SYSTEM.md).
+ *
+ * הכלל: אף מסך ואף רכיב לא כותב hex, רדיוס, צל או משקל פונט בעצמו —
+ * הכול מגיע מכאן. כך האתר והאפליקציה נראים כמוצר אחד.
+ *
+ * ההיגיון של v2:
+ *  • קנבס בהיר ורגוע (page) שעליו צפים כרטיסים לבנים (surface).
+ *  • צבע מותג אחד — אדום שילו — שמור לפעולות ולמחירים בלבד.
+ *  • דיו כחול־כהה (ink) לכל המבנה: כותרות, סרגלים, כפתור משני.
+ *  • תמונות קטלוג על לבן, ב-contain — אלה חלקי חילוף, לא צילומי אווירה.
  */
+
+/* ==================== צבעים ==================== */
+
 export const colors = {
-  accent: '#F97316',
-  accentHover: '#EA580C',
-  accentSoft: '#FFF3E8',
-  ink: '#12161C',
-  inkSoft: '#1D242E',
-  bg: '#FFFFFF',
+  /** אדום שילו — CTA, מחיר, מבצע, מצב פעיל. לא לשטחים גדולים. */
+  accent: '#D81E29',
+  /** אדום כהה — מצב לחוץ של כפתור ראשי */
+  accentHover: '#B3151F',
+  /** גוון אדום עדין — רקע צ'יפ מבצע, בועת אייקון */
+  accentSoft: '#FEF2F3',
+
+  /** דיו — כותרות, סרגלים, כפתור משני */
+  ink: '#0F1729',
+  /** דיו רך — מצב לחוץ של משטחי דיו */
+  inkSoft: '#1B2740',
+
+  /** לבן — כרטיסים ופאנלים */
   surface: '#FFFFFF',
-  surfaceAlt: '#F5F6F8',
-  text: '#1D242E',
-  textMuted: '#5D6673',
-  border: '#E4E7EB',
-  success: '#178A50',
-  successSoft: '#E7F5EE',
-  danger: '#D93025',
-  dangerSoft: '#FCEBEA',
-  sale: '#E5484D',
+  /** קנבס העמוד שמאחורי הכרטיסים */
+  page: '#F4F6F9',
+  /** רקע מדור מתחלף */
+  surfaceAlt: '#F7F9FC',
+  /** בארות תמונה, שלדי טעינה, שדות קלט */
+  surfaceSunken: '#EDF1F6',
+
+  /** גוף הטקסט */
+  text: '#16202F',
+  /** מטא, יצרן, טקסט עזר */
+  textMuted: '#5B6779',
+
+  /** קווי שערה וגבולות כרטיס */
+  border: '#E3E8EF',
+  /** גבול עם משקל — שדות קלט, מפרידים */
+  borderStrong: '#CBD4E0',
+
+  /** במלאי */
+  success: '#0E8A4F',
+  successSoft: '#E8F6EE',
+  /** מלאי מתדלדל */
+  warning: '#B45309',
+  warningSoft: '#FDF4E7',
+  /** שגיאות, אזל מהמלאי */
+  danger: '#C81E1E',
+  dangerSoft: '#FCECEC',
+  /** ענבר — תגית "מבצע" */
+  highlight: '#FFB224',
+  highlightSoft: '#FFF6E4',
+  /** טקסט על ענבר (ניגודיות AA) */
+  onHighlight: '#3D2600',
+
+  /** טקסט על אדום */
   onAccent: '#FFFFFF',
-  onInk: '#F4F5F7',
+  /** טקסט על דיו */
+  onInk: '#EEF1F6',
 } as const;
 
+/* ==================== צורה ==================== */
+
 export const radius = {
-  sm: 6,
-  md: 10,
-  lg: 14,
+  /** שדות, תגיות, אלמנטים קטנים */
+  sm: 8,
+  /** כפתורים, קלט, בועות */
+  base: 10,
+  /** כרטיסים */
+  card: 16,
+  /** משטחים גדולים — הירו, גלריה */
+  lg: 22,
+  /** פיל */
   pill: 999,
 } as const;
 
+/* ==================== ריווח ==================== */
+
 export const spacing = {
+  xxs: 2,
   xs: 4,
   sm: 8,
   md: 12,
   lg: 16,
   xl: 24,
   xxl: 32,
+  xxxl: 48,
 } as const;
 
+/* ==================== מגע וקווים ==================== */
+
+export const layout = {
+  /** יעד מגע מינימלי — לא לרדת מזה אף פעם */
+  touchMin: 44,
+  /** יעד מגע קומפקטי (עם hitSlop משלים) */
+  touchCompact: 40,
+  /** עובי קו שערה */
+  hairline: 1,
+  /** רוחב פס המבטא שמעל כותרות מדור */
+  ruleWidth: 26,
+  /** עובי פס המבטא */
+  ruleHeight: 3,
+} as const;
+
+/* ==================== תנועה ==================== */
+
+export const motion = {
+  fast: 140,
+  base: 240,
+} as const;
+
+/* ==================== טיפוגרפיה ==================== */
+
+/**
+ * פונט המערכת בכל פלטפורמה (San Francisco ב-iOS, Roboto באנדרואיד).
+ * שתיהן מכסות עברית במלואה, ולכן אין כאן שום תלות בטעינת פונטים.
+ */
+export const fontFamily: TextStyle['fontFamily'] = Platform.select({
+  ios: 'System',
+  default: undefined,
+});
+
+export const fontWeight = {
+  regular: '400',
+  medium: '500',
+  semibold: '600',
+  bold: '700',
+  black: '800',
+} as const satisfies Record<string, TextStyle['fontWeight']>;
+
+/**
+ * סקאלת הגדלים — היררכיה זהה לאתר.
+ * (נשמרים גם השמות h1/h2/h3/body/small/tiny לשימוש ישיר ב-fontSize.)
+ */
 export const typography = {
-  /** גדלים */
+  /** כותרת הירו */
+  display: 30,
   h1: 26,
   h2: 21,
   h3: 17,
@@ -48,25 +153,125 @@ export const typography = {
   tiny: 11,
 } as const;
 
-export const shadows = {
-  card: {
-    shadowColor: '#101418',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.06,
-    shadowRadius: 8,
-    elevation: 2,
-  },
-  raised: {
-    shadowColor: '#101418',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.14,
-    shadowRadius: 20,
-    elevation: 8,
-  },
-} as const;
+/** גובה שורה נוח לעברית — אותיות גבוהות, בלי ניקוד */
+const lh = (size: number, ratio = 1.45) => Math.round(size * ratio);
 
-/** פס אזהרה (מוטיב המותג) — צבעים לשימוש ברכיב HazardStripe */
-export const hazard = {
-  a: colors.accent,
-  b: colors.ink,
+/**
+ * ארבע דרגות הטקסט של המערכת: display / heading / body / meta.
+ * לשימוש עם spread בתוך StyleSheet.create.
+ */
+export const type = {
+  display: {
+    fontFamily,
+    fontSize: typography.display,
+    lineHeight: lh(typography.display, 1.28),
+    fontWeight: fontWeight.black,
+    color: colors.ink,
+  },
+  h1: {
+    fontFamily,
+    fontSize: typography.h1,
+    lineHeight: lh(typography.h1, 1.3),
+    fontWeight: fontWeight.black,
+    color: colors.ink,
+  },
+  heading: {
+    fontFamily,
+    fontSize: typography.h2,
+    lineHeight: lh(typography.h2, 1.32),
+    fontWeight: fontWeight.black,
+    color: colors.ink,
+  },
+  subheading: {
+    fontFamily,
+    fontSize: typography.h3,
+    lineHeight: lh(typography.h3, 1.38),
+    fontWeight: fontWeight.bold,
+    color: colors.ink,
+  },
+  body: {
+    fontFamily,
+    fontSize: typography.body,
+    lineHeight: lh(typography.body, 1.6),
+    fontWeight: fontWeight.regular,
+    color: colors.text,
+  },
+  bodyStrong: {
+    fontFamily,
+    fontSize: typography.body,
+    lineHeight: lh(typography.body, 1.5),
+    fontWeight: fontWeight.semibold,
+    color: colors.text,
+  },
+  small: {
+    fontFamily,
+    fontSize: typography.small,
+    lineHeight: lh(typography.small, 1.55),
+    fontWeight: fontWeight.regular,
+    color: colors.text,
+  },
+  meta: {
+    fontFamily,
+    fontSize: typography.small,
+    lineHeight: lh(typography.small, 1.5),
+    fontWeight: fontWeight.medium,
+    color: colors.textMuted,
+  },
+  metaSmall: {
+    fontFamily,
+    fontSize: typography.tiny,
+    lineHeight: lh(typography.tiny, 1.5),
+    fontWeight: fontWeight.medium,
+    color: colors.textMuted,
+  },
+  /** "eyebrow" — שורת על קטנה מעל כותרת. בעברית: בלי uppercase ובלי ריווח אותיות. */
+  eyebrow: {
+    fontFamily,
+    fontSize: typography.tiny,
+    lineHeight: lh(typography.tiny, 1.4),
+    fontWeight: fontWeight.bold,
+    color: colors.textMuted,
+  },
+} as const satisfies Record<string, TextStyle>;
+
+/** עברית מיושרת לימין — הצירוף הזה חוזר בכל מסך */
+export const rtl = {
+  text: { textAlign: 'right', writingDirection: 'rtl' },
+  center: { textAlign: 'center', writingDirection: 'rtl' },
+} as const satisfies Record<string, TextStyle>;
+
+/** מספרים בעמודות (מחירים, שעות) — ספרות ברוחב אחיד */
+export const numeric = {
+  fontVariant: ['tabular-nums'],
+} as const satisfies TextStyle;
+
+/* ==================== עומק ==================== */
+
+const SHADOW_COLOR = colors.ink;
+const isAndroid = Platform.OS === 'android';
+
+/**
+ * סקאלת הצללים xs/sm/md/lg — מקבילה ל-`--shadow-*` באתר.
+ * באנדרואיד משתמשים ב-elevation (הצל מנוהל על ידי המערכת),
+ * ב-iOS/web בשדות shadow*.
+ */
+function shadow(height: number, blur: number, opacity: number, elevation: number): ViewStyle {
+  if (isAndroid) return { elevation, shadowColor: SHADOW_COLOR };
+  return {
+    shadowColor: SHADOW_COLOR,
+    shadowOffset: { width: 0, height },
+    shadowOpacity: opacity,
+    shadowRadius: blur,
+  };
+}
+
+export const shadows = {
+  /** הרמה בעובי קו שערה */
+  xs: shadow(1, 2, 0.05, 1),
+  /** כרטיס במנוחה */
+  sm: shadow(2, 5, 0.07, 2),
+  /** כרטיס מורם / תפריט נפתח */
+  md: shadow(6, 14, 0.1, 6),
+  /** מגירה / סרגל צף */
+  lg: shadow(14, 28, 0.16, 12),
 } as const;

@@ -1,107 +1,183 @@
 {{ 'section-collection.css' | asset_url | stylesheet_tag }}
+<script src="{{ 'facets.js' | asset_url }}" defer="defer"></script>
 
+{%- comment -%}
+  The /collections index. This catalogue runs to 186 departments, so the page is
+  built as a directory: tiles grouped by the first letter of the department name,
+  with a sticky jump bar. Shopify returns the `collections` array in alphabetical
+  order, which is what makes a single grouping pass possible.
+{%- endcomment -%}
 {%- liquid
-  assign columns = section.settings.columns | default: 3
+  assign heading = section.settings.heading | default: 'כל הקטגוריות'
+  assign per_page = section.settings.per_page | default: 240
+  assign show_images = section.settings.show_images
+  assign hide_empty = section.settings.hide_empty
+
+  assign columns = section.settings.columns | default: 4
   case columns
     when 2
       assign grid_class = 'grid--2-desktop'
-    when 4
-      assign grid_class = 'grid--4'
-    else
+    when 3
       assign grid_class = 'grid--3'
+    when 5
+      assign grid_class = 'grid--5'
+    else
+      assign grid_class = 'grid--4'
   endcase
 
-  assign heading = section.settings.heading | default: 'כל הקטגוריות'
+  assign tile_sizes = '(min-width: 1100px) 22vw, (min-width: 750px) 30vw, 46vw'
 -%}
 
-<section class="section list-collections">
+<section class="section section--tight collection-index" id="CollectionIndexTop">
   <div class="container">
-    <nav class="breadcrumbs" aria-label="{{ 'general.breadcrumbs.label' | t }}">
-      <a href="{{ routes.root_url }}">{{ 'general.breadcrumbs.home' | t }}</a>
-      <span class="breadcrumbs__sep">{% render 'icon', name: 'chevron-right', size: 14, class: 'icon--dir' %}</span>
-      <span class="breadcrumbs__current" aria-current="page">{{ heading | escape }}</span>
-    </nav>
+    {%- if settings.show_breadcrumbs -%}
+      <nav class="breadcrumbs collection-index__crumbs" aria-label="{{ 'general.breadcrumbs.label' | t }}">
+        <a href="{{ routes.root_url }}">{{ 'general.breadcrumbs.home' | t }}</a>
+        <span class="breadcrumbs__sep" aria-hidden="true">
+          {% render 'icon', name: 'chevron-right', size: 14, class: 'icon--dir' %}
+        </span>
+        <span class="breadcrumbs__current" aria-current="page">{{ heading | escape }}</span>
+      </nav>
+    {%- endif -%}
 
-    <header class="list-collections__head">
-      <h1 class="list-collections__title hazard-underline">{{ heading | escape }}</h1>
-      {%- if section.settings.subheading != blank -%}
-        <p class="list-collections__sub text-muted">{{ section.settings.subheading | escape }}</p>
-      {%- endif -%}
+    <header class="section-header collection-index__head">
+      <div class="section-header__text">
+        <h1 class="section-header__heading">{{ heading | escape }}</h1>
+        {%- if section.settings.subheading != blank -%}
+          <p class="section-header__sub">{{ section.settings.subheading | escape }}</p>
+        {%- endif -%}
+      </div>
     </header>
 
-    {%- paginate collections by 24 -%}
-      {%- if collections.size > 0 -%}
-        <ul class="grid {{ grid_class }} list-collections__grid" role="list">
-          {%- for collection in collections -%}
-            {%- liquid
-              assign tile_image = collection.image | default: collection.featured_image
-              assign tile_loading = 'lazy'
-              if forloop.index <= 3
-                assign tile_loading = 'eager'
-              endif
-            -%}
-            <li class="list-collections__item reveal">
-              <a
-                href="{{ collection.url }}"
-                class="cat-tile"
-                aria-label="{{ 'sections.collection_list.view_collection' | t }} — {{ collection.title | escape }}"
-              >
-                <div class="cat-tile__media" aria-hidden="true">
+    {%- paginate collections by per_page -%}
+      {%- liquid
+        assign letters = ''
+        assign current_letter = ''
+        assign group_index = 0
+        assign shown = 0
+      -%}
+
+      {%- capture groups_html -%}
+        {%- for grouped_collection in collections -%}
+          {%- if hide_empty and grouped_collection.all_products_count == 0 -%}
+            {%- continue -%}
+          {%- endif -%}
+
+          {%- liquid
+            assign letter = grouped_collection.title | strip | slice: 0, 1
+            if letter == blank
+              assign letter = '#'
+            endif
+
+            assign new_group = false
+            if letter != current_letter
+              assign new_group = true
+              assign current_letter = letter
+              assign group_index = group_index | plus: 1
+              assign letters = letters | append: letter | append: '||'
+            endif
+
+            assign shown = shown | plus: 1
+            assign tile_image = grouped_collection.image | default: grouped_collection.featured_image
+            assign tile_loading = 'lazy'
+            if shown <= columns
+              assign tile_loading = 'eager'
+            endif
+          -%}
+
+          {%- if new_group -%}
+            {%- unless group_index == 1 -%}
+                </ul>
+              </section>
+            {%- endunless -%}
+            <section
+              class="collection-index__group"
+              id="collection-letter-{{ group_index }}"
+              aria-labelledby="collection-letter-{{ group_index }}-title"
+            >
+              <h2 class="collection-index__letter" id="collection-letter-{{ group_index }}-title">
+                {{- letter -}}
+              </h2>
+              <ul class="grid {{ grid_class }} collection-index__grid" role="list">
+          {%- endif -%}
+
+          <li class="collection-index__item">
+            <a class="collection-tile" href="{{ grouped_collection.url }}">
+              {%- if show_images -%}
+                <div class="media collection-tile__media">
                   {%- if tile_image != blank -%}
                     <img
-                      srcset="{{ tile_image | image_url: width: 400 }} 400w, {{ tile_image | image_url: width: 600 }} 600w, {{ tile_image | image_url: width: 800 }} 800w"
-                      src="{{ tile_image | image_url: width: 600 }}"
-                      sizes="(min-width: 990px) 33vw, 50vw"
+                      srcset="
+                        {{ tile_image | image_url: width: 300 }} 300w,
+                        {{ tile_image | image_url: width: 450 }} 450w,
+                        {{ tile_image | image_url: width: 600 }} 600w
+                      "
+                      src="{{ tile_image | image_url: width: 450 }}"
+                      sizes="{{ tile_sizes }}"
                       alt=""
                       loading="{{ tile_loading }}"
+                      decoding="async"
                       width="{{ tile_image.width }}"
                       height="{{ tile_image.height }}"
                     >
                   {%- else -%}
-                    <span class="cat-tile__letter">{{ collection.title | slice: 0, 1 }}</span>
+                    <span class="collection-index__initial" aria-hidden="true">{{ letter }}</span>
                   {%- endif -%}
                 </div>
+              {%- endif -%}
 
-                <span class="cat-tile__overlay" aria-hidden="true"></span>
-
-                <div class="cat-tile__content">
-                  <div class="cat-tile__text">
-                    <h2 class="cat-tile__title">{{ collection.title | escape }}</h2>
-                    <span class="cat-tile__count">
-                      {{- 'products.facets.product_count' | t: count: collection.all_products_count -}}
-                    </span>
-                  </div>
-                  <span class="cat-tile__arrow" aria-hidden="true">
-                    {% render 'icon', name: 'arrow-right', size: 20, class: 'icon--dir' %}
+              <div class="collection-tile__body">
+                <h3 class="collection-tile__title">{{ grouped_collection.title | escape }}</h3>
+                <span class="collection-index__meta">
+                  <span class="collection-tile__count">
+                    {{- 'products.facets.product_count_simple' | t: count: grouped_collection.all_products_count -}}
                   </span>
-                </div>
-              </a>
-            </li>
-          {%- endfor -%}
-        </ul>
-
-        {% render 'pagination', paginate: paginate %}
-      {%- else -%}
-        {%- comment -%} No collections yet — premium placeholder tiles {%- endcomment -%}
-        {%- assign fallback_titles = 'כלי עבודה,צבע וחומרי גמר,חשמל ותאורה,עץ ולוחות,ברזל ופרזול,גינה וחוץ' | split: ',' -%}
-        <ul class="grid {{ grid_class }} list-collections__grid" role="list">
-          {%- for title in fallback_titles -%}
-            <li class="list-collections__item reveal">
-              <div class="cat-tile cat-tile--static">
-                <div class="cat-tile__media" aria-hidden="true">
-                  {%- assign ph_name = 'collection-' | append: forloop.index -%}
-                  {{ ph_name | placeholder_svg_tag: 'placeholder-svg' }}
-                </div>
-                <span class="cat-tile__overlay" aria-hidden="true"></span>
-                <div class="cat-tile__content">
-                  <div class="cat-tile__text">
-                    <h2 class="cat-tile__title">{{ title }}</h2>
-                  </div>
-                </div>
+                  {% render 'icon', name: 'chevron-left', size: 18, class: 'collection-tile__arrow' %}
+                </span>
               </div>
-            </li>
-          {%- endfor -%}
-        </ul>
+            </a>
+          </li>
+        {%- endfor -%}
+
+        {%- if group_index > 0 -%}
+            </ul>
+          </section>
+        {%- endif -%}
+      {%- endcapture -%}
+
+      {%- if group_index > 0 -%}
+        {%- assign letter_list = letters | split: '||' -%}
+        {%- if letter_list.size > 1 -%}
+          <nav class="collection-index__jump" aria-labelledby="CollectionJumpLabel">
+            <span class="collection-index__jump-label" id="CollectionJumpLabel">
+              {{- section.settings.jump_label | escape -}}
+            </span>
+            <ul class="collection-index__jump-list" role="list">
+              {%- for jump_letter in letter_list -%}
+                <li>
+                  <a class="chip collection-index__jump-link" href="#collection-letter-{{ forloop.index }}">
+                    {{- jump_letter -}}
+                  </a>
+                </li>
+              {%- endfor -%}
+            </ul>
+          </nav>
+        {%- endif -%}
+
+        {{ groups_html }}
+
+        {% render 'pagination', paginate: paginate, anchor: '#CollectionIndexTop' %}
+      {%- else -%}
+        <div class="empty-state">
+          {% render 'icon', name: 'grid', size: 48 %}
+          <h2 class="empty-state__title">הקטלוג בהכנה</h2>
+          <p class="empty-state__text">
+            המחלקות שלנו יופיעו כאן ברגע שיוגדרו בממשק הניהול. בינתיים אפשר לעבור לכל המוצרים.
+          </p>
+          <a href="{{ routes.all_products_collection_url }}" class="btn">
+            {{ 'general.continue_shopping' | t }}
+          </a>
+        </div>
       {%- endif -%}
     {%- endpaginate -%}
   </div>
@@ -121,16 +197,45 @@
       "type": "text",
       "id": "subheading",
       "label": "כותרת משנה",
-      "default": "כל מה שצריך לבנייה, לשיפוץ ולעבודה — מסודר לפי מחלקות"
+      "default": "כל מה שצריך לבנייה, לשיפוץ ולעבודה — מסודר לפי מחלקות, לפי סדר האלף־בית"
+    },
+    {
+      "type": "text",
+      "id": "jump_label",
+      "label": "כותרת סרגל הדילוג",
+      "default": "דילוג לאות"
     },
     {
       "type": "range",
       "id": "columns",
-      "label": "עמודות במחשב",
+      "label": "עמודות במסך רחב",
       "min": 2,
-      "max": 4,
+      "max": 5,
       "step": 1,
-      "default": 3
+      "default": 4
+    },
+    {
+      "type": "checkbox",
+      "id": "show_images",
+      "label": "הצגת תמונת הקטגוריה",
+      "info": "כיבוי יוצר רשימה טקסטואלית צפופה — נוח לקטלוג עם מחלקות רבות.",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "hide_empty",
+      "label": "הסתרת קטגוריות ריקות",
+      "default": true
+    },
+    {
+      "type": "range",
+      "id": "per_page",
+      "label": "קטגוריות בעמוד",
+      "info": "מספר גבוה מציג את כל המחלקות בעמוד אחד ומאפשר דילוג לפי אות.",
+      "min": 48,
+      "max": 240,
+      "step": 24,
+      "default": 240
     }
   ]
 }

@@ -1,7 +1,12 @@
 /* =========================================================
    Shilo Pro — Product page JS
-   Variant selection, price/stock/sku updates, media gallery,
-   share button, sticky mobile add-to-cart bar
+   Media gallery (thumbs, arrows, zoom overlay), variant selection with
+   pill *and* select controls, price / stock / SKU / URL updates, share
+   button, sticky add-to-cart bar.
+
+   Depends on global.js for: window.formatMoney, window.ShiloToast,
+   window.ShiloDrawers (the zoom overlay reuses the drawer controller, so it
+   gets the overlay, the focus trap and Escape-to-close for free).
    ========================================================= */
 (function () {
   'use strict';
@@ -22,10 +27,20 @@
 
     const items = Array.from(gallery.querySelectorAll('.product-gallery__item'));
     const thumbs = Array.from(gallery.querySelectorAll('[data-thumb]'));
+    const counters = Array.from(root.querySelectorAll('[data-gallery-counter], [data-zoom-counter]'));
+    const zoom = root.querySelector('[data-product-zoom]');
+    const zoomItems = zoom ? Array.from(zoom.querySelectorAll('[data-zoom-item]')) : [];
+
+    if (!items.length) return null;
+
+    const ids = items.map((item) => item.dataset.mediaId);
+    let activeIndex = Math.max(0, items.findIndex((item) => item.classList.contains('is-active')));
 
     function setActive(mediaId) {
       const id = String(mediaId);
-      if (!items.some((item) => item.dataset.mediaId === id)) return;
+      const index = ids.indexOf(id);
+      if (index === -1) return;
+      activeIndex = index;
 
       items.forEach((item) => {
         const active = item.dataset.mediaId === id;
@@ -37,6 +52,12 @@
           item.querySelectorAll('video').forEach((v) => {
             try { v.pause(); } catch (e) { /* noop */ }
           });
+        }
+        /* Keep hidden frames out of the tab order. */
+        const trigger = item.querySelector('.product-gallery__zoom');
+        if (trigger) {
+          if (active) trigger.removeAttribute('tabindex');
+          else trigger.setAttribute('tabindex', '-1');
         }
       });
 
@@ -52,10 +73,51 @@
           }
         }
       });
+
+      zoomItems.forEach((frame) => {
+        const active = frame.dataset.mediaId === id;
+        frame.classList.toggle('is-active', active);
+        if (active) frame.removeAttribute('aria-hidden');
+        else frame.setAttribute('aria-hidden', 'true');
+      });
+
+      counters.forEach((counter) => {
+        counter.textContent = index + 1;
+      });
+    }
+
+    function step(delta) {
+      const next = (activeIndex + delta + items.length) % items.length;
+      setActive(ids[next]);
+    }
+
+    /* The overlay only holds images, so stepping inside it skips video and
+       3D media instead of landing on an empty frame. */
+    const zoomIds = zoomItems.map((frame) => frame.dataset.mediaId);
+
+    function stepZoom(delta) {
+      if (!zoomIds.length) return;
+      const current = zoomIds.indexOf(ids[activeIndex]);
+      const from = current === -1 ? 0 : current;
+      const next = (from + delta + zoomIds.length) % zoomIds.length;
+      setActive(zoomIds[next]);
     }
 
     thumbs.forEach((thumb) => {
       thumb.addEventListener('click', () => setActive(thumb.dataset.mediaId));
+    });
+
+    root.querySelectorAll('[data-gallery-prev]').forEach((btn) => {
+      btn.addEventListener('click', () => step(-1));
+    });
+    root.querySelectorAll('[data-gallery-next]').forEach((btn) => {
+      btn.addEventListener('click', () => step(1));
+    });
+    root.querySelectorAll('[data-zoom-prev]').forEach((btn) => {
+      btn.addEventListener('click', () => stepZoom(-1));
+    });
+    root.querySelectorAll('[data-zoom-next]').forEach((btn) => {
+      btn.addEventListener('click', () => stepZoom(1));
     });
 
     const thumbsWrap = gallery.querySelector('[data-gallery-thumbs]');
@@ -80,7 +142,25 @@
       });
     }
 
-    return { setActive };
+    /* ----- Zoom overlay: opened by [data-drawer-open] in global.js ----- */
+    if (zoom) {
+      /* A click on the padding around the image closes, like the drawer scrim. */
+      zoom.addEventListener('click', (e) => {
+        if (e.target.closest('.modal__content')) return;
+        if (window.ShiloDrawers) window.ShiloDrawers.close();
+      });
+
+      document.addEventListener('keydown', (e) => {
+        if (!zoom.classList.contains('is-open')) return;
+        if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') return;
+        e.preventDefault();
+        const rtl = document.documentElement.dir === 'rtl';
+        const forward = (e.key === 'ArrowRight') !== rtl;
+        stepZoom(forward ? 1 : -1);
+      });
+    }
+
+    return { setActive: setActive, step: step };
   }
 
   /* ---------- Main product section ---------- */
@@ -103,6 +183,8 @@
     const idInput = form ? form.querySelector('[data-variant-id]') : null;
     const addBtn = root.querySelector('[data-add-button]');
     const addBtnText = root.querySelector('[data-add-button-text]');
+    const inCartWrap = root.querySelector('[data-in-cart]');
+    const inCartText = root.querySelector('[data-in-cart-text]');
     const stickyBar = root.querySelector('[data-sticky-atc]');
     const stickyPrice = root.querySelector('[data-sticky-price]');
     const stickyBtn = root.querySelector('[data-sticky-add]');
@@ -145,7 +227,7 @@
       });
     }
 
-    /* ----- Sticky mobile add-to-cart bar ----- */
+    /* ----- Sticky add-to-cart bar ----- */
     const buyAnchor = root.querySelector('[data-buy-buttons-anchor]');
     if (stickyBar && buyAnchor && 'IntersectionObserver' in window) {
       const observer = new IntersectionObserver(
@@ -168,23 +250,73 @@
       document.addEventListener('cart:updated', () => stickyBtn.classList.remove('btn--loading'));
     }
 
+    /* ----- "Already in your cart" line ----- */
+    let cartItems = null;
+
+    function pluralize(one, other, count) {
+      if (count === 1) return one || '';
+      return (other || '').replace('[count]', count);
+    }
+
+    function renderInCart(variantId) {
+      if (!inCartWrap || !inCartText) return;
+      if (!cartItems) {
+        /* No cart snapshot yet — the server-rendered line stays as it is for
+           the variant it was rendered for, and is hidden for any other. */
+        return;
+      }
+      let quantity = 0;
+      cartItems.forEach((item) => {
+        if (item.variant_id === variantId) quantity += item.quantity;
+      });
+      if (quantity > 0) {
+        inCartText.textContent = pluralize(strings.inCartOne, strings.inCartOther, quantity);
+        inCartWrap.hidden = false;
+      } else {
+        inCartWrap.hidden = true;
+      }
+    }
+
+    document.addEventListener('cart:updated', (e) => {
+      const cart = e.detail && e.detail.cart;
+      if (!cart) return;
+      cartItems = cart.items || [];
+      const variantId = idInput ? parseInt(idInput.value, 10) : NaN;
+      if (!isNaN(variantId)) renderInCart(variantId);
+    });
+
     /* ----- Variant selection ----- */
     if (!picker || !Array.isArray(variants) || !variants.length) return;
 
-    const radios = Array.from(picker.querySelectorAll('input[type="radio"]'));
-    const optionCount = radios.reduce(
-      (max, r) => Math.max(max, parseInt(r.dataset.optionPosition, 10) || 0),
+    const controls = Array.from(
+      picker.querySelectorAll('input[type="radio"][data-option-position], select[data-option-position]')
+    );
+    const optionCount = controls.reduce(
+      (max, el) => Math.max(max, parseInt(el.dataset.optionPosition, 10) || 0),
       0
     );
+    const unavailableSuffixEl = picker.querySelector('[data-unavailable-suffix]');
+    const unavailableSuffix = unavailableSuffixEl
+      ? unavailableSuffixEl.textContent.trim()
+      : strings.unavailable || '';
+
+    function controlsAt(position) {
+      return controls.filter((el) => parseInt(el.dataset.optionPosition, 10) === position);
+    }
+
+    function valueAt(position) {
+      const group = controlsAt(position);
+      for (let i = 0; i < group.length; i++) {
+        const el = group[i];
+        if (el.tagName === 'SELECT') return el.value || null;
+        if (el.checked) return el.value;
+      }
+      return null;
+    }
 
     function selectedOptions() {
       const options = [];
-      for (let p = 1; p <= optionCount; p++) {
-        const checked = radios.find(
-          (r) => parseInt(r.dataset.optionPosition, 10) === p && r.checked
-        );
-        options.push(checked ? checked.value : null);
-      }
+      for (let p = 1; p <= optionCount; p++) options.push(valueAt(p));
       return options;
     }
 
@@ -192,6 +324,41 @@
       return variants.find((v) =>
         v.options.every((value, i) => value === options[i])
       );
+    }
+
+    /* Is there an available variant for `value` at `position`, given the values
+       already chosen for the options before it? */
+    function combinationExists(position, value, selected) {
+      return variants.some((v) => {
+        if (!v.available) return false;
+        if (v.options[position - 1] !== value) return false;
+        for (let i = 0; i < position - 1; i++) {
+          if (selected[i] !== null && v.options[i] !== selected[i]) return false;
+        }
+        return true;
+      });
+    }
+
+    function markUnavailable() {
+      const selected = selectedOptions();
+      controls.forEach((el) => {
+        const position = parseInt(el.dataset.optionPosition, 10);
+
+        if (el.tagName === 'SELECT') {
+          Array.from(el.options).forEach((option) => {
+            const label = option.dataset.label || option.value;
+            const exists = combinationExists(position, option.value, selected);
+            option.textContent = exists || !unavailableSuffix
+              ? label
+              : label + ' — ' + unavailableSuffix;
+          });
+          return;
+        }
+
+        const exists = combinationExists(position, el.value, selected);
+        const pill = el.closest('.variant-pill');
+        if (pill) pill.classList.toggle('is-unavailable', !exists);
+      });
     }
 
     function renderPrice(variant) {
@@ -247,10 +414,7 @@
         variant.inventory_quantity <= lowStockThreshold
       ) {
         cls = 'stock-dot stock-dot--low';
-        text =
-          variant.inventory_quantity === 1
-            ? strings.lowStockOne || ''
-            : (strings.lowStockOther || '').replace('[count]', variant.inventory_quantity);
+        text = pluralize(strings.lowStockOne, strings.lowStockOther, variant.inventory_quantity);
       }
       stockEl.innerHTML = '';
       const dot = document.createElement('span');
@@ -296,35 +460,22 @@
       const preview = variant.featured_media.preview_image;
       if (!preview || !preview.src) return;
       const sep = preview.src.indexOf('?') === -1 ? '?' : '&';
-      stickyImage.src = preview.src + sep + 'width=88';
+      stickyImage.src = preview.src + sep + 'width=96';
       stickyImage.srcset =
-        preview.src + sep + 'width=88 1x, ' + preview.src + sep + 'width=176 2x';
-    }
-
-    /* Cross out combinations with no available variant (progressive:
-       considers the selected values of the options before this one). */
-    function markUnavailable() {
-      const selected = selectedOptions();
-      radios.forEach((radio) => {
-        const position = parseInt(radio.dataset.optionPosition, 10);
-        const exists = variants.some((v) => {
-          if (!v.available) return false;
-          if (v.options[position - 1] !== radio.value) return false;
-          for (let i = 0; i < position - 1; i++) {
-            if (selected[i] !== null && v.options[i] !== selected[i]) return false;
-          }
-          return true;
-        });
-        const pill = radio.closest('.variant-pill');
-        if (pill) pill.classList.toggle('is-unavailable', !exists);
-      });
+        preview.src + sep + 'width=96 1x, ' + preview.src + sep + 'width=192 2x';
     }
 
     function updateSelectedLabels() {
-      picker.querySelectorAll('.product-variants__option').forEach((fieldset) => {
-        const checked = fieldset.querySelector('input[type="radio"]:checked');
-        const label = fieldset.querySelector('[data-selected-value]');
-        if (checked && label) label.textContent = checked.value;
+      picker.querySelectorAll('.product-variants__option').forEach((group) => {
+        const label = group.querySelector('[data-selected-value]');
+        if (!label) return;
+        const select = group.querySelector('select[data-option-position]');
+        if (select) {
+          label.textContent = select.value;
+          return;
+        }
+        const checked = group.querySelector('input[type="radio"]:checked');
+        if (checked) label.textContent = checked.value;
       });
     }
 
@@ -339,6 +490,7 @@
         setButtonState(stickyBtn, stickyBtnText, false, strings.unavailable || '');
         if (stockEl) stockEl.innerHTML = '';
         if (saveBadge) saveBadge.hidden = true;
+        if (inCartWrap) inCartWrap.hidden = true;
         return;
       }
 
@@ -350,13 +502,17 @@
       setButtonState(stickyBtn, stickyBtnText, variant.available, strings.soldOut || '');
       updateUrl(variant);
       updateStickyImage(variant);
+      if (inCartWrap) {
+        if (cartItems) renderInCart(variant.id);
+        else inCartWrap.hidden = true;
+      }
       if (gallery && variant.featured_media) {
         gallery.setActive(variant.featured_media.id);
       }
     }
 
     picker.addEventListener('change', (e) => {
-      if (e.target.matches('input[type="radio"]')) onVariantChange();
+      if (e.target.matches('input[type="radio"], select[data-option-position]')) onVariantChange();
     });
 
     markUnavailable();

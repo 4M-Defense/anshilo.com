@@ -364,6 +364,7 @@
       "to": "עד"
     },
     "price": {
+      "call_for_price": "מחיר בטלפון",
       "from_price_html": "החל מ־{{ price }}",
       "regular_price": "מחיר רגיל",
       "sale_price": "מחיר מבצע",

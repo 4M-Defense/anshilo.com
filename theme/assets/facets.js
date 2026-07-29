@@ -4,6 +4,8 @@
    - input/sort changes -> fetch section via Section Rendering API
    - replaces #ProductGridContainer content + history.pushState
    - handles popstate, AJAX pagination, chip removal, loading overlay
+   - collapses long filter option lists behind "show more"
+   - keeps --collection-sticky-offset in sync with the sticky header height
    - also powers the collapsible collection description in the banner
    ========================================================= */
 (function () {
@@ -15,9 +17,14 @@
   var CONTAINER_ID = 'ProductGridContainer';
   var FORM_ID = 'FacetFiltersForm';
   var DRAWER_ID = 'FacetsDrawer';
+  var DESKTOP = '(min-width: 990px)';
 
   var abortController = null;
   var lastQuery = null;
+
+  /* Which long option lists the shopper has expanded, keyed by filter param.
+     Survives the AJAX re-renders that rebuild the sidebar from scratch. */
+  var expandedLists = Object.create(null);
 
   function getContainer() {
     return document.getElementById(CONTAINER_ID);
@@ -144,6 +151,8 @@
       openDesktopFacets(container);
     }
 
+    initFacetLists(container);
+
     // Keep the filters drawer open across re-renders (mobile).
     if (drawerWasOpen) {
       var freshDrawer = document.getElementById(DRAWER_ID);
@@ -178,6 +187,27 @@
     container.querySelectorAll('.reveal:not(.reveal--visible)').forEach(function (el) {
       el.classList.add('reveal--visible');
     });
+
+    announceResults(container);
+  }
+
+  /* The result count lives inside the swapped markup, so its own role="status"
+     never fires on an AJAX update. Mirror it into a live region that persists. */
+  function announceResults(container) {
+    var count = container.querySelector('.collection-toolbar__count');
+    if (!count) return;
+
+    var region = document.getElementById('FacetsStatus');
+    if (!region) {
+      region = document.createElement('p');
+      region.id = 'FacetsStatus';
+      region.className = 'visually-hidden';
+      region.setAttribute('role', 'status');
+      region.setAttribute('aria-live', 'polite');
+      document.body.appendChild(region);
+    }
+    var text = count.textContent.trim();
+    if (text && text !== region.textContent) region.textContent = text;
   }
 
   /* ---------- Event wiring (delegated — content gets replaced) ---------- */
@@ -244,10 +274,104 @@
 
   /* ---------- Desktop: open all facet groups ---------- */
   function openDesktopFacets(scope) {
-    if (!window.matchMedia('(min-width: 990px)').matches) return;
+    if (!window.matchMedia(DESKTOP).matches) return;
     (scope || document).querySelectorAll('details[data-facet][data-open-desktop]').forEach(function (details) {
       details.open = true;
     });
+  }
+
+  /* ---------- Long option lists: collapse past the first N ----------
+     The server renders every option, so a no-JS shopper sees the full list and
+     never meets a dead "show more" button. Here we fold the tail away and turn
+     the button on. */
+  function initFacetLists(scope) {
+    (scope || document).querySelectorAll('[data-facet-list]').forEach(function (list) {
+      if (list.dataset.listInit === 'true') return;
+      list.dataset.listInit = 'true';
+
+      var limit = parseInt(list.getAttribute('data-facet-limit'), 10) || 10;
+      var rows = Array.prototype.slice.call(list.querySelectorAll('[data-facet-row]'));
+      var toggle = list.parentNode
+        ? list.parentNode.querySelector('[data-facet-more]')
+        : null;
+
+      if (rows.length <= limit) {
+        if (toggle) toggle.remove();
+        return;
+      }
+
+      var key = list.getAttribute('data-facet-key') || '';
+      var expanded =
+        list.hasAttribute('data-force-expanded') || expandedLists[key] === true;
+
+      function apply() {
+        list.classList.toggle('is-truncated', !expanded);
+        for (var i = limit; i < rows.length; i++) rows[i].hidden = !expanded;
+        if (!toggle) return;
+        toggle.setAttribute('aria-expanded', expanded ? 'true' : 'false');
+        var more = toggle.querySelector('[data-more]');
+        var less = toggle.querySelector('[data-less]');
+        if (more) more.hidden = expanded;
+        if (less) less.hidden = !expanded;
+      }
+
+      if (toggle) {
+        toggle.hidden = false;
+        toggle.addEventListener('click', function () {
+          expanded = !expanded;
+          expandedLists[key] = expanded;
+          apply();
+        });
+      }
+
+      apply();
+    });
+  }
+
+  /* ---------- Sticky offset ----------
+     The site header is sticky and compresses as you scroll, so the toolbar and
+     the A–Z jump bar cannot hard-code where to park. Publish the header's real
+     height as a custom property and let CSS consume it. */
+  var stickyOffsetBound = false;
+
+  function initStickyOffset() {
+    if (stickyOffsetBound) return;
+
+    var header =
+      document.querySelector('[data-sticky-header]') || document.querySelector('.site-header');
+    if (!header) return;
+
+    stickyOffsetBound = true;
+    var last = -1;
+
+    function sync() {
+      var height = Math.round(header.getBoundingClientRect().height);
+      if (height === last) return;
+      last = height;
+      document.documentElement.style.setProperty('--collection-sticky-offset', height + 'px');
+    }
+
+    var queued = false;
+    function schedule() {
+      if (queued) return;
+      queued = true;
+      requestAnimationFrame(function () {
+        queued = false;
+        sync();
+      });
+    }
+
+    sync();
+
+    if ('ResizeObserver' in window) {
+      new ResizeObserver(schedule).observe(header);
+    } else {
+      window.addEventListener('resize', schedule);
+    }
+
+    // The compression is driven by scroll position, not by a resize event.
+    window.addEventListener('scroll', schedule, { passive: true });
+    window.addEventListener('load', schedule);
   }
 
   /* ---------- Collapsible collection description (banner) ---------- */
@@ -284,7 +408,9 @@
     lastQuery = initial.toString();
 
     openDesktopFacets(document);
+    initFacetLists(document);
     initCollapsibleDesc();
+    initStickyOffset();
   }
 
   if (document.readyState === 'loading') {
@@ -295,6 +421,8 @@
 
   document.addEventListener('shopify:section:load', function () {
     openDesktopFacets(document);
+    initFacetLists(document);
     initCollapsibleDesc();
+    initStickyOffset();
   });
 })();

@@ -115,6 +115,63 @@ export const COLLECTIONS_QUERY = `#graphql
   ${IMAGE_FRAGMENT}
 `;
 
+/** שדות אריח קטגוריה — נבחרים ישירות (לא fragment) כדי שניתן להרכיב אליאסים */
+const COLLECTION_CARD_SELECTION = `
+  id
+  handle
+  title
+  description
+  image { ...ImageFields }
+`;
+
+/** שמות האליאסים בשאילתות ה-batch — c0, c1, c2… בסדר ה-handles שהועברו */
+export function collectionAlias(index: number): string {
+  return `c${index}`;
+}
+
+/**
+ * שאילתה שמביאה כמה קטגוריות לפי handle בבקשה אחת (aliasing).
+ * לשימוש בפס המחלקות ובפס המותגים במסך הבית — 12 מחלקות בקריאה אחת
+ * במקום 12 קריאות. handle שלא קיים בחנות מוחזר כ-null ופשוט מסונן.
+ */
+export function buildCollectionsByHandleQuery(count: number): string {
+  const args = Array.from({ length: count }, (_, i) => `$h${i}: String!`).join(', ');
+  const fields = Array.from(
+    { length: count },
+    (_, i) => `    ${collectionAlias(i)}: collection(handle: $h${i}) { ${COLLECTION_CARD_SELECTION} }`
+  ).join('\n');
+  return `#graphql
+  query CollectionsByHandle(${args}) {
+${fields}
+  }
+  ${IMAGE_FRAGMENT}
+`;
+}
+
+/**
+ * שאילתה שמביאה כמה קטגוריות יחד עם המוצרים הראשונים בכל אחת —
+ * מזינה את שורות המוצרים במסך הבית (מבצעים / נמכרים / חדשים) בקריאה אחת.
+ */
+export function buildCollectionRowsQuery(count: number): string {
+  const args = Array.from({ length: count }, (_, i) => `$h${i}: String!`).join(', ');
+  const fields = Array.from(
+    { length: count },
+    (_, i) => `    ${collectionAlias(i)}: collection(handle: $h${i}) {
+      ${COLLECTION_CARD_SELECTION}
+      products(first: $first) {
+        nodes { ...ProductCardFields }
+        pageInfo { hasNextPage endCursor }
+      }
+    }`
+  ).join('\n');
+  return `#graphql
+  query CollectionRows($first: Int!, ${args}) {
+${fields}
+  }
+  ${PRODUCT_CARD_FRAGMENT}
+`;
+}
+
 export const COLLECTION_PRODUCTS_QUERY = `#graphql
   query CollectionProducts(
     $handle: String!

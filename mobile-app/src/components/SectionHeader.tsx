@@ -1,41 +1,71 @@
 import { Pressable, StyleSheet, Text, View } from 'react-native';
-import { colors, radius, spacing, typography } from '@/theme';
+import { colors, rtl, spacing, type } from '@/theme';
+import { Icon } from './Icon';
+import { Rule } from './Rule';
 
 export interface SectionHeaderProps {
   title: string;
+  /** שורת־על קטנה מעל הכותרת (למשל "מוגבל בזמן") */
+  eyebrow?: string;
+  /** משפט הסבר מתחת לכותרת */
+  subtitle?: string;
   actionLabel?: string;
   onAction?: () => void;
 }
 
 /**
- * כותרת מדור: פס מבטא 22×3 (מוטיב ה-eyebrow מהאתר) מעל כותרת מודגשת,
- * ולצדה קישור פעולה אופציונלי ("לכל המוצרים").
+ * כותרת מדור — פס מבטא קצר, שורת־על אופציונלית, כותרת מודגשת בדיו
+ * וקישור פעולה בצד ("לכל המוצרים"). מקביל ל-.section-header באתר.
  */
-export function SectionHeader({ title, actionLabel, onAction }: SectionHeaderProps) {
+export function SectionHeader({
+  title,
+  eyebrow,
+  subtitle,
+  actionLabel,
+  onAction,
+}: SectionHeaderProps) {
   return (
-    <View style={styles.row}>
-      <View style={styles.titleWrap}>
-        <View style={styles.eyebrow} />
-        <Text style={styles.title} numberOfLines={1}>
-          {title}
-        </Text>
+    <View style={styles.wrap}>
+      <View style={styles.row}>
+        <View style={styles.titleWrap}>
+          <Rule variant="accent" />
+          {eyebrow != null && (
+            <Text style={styles.eyebrow} numberOfLines={1}>
+              {eyebrow}
+            </Text>
+          )}
+          <Text style={styles.title} numberOfLines={2}>
+            {title}
+          </Text>
+        </View>
+        {actionLabel != null && onAction != null && (
+          <Pressable
+            onPress={onAction}
+            hitSlop={spacing.md}
+            accessibilityRole="link"
+            accessibilityLabel={actionLabel}
+            style={({ pressed }) => [styles.action, pressed && styles.actionPressed]}
+          >
+            <Text style={styles.actionText} numberOfLines={1}>
+              {actionLabel}
+            </Text>
+            <Icon name="chevron-forward" size={14} color={colors.accent} dir />
+          </Pressable>
+        )}
       </View>
-      {actionLabel != null && onAction != null && (
-        <Pressable
-          onPress={onAction}
-          hitSlop={spacing.sm}
-          accessibilityRole="link"
-          accessibilityLabel={actionLabel}
-          style={({ pressed }) => pressed && styles.actionPressed}
-        >
-          <Text style={styles.action}>{actionLabel}</Text>
-        </Pressable>
+      {subtitle != null && (
+        <Text style={styles.subtitle} numberOfLines={3}>
+          {subtitle}
+        </Text>
       )}
     </View>
   );
 }
 
 const styles = StyleSheet.create({
+  wrap: {
+    gap: spacing.sm,
+  },
   row: {
     flexDirection: 'row',
     alignItems: 'flex-end',
@@ -48,25 +78,29 @@ const styles = StyleSheet.create({
     alignItems: 'flex-start',
   },
   eyebrow: {
-    width: 22,
-    height: 3,
-    borderRadius: radius.pill,
-    backgroundColor: colors.accent,
+    ...type.eyebrow,
+    ...rtl.text,
   },
   title: {
-    fontSize: typography.h2,
-    fontWeight: '800',
-    color: colors.ink,
-    textAlign: 'right',
-    writingDirection: 'rtl',
+    ...type.heading,
+    ...rtl.text,
   },
   action: {
-    fontSize: typography.small,
-    fontWeight: '700',
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs,
+    paddingBottom: spacing.xxs,
+  },
+  actionText: {
+    ...type.small,
     color: colors.accent,
-    paddingBottom: 2,
+    fontWeight: '700',
   },
   actionPressed: {
     opacity: 0.6,
+  },
+  subtitle: {
+    ...type.meta,
+    ...rtl.text,
   },
 });

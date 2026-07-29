@@ -2,7 +2,7 @@ import { Tabs } from 'expo-router';
 import { StyleSheet, Text, View, type ColorValue } from 'react-native';
 import { Icon } from '@/components';
 import { useCart } from '@/state/CartContext';
-import { colors, radius, spacing, typography } from '@/theme';
+import { colors, fontFamily, layout, numeric, radius, spacing, typography } from '@/theme';
 
 interface TabIconProps {
   color: ColorValue;
@@ -10,7 +10,7 @@ interface TabIconProps {
   focused: boolean;
 }
 
-/** אייקון העגלה עם עיגול מונה בצבע המבטא */
+/** אייקון העגלה עם עיגול מונה באדום המותג */
 function CartTabIcon({ color, size, focused }: TabIconProps) {
   const { itemCount } = useCart();
   return (
@@ -33,11 +33,12 @@ export default function TabsLayout() {
       screenOptions={{
         headerShown: false,
         tabBarActiveTintColor: colors.accent,
-        tabBarInactiveTintColor: colors.ink,
+        tabBarInactiveTintColor: colors.textMuted,
         tabBarStyle: styles.tabBar,
         tabBarLabelStyle: styles.tabLabel,
+        tabBarItemStyle: styles.tabItem,
         tabBarHideOnKeyboard: true,
-        sceneStyle: { backgroundColor: colors.bg },
+        sceneStyle: { backgroundColor: colors.page },
       }}
     >
       <Tabs.Screen
@@ -52,7 +53,7 @@ export default function TabsLayout() {
       <Tabs.Screen
         name="catalog"
         options={{
-          title: 'קטגוריות',
+          title: 'מחלקות',
           tabBarIcon: ({ color, size, focused }) => (
             <Icon name={focused ? 'grid' : 'grid-outline'} size={size} color={color} />
           ),
@@ -88,18 +89,23 @@ export default function TabsLayout() {
 const styles = StyleSheet.create({
   tabBar: {
     backgroundColor: colors.surface,
-    borderTopWidth: 1,
+    borderTopWidth: layout.hairline,
     borderTopColor: colors.border,
     elevation: 0,
   },
+  tabItem: {
+    minHeight: layout.touchMin,
+    paddingTop: spacing.xs,
+  },
   tabLabel: {
+    fontFamily,
     fontSize: typography.tiny,
     fontWeight: '600',
   },
   badge: {
     position: 'absolute',
     top: -spacing.xs,
-    end: -spacing.sm - 2,
+    insetInlineEnd: -spacing.sm - 2,
     minWidth: 18,
     height: 18,
     borderRadius: radius.pill,
@@ -111,10 +117,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: 3,
   },
   badgeText: {
+    ...numeric,
+    fontFamily,
     fontSize: typography.tiny - 1,
     lineHeight: typography.tiny + 1,
     fontWeight: '800',
     color: colors.onAccent,
-    fontVariant: ['tabular-nums'],
   },
 });

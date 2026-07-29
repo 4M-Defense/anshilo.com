@@ -1,6 +1,6 @@
 /* =========================================================
    Shilo Pro — Customer area JS
-   Login/recover panel toggle, address forms, country selects
+   Login/recover panel toggle, address forms, country selects, order print
    ========================================================= */
 (function () {
   'use strict';
@@ -42,6 +42,14 @@
       target.querySelector('input:not([type="hidden"]), select')?.focus({ preventScroll: true });
       target.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     }
+  });
+
+  /* ---------- Print the current order ---------- */
+  document.addEventListener('click', (e) => {
+    const trigger = e.target.closest('[data-print-page]');
+    if (!trigger) return;
+    e.preventDefault();
+    window.print();
   });
 
   /* ---------- Delete address confirmation ---------- */

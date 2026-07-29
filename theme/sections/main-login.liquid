@@ -1,9 +1,19 @@
 {{ 'section-customers.css' | asset_url | stylesheet_tag }}
 <script src="{{ 'section-customers.js' | asset_url }}" defer="defer"></script>
 
+{%- comment -%}
+  Login + "forgot password" on one screen: two panels inside the same shell,
+  swapped by section-customers.js (no page reload, :target fallback without JS).
+  The recover form is captured first so its posted/error state can decide which
+  panel opens on load.
+{%- endcomment -%}
 {%- liquid
   assign show_recover = false
   assign recover_success = false
+
+  assign logo_width = settings.logo_width | default: 175
+  assign logo_width_2x = logo_width | times: 2
+  assign phone_href = settings.store_phone | remove: '-' | remove: ' ' | remove: '(' | remove: ')'
 -%}
 
 {%- capture recover_form_html -%}
@@ -42,6 +52,7 @@
         autocorrect="off"
         autocapitalize="off"
         spellcheck="false"
+        dir="ltr"
         required
         {% if form.errors %}aria-invalid="true"{% endif %}
       >
@@ -57,17 +68,33 @@
   {%- endform -%}
 {%- endcapture -%}
 
-<section class="section section--alt auth-section">
+<section class="section auth-section">
   <div class="container">
     <div
-      class="auth-wrap"
+      class="auth-shell"
       data-auth-panels
       data-active-panel="{% if show_recover %}recover{% else %}login{% endif %}"
     >
+      <a class="auth-brand" href="{{ routes.root_url }}">
+        {%- if settings.logo != blank -%}
+          <img
+            class="auth-brand__img"
+            src="{{ settings.logo | image_url: width: logo_width_2x }}"
+            srcset="{{ settings.logo | image_url: width: logo_width }} 1x, {{ settings.logo | image_url: width: logo_width_2x }} 2x"
+            width="{{ logo_width }}"
+            height="{{ logo_width | divided_by: settings.logo.aspect_ratio | round }}"
+            alt="{{ settings.logo.alt | default: shop.name | escape }}"
+            loading="eager"
+          >
+        {%- else -%}
+          <span class="auth-brand__text">{{ shop.name }}</span>
+        {%- endif -%}
+      </a>
+
       {%- # ---------- Recover password panel ---------- -%}
-      <div class="auth-card auth-panel auth-panel--recover" data-auth-panel="recover" id="recover">
+      <div class="panel auth-card auth-panel--recover" data-auth-panel="recover" id="recover">
         <header class="auth-card__head">
-          <span class="auth-card__icon">{% render 'icon', name: 'mail', size: 26 %}</span>
+          <span class="auth-card__icon" aria-hidden="true">{% render 'icon', name: 'mail', size: 24 %}</span>
           <h2 class="auth-card__title h2">{{ 'customer.recover_password.title' | t }}</h2>
           <p class="auth-card__subtext">{{ 'customer.recover_password.subtext' | t }}</p>
         </header>
@@ -75,10 +102,13 @@
       </div>
 
       {%- # ---------- Login panel ---------- -%}
-      <div class="auth-card auth-panel auth-panel--login" data-auth-panel="login" id="login">
+      <div class="panel auth-card auth-panel--login" data-auth-panel="login" id="login">
         <header class="auth-card__head">
-          <span class="auth-card__icon">{% render 'icon', name: 'user', size: 26 %}</span>
+          <span class="auth-card__icon" aria-hidden="true">{% render 'icon', name: 'user', size: 24 %}</span>
           <h1 class="auth-card__title h2">{{ 'customer.login_page.title' | t }}</h1>
+          {%- if section.settings.login_subtext != blank -%}
+            <p class="auth-card__subtext">{{ section.settings.login_subtext | escape }}</p>
+          {%- endif -%}
         </header>
 
         {%- if recover_success -%}
@@ -118,6 +148,7 @@
               autocorrect="off"
               autocapitalize="off"
               spellcheck="false"
+              dir="ltr"
               required
               {% if form.errors %}aria-invalid="true"{% endif %}
             >
@@ -171,6 +202,16 @@
           {%- endif -%}
         </div>
       </div>
+
+      {%- if section.settings.support_text != blank and settings.store_phone != blank -%}
+        <div class="auth-support">
+          <p class="auth-support__text">{{ section.settings.support_text | escape }}</p>
+          <a class="auth-support__link" href="tel:{{ phone_href }}">
+            {% render 'icon', name: 'phone', size: 16 %}
+            <span class="auth-support__ltr">{{ settings.store_phone }}</span>
+          </a>
+        </div>
+      {%- endif -%}
     </div>
   </div>
 </section>
@@ -178,6 +219,24 @@
 {% schema %}
 {
   "name": "התחברות",
-  "settings": []
+  "settings": [
+    {
+      "type": "text",
+      "id": "login_subtext",
+      "label": "משפט מתחת לכותרת",
+      "default": "התחברו כדי לצפות בהזמנות, במחירים ובכתובות השמורות שלכם."
+    },
+    {
+      "type": "header",
+      "content": "שורת תמיכה"
+    },
+    {
+      "type": "text",
+      "id": "support_text",
+      "label": "טקסט",
+      "info": "מוצג מתחת לכרטיס יחד עם מספר הטלפון מהגדרות התבנית. השאירו ריק כדי להסתיר.",
+      "default": "נתקעתם בהתחברות? נשמח לעזור:"
+    }
+  ]
 }
 {% endschema %}

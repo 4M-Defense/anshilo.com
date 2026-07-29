@@ -1,6 +1,6 @@
 import * as Haptics from 'expo-haptics';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
-import { colors, radius, spacing, typography } from '@/theme';
+import { colors, layout, numeric, radius, spacing, typography } from '@/theme';
 import { Icon } from './Icon';
 
 export interface QuantityStepperProps {
@@ -12,7 +12,7 @@ export interface QuantityStepperProps {
 }
 
 /**
- * בורר כמות בצורת פיל — כפתורי +/- בגודל מגע 44, רטט קל בכל שינוי.
+ * בורר כמות בצורת פיל — כפתורי +/- ביעד מגע 44, רטט קל בכל שינוי.
  * סדר הילדים: [+][ערך][-] — בפריסת RTL הפלוס מוצג מימין, כמקובל.
  */
 export function QuantityStepper({
@@ -37,25 +37,29 @@ export function QuantityStepper({
       <Pressable
         accessibilityRole="button"
         accessibilityLabel="הוספת יחידה"
+        accessibilityState={{ disabled: !canIncrease }}
         disabled={!canIncrease}
         onPress={() => step(1)}
         hitSlop={spacing.xs}
         style={({ pressed }) => [styles.button, pressed && canIncrease && styles.buttonPressed]}
       >
-        <Icon name="add" size={18} color={canIncrease ? colors.ink : colors.border} />
+        <Icon name="add" size={18} color={canIncrease ? colors.ink : colors.borderStrong} />
       </Pressable>
+      <View style={styles.divider} />
       <Text style={styles.value} allowFontScaling={false} accessibilityLabel={`כמות: ${value}`}>
         {value}
       </Text>
+      <View style={styles.divider} />
       <Pressable
         accessibilityRole="button"
         accessibilityLabel="הפחתת יחידה"
+        accessibilityState={{ disabled: !canDecrease }}
         disabled={!canDecrease}
         onPress={() => step(-1)}
         hitSlop={spacing.xs}
         style={({ pressed }) => [styles.button, pressed && canDecrease && styles.buttonPressed]}
       >
-        <Icon name="remove" size={18} color={canDecrease ? colors.ink : colors.border} />
+        <Icon name="remove" size={18} color={canDecrease ? colors.ink : colors.borderStrong} />
       </Pressable>
     </View>
   );
@@ -66,8 +70,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     alignSelf: 'flex-start',
-    borderWidth: 1,
-    borderColor: colors.border,
+    borderWidth: layout.hairline,
+    borderColor: colors.borderStrong,
     borderRadius: radius.pill,
     backgroundColor: colors.surface,
     overflow: 'hidden',
@@ -76,20 +80,22 @@ const styles = StyleSheet.create({
     opacity: 0.5,
   },
   button: {
-    width: 44,
-    height: 44,
+    width: layout.touchMin,
+    height: layout.touchMin,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  buttonPressed: {
-    backgroundColor: colors.surfaceAlt,
+  divider: {
+    width: layout.hairline,
+    height: 20,
+    backgroundColor: colors.border,
   },
   value: {
-    minWidth: 36,
+    ...numeric,
+    minWidth: 38,
     textAlign: 'center',
     fontSize: typography.h3,
     fontWeight: '700',
     color: colors.ink,
-    fontVariant: ['tabular-nums'],
   },
 });

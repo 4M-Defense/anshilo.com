@@ -8,14 +8,16 @@ import {
   type StyleProp,
   type ViewStyle,
 } from 'react-native';
-import { colors, radius, spacing, typography } from '@/theme';
+import { colors, layout, radius, rtl, spacing, type } from '@/theme';
 
-export type ButtonVariant = 'primary' | 'secondary' | 'ghost';
+export type ButtonVariant = 'primary' | 'secondary' | 'outline' | 'ghost';
+export type ButtonSize = 'md' | 'sm';
 
 export interface ButtonProps {
   title: string;
   onPress: () => void;
   variant?: ButtonVariant;
+  size?: ButtonSize;
   loading?: boolean;
   disabled?: boolean;
   icon?: React.ReactNode;
@@ -26,21 +28,30 @@ const VARIANTS: Record<
   ButtonVariant,
   { bg: string; bgPressed: string; fg: string; border?: string }
 > = {
+  /** פעולה ראשית — אדום המותג */
   primary: { bg: colors.accent, bgPressed: colors.accentHover, fg: colors.onAccent },
+  /** פעולה משנית — דיו */
   secondary: { bg: colors.ink, bgPressed: colors.inkSoft, fg: colors.onInk },
-  ghost: {
+  /** מסגרת על לבן */
+  outline: {
     bg: colors.surface,
     bgPressed: colors.surfaceAlt,
     fg: colors.ink,
-    border: colors.border,
+    border: colors.borderStrong,
   },
+  /** שקוף — לפעולות שקטות בתוך כרטיס */
+  ghost: { bg: 'transparent', bgPressed: colors.surfaceAlt, fg: colors.ink },
 };
 
-/** כפתור ראשי של האפליקציה — גובה 48, שלושה וריאנטים לפי שפת העיצוב */
+/**
+ * כפתור המערכת — גובה 48 (44 בגודל sm), פינות radius.base,
+ * ארבעה וריאנטים לפי שפת העיצוב של האתר.
+ */
 export function Button({
   title,
   onPress,
   variant = 'primary',
+  size = 'md',
   loading = false,
   disabled = false,
   icon,
@@ -56,11 +67,12 @@ export function Button({
       accessibilityState={{ disabled: blocked, busy: loading }}
       disabled={blocked}
       onPress={onPress}
-      hitSlop={4}
+      hitSlop={spacing.xs}
       style={({ pressed }) => [
         styles.base,
+        size === 'sm' && styles.sizeSm,
         { backgroundColor: pressed && !blocked ? v.bgPressed : v.bg },
-        v.border != null && { borderWidth: 1, borderColor: v.border },
+        v.border != null && { borderWidth: layout.hairline, borderColor: v.border },
         disabled && styles.disabled,
         style,
       ]}
@@ -81,11 +93,16 @@ export function Button({
 
 const styles = StyleSheet.create({
   base: {
-    height: 48,
-    borderRadius: radius.md,
+    minHeight: 48,
+    borderRadius: radius.base,
     paddingHorizontal: spacing.xl,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  sizeSm: {
+    minHeight: layout.touchMin,
+    paddingHorizontal: spacing.lg,
+    borderRadius: radius.sm,
   },
   content: {
     flexDirection: 'row',
@@ -93,7 +110,8 @@ const styles = StyleSheet.create({
     gap: spacing.sm,
   },
   label: {
-    fontSize: typography.body,
+    ...type.bodyStrong,
+    ...rtl.text,
     fontWeight: '700',
   },
   disabled: {
