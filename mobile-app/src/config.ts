@@ -1,15 +1,21 @@
 /**
  * הגדרות החיבור לחנות השופיפיי + פרטי החנות האמיתיים.
  *
- * כל פרט קשר באפליקציה נשאב מכאן — אין מספרי טלפון או כתובות
+ * כל פרט קשר באפליקציה נשאב מכאן - אין מספרי טלפון או כתובות
  * שכתובים בתוך מסך. משנים כאן, וזה משתנה בכל האפליקציה.
  *
  * איך משיגים טוקן Storefront API:
- * 1. בניהול החנות: Settings → Apps and sales channels → Develop apps → Create an app
- * 2. תנו שם לאפליקציה (למשל "Mobile App") ואשרו
- * 3. Configuration → Storefront API → סמנו את כל הרשאות ה-unauthenticated_*
- * 4. API credentials → Install app → העתיקו את ה-Storefront API access token
- * 5. הדביקו אותו כאן למטה
+ * מסלול "Develop apps" הישן נסגר - שופיפיי לא מאפשרת יותר ליצור custom apps
+ * בממשק הניהול (legacy custom apps בוטלו ב-1 בינואר 2026), ואפליקציה שנוצרת
+ * ב-Dev Dashboard לא מציגה את הטוקן באף מסך.
+ *
+ * המסלול הנכון: ערוץ Headless.
+ * 1. Settings → Apps and sales channels → להתקין Headless מה-App Store
+ * 2. ליצור custom storefront
+ * 3. להעתיק את ה-PUBLIC access token (לא את ה-private - הוא סודי ואסור בבנדל)
+ * 4. לפרסם את המוצרים והקטגוריות לערוץ Headless, אחרת ה-API יחזיר אפס מוצרים
+ *
+ * הפירוט המלא ב-docs/INSTALL-APP.md.
  */
 export const SHOPIFY_CONFIG = {
   /** דומיין ה-myshopify של החנות (לא הדומיין המותאם anshilo.com!).
@@ -17,24 +23,24 @@ export const SHOPIFY_CONFIG = {
   storeDomain: '3007b3-4.myshopify.com',
   /** טוקן Storefront API (ציבורי, בטוח לשימוש באפליקציה) */
   storefrontAccessToken: 'PASTE_YOUR_STOREFRONT_TOKEN_HERE',
-  /** גרסת ה-API — עדכנו פעם בשנה לגרסה נתמכת */
+  /** גרסת ה-API - עדכנו פעם בשנה לגרסה נתמכת */
   apiVersion: '2025-07',
 } as const;
 
-/** פרטי החנות — זהים להגדרות הת'ים באתר */
+/** פרטי החנות - זהים להגדרות הת'ים באתר */
 export const STORE_INFO = {
   name: 'א.נ. שילו בע"מ',
   tagline: 'חומרי בניין ואספקה טכנית',
   /** מספר לתצוגה */
   phone: '02-534-3422',
-  /** אותו מספר בלי מקפים — ל-tel: */
+  /** אותו מספר בלי מקפים - ל-tel: */
   phoneDial: '025343422',
   email: 'info@anshilo.com',
   /** קישור וואטסאפ קצר של החנות */
   whatsapp: 'https://wa.link/sp55tw',
   address: 'קיבוץ קרית ענבים',
   website: 'https://anshilo.com',
-  /** שנת ההקמה — מופיעה בשורת ה-eyebrow של ההירו */
+  /** שנת ההקמה - מופיעה בשורת ה-eyebrow של ההירו */
   since: 1990,
   hours: [
     { days: "א'-ה'", hours: '07:00-17:00' },
@@ -47,14 +53,14 @@ export const STORE_INFO = {
   },
 } as const;
 
-/** מספרי הקטלוג שמוצגים באפליקציה — תואמים לחנות בפועל */
+/** מספרי הקטלוג שמוצגים באפליקציה - תואמים לחנות בפועל */
 export const CATALOG_STATS = {
   products: 1918,
   collections: 186,
 } as const;
 
 /**
- * מבנה הקטלוג במסך הבית — אותם handles שמזינים את דף הבית באתר,
+ * מבנה הקטלוג במסך הבית - אותם handles שמזינים את דף הבית באתר,
  * כדי שהאפליקציה והאתר יציגו בדיוק את אותן מחלקות ואת אותם מבצעים.
  */
 export const HOME_FEED = {
@@ -79,7 +85,7 @@ export const HOME_FEED = {
   bestSellers: 'best-selling-products',
   /** חדשים בקטלוג (קטגוריה אוטומטית של שופיפיי) */
   newArrivals: 'newest-products',
-  /** מרכז מקיטה — המחלקה הגדולה שלנו */
+  /** מרכז מקיטה - המחלקה הגדולה שלנו */
   featuredBrand: 'makita',
   /** פס המותגים */
   brands: [
@@ -98,7 +104,7 @@ export const HOME_FEED = {
   ],
 } as const;
 
-/** הצעות חיפוש קבועות — זהות ל-popular_searches של הת'ים */
+/** הצעות חיפוש קבועות - זהות ל-popular_searches של הת'ים */
 export const POPULAR_SEARCHES = [
   'מקיטה',
   'מברגה נטענת',
