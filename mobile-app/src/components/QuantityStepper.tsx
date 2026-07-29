@@ -85,6 +85,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
+  /** Pressed feedback for the +/- buttons. */
+  buttonPressed: {
+    backgroundColor: colors.surfaceAlt,
+  },
   divider: {
     width: layout.hairline,
     height: 20,

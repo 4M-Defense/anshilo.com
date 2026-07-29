@@ -92,7 +92,7 @@ function CircleButton({
 
 const TRUST_ROWS: { icon: string; text: string }[] = [
   { icon: 'home-outline', text: 'משלוח עד הבית או ישירות לאתר הבנייה' },
-  { icon: 'location-outline', text: 'איסוף עצמי מהחנות בקרית אתא' },
+  { icon: 'location-outline', text: 'איסוף עצמי מהחנות בקרית ענבים' },
   { icon: 'checkmark-circle-outline', text: 'מותגים מקוריים בלבד' },
 ];
 

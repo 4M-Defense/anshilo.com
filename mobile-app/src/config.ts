@@ -12,8 +12,9 @@
  * 5. הדביקו אותו כאן למטה
  */
 export const SHOPIFY_CONFIG = {
-  /** דומיין ה-myshopify של החנות (לא הדומיין המותאם!) — לדוגמה: anshilo.myshopify.com */
-  storeDomain: 'anshilo.myshopify.com',
+  /** דומיין ה-myshopify של החנות (לא הדומיין המותאם anshilo.com!).
+   *  אומת מול ה-Admin API: shop.myshopifyDomain. */
+  storeDomain: '3007b3-4.myshopify.com',
   /** טוקן Storefront API (ציבורי, בטוח לשימוש באפליקציה) */
   storefrontAccessToken: 'PASTE_YOUR_STOREFRONT_TOKEN_HERE',
   /** גרסת ה-API — עדכנו פעם בשנה לגרסה נתמכת */

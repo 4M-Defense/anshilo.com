@@ -23,6 +23,8 @@ export const colors = {
   accentHover: '#B3151F',
   /** גוון אדום עדין — רקע צ'יפ מבצע, בועת אייקון */
   accentSoft: '#FEF2F3',
+  /** מחיר מבצע — זהה ל-accent, כמו במערכת העיצוב של האתר */
+  sale: '#D81E29',
 
   /** דיו — כותרות, סרגלים, כפתור משני */
   ink: '#0F1729',
@@ -31,6 +33,8 @@ export const colors = {
 
   /** לבן — כרטיסים ופאנלים */
   surface: '#FFFFFF',
+  /** כינוי ל-surface — כמה מסכים כותבים colors.bg */
+  bg: '#FFFFFF',
   /** קנבס העמוד שמאחורי הכרטיסים */
   page: '#F4F6F9',
   /** רקע מדור מתחלף */
@@ -82,6 +86,9 @@ export const radius = {
   lg: 22,
   /** פיל */
   pill: 999,
+
+  /** כינוי ל-base — כמה מסכים כותבים radius.md */
+  md: 10,
 } as const;
 
 /* ==================== ריווח ==================== */
@@ -274,4 +281,8 @@ export const shadows = {
   md: shadow(6, 14, 0.1, 6),
   /** מגירה / סרגל צף */
   lg: shadow(14, 28, 0.16, 12),
+
+  /** כינויים סמנטיים — כמה מסכים כותבים shadows.card / shadows.raised */
+  card: shadow(2, 5, 0.07, 2),
+  raised: shadow(6, 14, 0.1, 6),
 } as const;

@@ -16,7 +16,7 @@ import { getCollections, getProducts } from '@/api/client';
 import type { Collection, ProductCardData } from '@/api/types';
 import {
   Button,
-  HazardStripe,
+  Rule,
   Icon,
   ProductCard,
   SectionHeader,
@@ -256,7 +256,7 @@ export default function HomeScreen() {
             </Text>
             <Button title="לכל הקטגוריות" onPress={goCatalog} style={styles.heroCta} />
           </View>
-          <HazardStripe height={6} />
+          <Rule />
         </View>
 
         {/* פס קטגוריות אופקי */}
