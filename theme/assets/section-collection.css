@@ -722,9 +722,17 @@ details[open] > .facet__summary .facet__chevron { transform: rotate(180deg); }
 
 .facets-form__noscript { margin-block-start: 1rem; }
 
-/* ---- Desktop: neutralise the drawer chrome, render as a sidebar ---- */
+/* ---- Desktop: neutralise the drawer chrome, render as a sidebar ----
+   SPECIFICITY TRAP (this bug shipped): base.css closes the drawer with
+   `[dir="rtl"] .drawer--end { transform: translateX(-100%) }` — that is
+   (0,2,0). A bare `.facets-drawer { transform: none }` is only (0,1,0), so on
+   this RTL storefront the "neutralised" sidebar stayed shifted one full width
+   to the left, under the product grid, which paints over it — the filters
+   appeared as slivers peeking through the grid gaps. Every rule that must
+   beat the drawer's closed state is therefore written at (0,3,0) via
+   `[dir] .collection-layout__sidebar .facets-drawer`. */
 @media (min-width: 990px) {
-  .facets-drawer {
+  [dir] .collection-layout__sidebar .facets-drawer {
     position: static;
     inset: auto;
     inline-size: 100%;

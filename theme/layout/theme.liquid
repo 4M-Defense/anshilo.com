@@ -198,7 +198,7 @@
         --color-sale: {{ settings.color_sale }};
         --color-highlight: {{ settings.color_highlight }};
         --color-highlight-rgb: {{ settings.color_highlight.rgb | replace: ' ', ', ' }};
-        --color-tile-bg: {{ settings.color_tile_bg | default: settings.color_highlight }};
+        --color-tile-bg: {{ settings.color_tile_bg | default: '#ffffff' }};
 
         --color-on-accent: #ffffff;
         --color-on-ink: #eef1f6;

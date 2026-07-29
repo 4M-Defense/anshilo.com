@@ -1,6 +1,6 @@
 # HANDOFF — א.נ. שילו · Shilo Pro v2
 
-**Current state: round 5 shipped. Start at §11 for what just changed, then §2.**
+**Current state: round 6 shipped. Start at §12 for what just changed, then §2.**
 
 **Written by the previous agent. Read this before touching anything.**
 Run `git log --oneline` for the current head — the list in §9 stops at the commit
@@ -41,9 +41,9 @@ Branch: `claude/shopify-store-modern-design-746p2i` · PR: [#1](https://github.c
 | **myshopify domain** | `3007b3-4.myshopify.com` (**not** `anshilo.myshopify.com` — verified via `shop.myshopifyDomain`) |
 | Shop id | `58110246991` |
 | Live theme (**never write to it**) | `שמירה 1` — `gid://shopify/OnlineStoreTheme/141469646927`, role MAIN |
-| **Working preview theme** | `שילו 2026 — העיצוב החדש v6 ⭐` — `gid://shopify/OnlineStoreTheme/148376649807` |
-| Preview URL | `https://anshilo.com/?preview_theme_id=148376649807` |
-| Superseded, owner can delete | `148368425039` (v2), `148371210319` (v3), `148372193359` (v4) and `148375371855` (v5). Each zip import mints a new theme, so these accumulate — delete them from the admin. |
+| **Working preview theme** | `שילו 2026 — העיצוב החדש v7 ⭐` — `gid://shopify/OnlineStoreTheme/148377370703` |
+| Preview URL | `https://anshilo.com/?preview_theme_id=148377370703` |
+| Superseded, owner can delete | `148368425039` (v2), `148371210319` (v3), `148372193359` (v4), `148375371855` (v5) and `148376649807` (v6). Each zip import mints a new theme, so these accumulate — delete them from the admin. |
 | Disposable theme, owner told to delete | `למחיקה — ייבוא כושל (בלי צבעים)` — `148368293967` |
 | Owner's original copy, mostly untouched | `עותק של שמירה 1` — `148357644367` (12 asset files + one test txt were written to it early on; it is otherwise still an Empire copy) |
 | New navigation menu | handle `shilo-2026-main`, `gid://shopify/Menu/236720193615` — 12 departments, 127 items, 3 levels |
@@ -146,7 +146,7 @@ palette colour, run the validator — it will tell you if you broke AA.
 
 ## 5. Deployed theme vs repo — no known delta
 
-**The repo and theme `148376649807` (v6) match.** The previous round's one gap —
+**The repo and theme `148377370703` (v7) match.** The previous round's one gap —
 `sections/main-addresses.liquid` with the country-select data-loss guard — went
 out with the v6 zip import and its size was verified (21,335 bytes, exact).
 
@@ -530,3 +530,25 @@ high-contrast mode — a theme token there would defeat the override).
   the new theme while the app is installed.
 - `whatsapp-button` + `essential-announcer` app embeds also duplicate built-in
   theme features; flagged to the owner in INSTALL-THEME §7, their call.
+
+---
+
+## 12. Round 6 — the owner LOOKED at v6. What their eyes found, and what changed
+
+First human review of the new design. Four corrections, shipped as theme
+**v7 `148377370703`** (zip import; 16 changed files size-verified 16/16, schema
+at 11,827 bytes — no trap). The owner also supplied the two importer-seal
+images in chat (agents cannot extract chat attachments — the owner must upload
+them once in the theme editor; wired below).
+
+| Owner's finding | Root cause / decision | Fix |
+|---|---|---|
+| The amber tile field — "not what I meant, I want the background most departments had" | Round 5 read the brief as "uniform coloured field"; the owner wanted the white field most department images already carry | `color_tile_bg` default → `#FFFFFF` (setting kept, tintable); CSS fallbacks now `var(--color-surface)`; nav-thumb regains its hairline border for definition on white-on-white |
+| Menu entries without images should show a relevant image per category | Round 5's all-or-nothing group gating hid thumbs the owner wanted | `nav-thumb.liquid` falls back to a product photo from the collection, picked at the row's index offset (mod product count) — deterministic and avoids the verified VILEDA duplicate between ניקוי כללי/ניקוי רצפות in one panel. Group gating removed; `position: forloop.index0` passed at both call sites |
+| **Filters panel still hidden** ("מסתתר") | **REAL BUG, RTL-only:** base.css closes drawers with `[dir="rtl"] .drawer--end { transform: translateX(-100%) }` (0,2,0). The desktop sidebar neutralisation `.facets-drawer { transform: none }` was (0,1,0) and LOST — the sidebar rendered shifted one full width left, painted over by the product grid; only slivers showed through grid gaps (matches the owner's screenshot exactly). Worked in LTR reasoning, broke in RTL reality | Neutralisation selectors bumped to `[dir] .collection-layout__sidebar .facets-drawer` (0,3,0), with a SPECIFICITY TRAP comment. The v6 sticky-offset fix (§11) was necessary but not sufficient — this was the second, independent bug on the same panel |
+| Makita products must carry the ארגנטולס "יבואן רשמי" seal, Milwaukee the DELCO seal (as the live site shows via the labels app) | Seal images are hosted by the BSS app, not in store Files (searched via Admin API: not found), and chat attachments can't be saved | `snippets/vendor-badge.liquid` + settings group "חותמות יבואן רשמי": 3 × image_picker + comma-separated vendor lists (defaults "מקיטה" / "מילווקי" — the real vendor strings, verified via `productVendors`). Rendered top-inline-end on cards (52px) and the product gallery (84px). **Blocked on owner: upload the two seal images in the editor** — INSTALL-THEME §7 has the exact steps |
+
+Knowingly left: everything §11 lists, minus the two items the owner's review
+resolved (tile colour, thumb coverage). The facets fix is verified statically
+only — same §2 constraints — but this time the failure mechanism fully explains
+the screenshot, both in geometry and in why LTR analysis missed it.

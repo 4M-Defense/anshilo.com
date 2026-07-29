@@ -341,24 +341,12 @@
                 endfor
 
                 comment
-                  Thumbs are all-or-nothing PER SIBLING GROUP: a row of entries
-                  where some carry an image and some do not reads as broken, so
-                  the group only gets thumbs when every member resolves a real
-                  collection image. Product-image fallbacks were evaluated
-                  against the live catalogue and rejected: two pairs of sibling
-                  departments share the exact same first product (ניקוי כללי /
-                  ניקוי רצפות; רסטוליום / תרסיסי צבע), which would render the
-                  same photo twice in one panel. The 14 menu collections still
-                  missing images are listed in docs/STORE-HEALTH.md — once the
-                  owner uploads them, the thumbs appear on their own.
+                  Every entry gets a thumb (owner request): the collection's
+                  own image, else a product photo picked by the row's index —
+                  snippets/nav-thumb.liquid carries the offset logic that keeps
+                  sibling collections sharing a first product from showing the
+                  same photo twice in one panel.
                 endcomment
-                assign group_thumbs = true
-                for child in link.links
-                  unless child.type == 'collection_link' and child.object.image != blank
-                    assign group_thumbs = false
-                    break
-                  endunless
-                endfor
               -%}
               <li class="site-nav__item{% if has_mega %} site-nav__item--mega{% endif %}">
                 <details class="site-nav__dropdown" data-disclosure data-nav-dropdown>
@@ -374,9 +362,7 @@
                           {%- for child in link.links -%}
                             <div class="site-nav__col">
                               <a class="site-nav__col-title{% if child.active or child.child_active %} is-active{% endif %}" href="{{ child.url }}">
-                                {%- if group_thumbs -%}
-                                  {% render 'nav-thumb', link: child, size: 40 %}
-                                {%- endif -%}
+                                {% render 'nav-thumb', link: child, size: 40, position: forloop.index0 %}
                                 <span>{{ child.title | escape }}</span>
                                 {% render 'icon', name: 'arrow-right', size: 13, class: 'icon--dir' %}
                               </a>
@@ -425,13 +411,11 @@
                         {%- for child in link.links -%}
                           <li>
                             <a
-                              class="site-nav__sublink{% if group_thumbs %} site-nav__sublink--thumbed{% endif %}{% if child.active %} is-active{% endif %}"
+                              class="site-nav__sublink site-nav__sublink--thumbed{% if child.active %} is-active{% endif %}"
                               href="{{ child.url }}"
                               {% if child.active %}aria-current="page"{% endif %}
                             >
-                              {%- if group_thumbs -%}
-                                {% render 'nav-thumb', link: child, size: 34 %}
-                              {%- endif -%}
+                              {% render 'nav-thumb', link: child, size: 34, position: forloop.index0 %}
                               <span>{{ child.title | escape }}</span>
                             </a>
                           </li>

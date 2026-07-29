@@ -152,12 +152,16 @@ absolutely positions `.media > img` with `inset: 0`, and an absolutely positione
 child resolves `inset` against its containing block's *padding* box — so the image
 covered the padding and the hairline sat directly under the photo's own edge.
 
-**Superseded (round 5).** The "one well, one window" treatment that replaced it
-(sunken plate + inset white window + hairline + vignette) shipped and the owner
-read it as a square inside a square. What ships now, at the owner's request, is
-**one flat coloured field**: a single plate painted with the new `--color-tile-bg`
-token (setting "רקע אריחי המחלקות", default amber `#FFB224`), 8% uniform padding,
-the image `contain`ed directly on it — no inner window, no frame, no vignette.
+**Superseded (round 5, amended round 6).** The "one well, one window" treatment
+that replaced it (sunken plate + inset white window + hairline + vignette)
+shipped and the owner read it as a square inside a square. Round 5 flattened it
+to one field painted amber; **the owner saw the amber and rejected it on
+sight** — they want the field most of the department images already carry,
+i.e. white. What ships now is **one flat field**: a single plate painted with
+the `--color-tile-bg` token (setting "רקע אריחי המחלקות", **default `#FFFFFF`**),
+8% uniform padding, the image `contain`ed directly on it — no inner window, no
+frame, no vignette. The token stays a setting, so the owner can tint it later
+without code.
 
 The blanket-blend-mode rejection above still holds, but selectively `multiply` is
 exactly right: it maps pure white onto the plate colour (`1 × C = C`), so an
@@ -183,19 +187,21 @@ matching the `collection-N.png` set. The `סולמות` one is worth replacing
 regardless: at 333×500 it is the only portrait image in a square grid, so its
 subject reads smaller than the others inside `contain`.
 
-### Menu collections with no image at all (header thumbnails)
+### Menu collections with no image of their own (header thumbnails)
 
-The mega-menu shows a thumbnail per entry **only when every sibling in that panel
-group has a real collection image** — a row where some entries have art and some
-do not reads as broken, and the first-product fallback was checked against the
-live catalogue and rejected: ניקוי כללי וחיטוי and ניקוי רצפות share the exact
-same first product (דלי הפלא VILEDA), as do רסטוליום and תרסיסי צבע (ספריי 2X),
-so the same photo would render twice inside one panel.
+**Round 6 (owner request): every menu entry now shows an image.** When a
+collection has no image, `snippets/nav-thumb.liquid` falls back to a product
+photo from that collection, picked at the row's index offset (modulo the
+product count) rather than always the first product — because the first-product
+choice was checked against the live catalogue and produces duplicates inside
+one panel: ניקוי כללי וחיטוי and ניקוי רצפות share the exact same first product
+(דלי הפלא VILEDA). Different rows sit at different offsets, so sibling
+collections resolve different products. The `.products` access only happens for
+the 14 image-less collections, so the header render cost is bounded.
 
-These 14 menu collections have **no image**; because of them, four panels
-currently render text-only (ניקיון ותחזוקה entirely; the level-2 rows of
-אינסטלציה וברזים, צבע ואיטום and קמפינג ופנאי). Upload an image per collection
-in the admin and the thumbnails appear on their own — no code change needed:
+A product photo is a stand-in, not department artwork. These 14 collections
+have **no image of their own** — upload one per collection in the admin and it
+wins over the fallback automatically:
 
 ניקוי כללי וחיטוי · ניקוי רצפות · אביזרי ניקוי · כביסה · מטבח וכלים · בישום ·
 רצפות · רהיטים ושטיחים · מתכות ותכשיטים · תרסיסי צבע · רסטוליום ·

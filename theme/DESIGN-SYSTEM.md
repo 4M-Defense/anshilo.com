@@ -47,7 +47,7 @@ Defined in `layout/theme.liquid` from theme settings. Use the CSS var, never the
 | `--color-warning` | `#B45309` | Low stock |
 | `--color-danger` | `#C81E1E` | Errors, out of stock |
 | `--color-highlight` | `#FFB224` | Offers / "מבצע" badge (amber) |
-| `--color-tile-bg` | `#FFB224` | Uniform field behind department tile images (category rail, nav thumbs) — own setting, falls back to highlight |
+| `--color-tile-bg` | `#FFFFFF` | Uniform field behind department tile images (category rail, nav thumbs) — own setting; white per the owner (matches the field most department images carry) |
 | `--color-on-accent` | `#FFFFFF` | Text on accent |
 | `--color-on-ink` | `#EEF1F6` | Text on ink |
 

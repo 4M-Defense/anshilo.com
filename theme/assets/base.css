@@ -732,6 +732,24 @@ summary::-webkit-details-marker { display: none; }
   pointer-events: none;
 }
 
+/* Official-importer seal (snippets/vendor-badge.liquid). The seal artwork is
+   a round sticker, so no frame of ours — just a soft lift off the photo. */
+.vendor-badge {
+  inline-size: var(--vendor-badge-size, 52px);
+  block-size: var(--vendor-badge-size, 52px);
+  object-fit: contain;
+  pointer-events: none;
+  filter: drop-shadow(0 1px 3px rgba(var(--color-ink-rgb), 0.18));
+}
+
+/* Opposite corner from the sale/new badges, above the hover image swap. */
+.product-card__importer {
+  position: absolute;
+  inset-block-start: 0.6rem;
+  inset-inline-end: 0.6rem;
+  z-index: 2;
+}
+
 .product-card__quick-add {
   padding: 0 0.7rem 0.7rem;
 }

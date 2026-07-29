@@ -759,19 +759,21 @@ details[open] > .site-nav__link .icon-chevron { transform: rotate(180deg); }
    product shots and brand wordmarks, and cropping a wordmark to a square would
    destroy it. A fixed box on both axes means no layout shift, so the img needs
    no width/height attributes.
-   The field is the same tile token the category rail uses (--color-tile-bg), so
-   the menu and the homepage read as one system. No blend mode here: a global
-   multiply would discolour the brand-wordmark thumbs in the מותגים panel
-   (e.g. Makita's teal would multiply to a dark green), and per-thumb flags are
-   not possible for menu-driven images — see docs/STORE-HEALTH.md. */
+   The field is the same tile token the category rail uses (--color-tile-bg,
+   default white), so the menu and the homepage read as one system; the
+   hairline border keeps the box legible when the field matches the panel.
+   No blend mode here: a global multiply would discolour the brand-wordmark
+   thumbs in the מותגים panel (e.g. Makita's teal would multiply to a dark
+   green), and per-thumb flags are not possible for menu-driven images. */
 .nav-thumb {
   inline-size: var(--nav-thumb-size, 40px);
   block-size: var(--nav-thumb-size, 40px);
   flex: 0 0 auto;
   object-fit: contain;
-  background: var(--color-tile-bg, var(--color-highlight));
+  background: var(--color-tile-bg, var(--color-surface));
+  border: 1px solid var(--color-border);
   border-radius: var(--radius-sm);
-  padding: 3px;
+  padding: 2px;
 }
 
 /* The two-level flyout rows get a thumb too, so both panel types read alike. */
