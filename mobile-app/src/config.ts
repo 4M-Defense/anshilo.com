@@ -21,8 +21,12 @@ export const SHOPIFY_CONFIG = {
   /** דומיין ה-myshopify של החנות (לא הדומיין המותאם anshilo.com!).
    *  אומת מול ה-Admin API: shop.myshopifyDomain. */
   storeDomain: '3007b3-4.myshopify.com',
-  /** טוקן Storefront API (ציבורי, בטוח לשימוש באפליקציה) */
-  storefrontAccessToken: 'PASTE_YOUR_STOREFRONT_TOKEN_HERE',
+  /** טוקן Storefront API - ה-PUBLIC access token של ה-custom storefront
+   *  "Shilo Mobile App" בערוץ Headless.
+   *  ציבורי בהגדרתו: הוא נשלח מהמכשיר בכל בקשה ולכן קיים בכל בנדל של האפליקציה.
+   *  אין בו סיכון - הוא לא קורא הזמנות ולא נתוני לקוחות. ה-PRIVATE token של
+   *  אותו ערוץ הוא סודי ולעולם לא נכנס לכאן. */
+  storefrontAccessToken: '4f17988ebd232d52e81f9f910443ce63',
   /** גרסת ה-API - עדכנו פעם בשנה לגרסה נתמכת */
   apiVersion: '2025-07',
 } as const;
