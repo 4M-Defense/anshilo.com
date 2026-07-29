@@ -129,7 +129,21 @@
                 data-default="{{ form.country | default: 'Israel' }}"
                 autocomplete="country"
               >
-                <option value="Israel" selected data-provinces="[]">{{ 'customer.addresses.country_israel' | t }}</option>
+{%- comment -%}
+                  Israel is the only destination, so it is the only option offered.
+                  But a select whose value has no matching option submits its FIRST
+                  option, and this one was unconditionally `selected` - so any
+                  address saved earlier with a different country would have been
+                  silently rewritten to Israel the moment the customer opened and
+                  re-saved it. That is data loss with no error. Emit the stored
+                  country as a second, pre-selected option whenever it differs, so
+                  re-saving preserves it and only a deliberate change moves it.
+                {%- endcomment -%}
+                {%- assign addr_country = form.country | default: 'Israel' -%}
+                <option value="Israel"{% if addr_country == 'Israel' %} selected{% endif %} data-provinces="[]">{{ 'customer.addresses.country_israel' | t }}</option>
+                {%- if addr_country != 'Israel' -%}
+                  <option value="{{ addr_country | escape }}" selected data-provinces="[]">{{ addr_country | escape }}</option>
+                {%- endif -%}
               </select>
               {% render 'icon', name: 'chevron-down', size: 16, class: 'icon-chevron' %}
             </div>
@@ -296,9 +310,21 @@
                       data-default="{{ form.country | default: 'Israel' }}"
                       autocomplete="country"
                     >
-                      <option value="Israel" selected data-provinces="[]">
+                      {%- comment -%}
+                        Same guard as the new-address form: this one matters MORE,
+                        because here form.country is a real saved value. An
+                        unconditional `selected` on the only option rewrote any
+                        non-Israel address to Israel on re-save, silently.
+                      {%- endcomment -%}
+                      {%- assign addr_country = form.country | default: 'Israel' -%}
+                      <option value="Israel"{% if addr_country == 'Israel' %} selected{% endif %} data-provinces="[]">
                         {{- 'customer.addresses.country_israel' | t -}}
                       </option>
+                      {%- if addr_country != 'Israel' -%}
+                        <option value="{{ addr_country | escape }}" selected data-provinces="[]">
+                          {{- addr_country | escape -}}
+                        </option>
+                      {%- endif -%}
                     </select>
                     {% render 'icon', name: 'chevron-down', size: 16, class: 'icon-chevron' %}
                   </div>

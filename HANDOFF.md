@@ -1,5 +1,7 @@
 # HANDOFF — א.נ. שילו · Shilo Pro v2
 
+**Current state: round 4 shipped. Start at §10 for what just changed, then §2.**
+
 **Written by the previous agent. Read this before touching anything.**
 Run `git log --oneline` for the current head — the list in §9 stops at the commit
 before this file was added.
@@ -28,6 +30,8 @@ Branch: `claude/shopify-store-modern-design-746p2i` · PR: [#1](https://github.c
 | `fonts.googleapis.com` / `fonts.gstatic.com` **are** reachable. | Font subsets were downloaded from there. |
 | `registry.npmjs.org` is reachable. | `npm install` works. |
 | The Shopify MCP **blocks** writes to the live theme, `themeDelete`, and theme publishing. | Deploy only to unpublished themes. The owner publishes and deletes manually. |
+| **Shopify's Predictive Search API (`/search/suggest`) does not support Hebrew.** It is language-gated and `he` is not on the list, so it returns no product suggestions for this store no matter what `resources[type]` asks for. | This is why the typeahead appeared broken for months. Products now come from the **Storefront Search API** via Section Rendering: `routes.search_url + '?q=…&type=product&options[prefix]=last&options[unavailable_products]=last&section_id=predictive-search'`. `options[prefix]=last` is what gives letter-by-letter partial matching. The old endpoint is still in `section-header.js` behind `predictiveApiSupported()`, which reads `#shopify-features` → `predictiveSearch`, so the faster API is picked up automatically if Shopify ever adds Hebrew. **Do not "simplify" that branch away.** |
+| **Storefront search `type` accepts only `product`, `page`, `article`.** | Collection suggestions cannot come back from `/search`, so the Hebrew path has no collection group. Deliberate, not missing. |
 
 ### Store identifiers
 
@@ -322,11 +326,15 @@ owner's decision about their catalogue, not a code change.
 Accessibility is **done** for the palette: the audit is now part of
 `validate.py` and both failures are fixed and deployed.
 
-### 5. No independent code review has run
+### 5. Code review — two adversarial passes HAVE now run
 
-All twelve adversarial verification agents died on the spend limit. Every area
-rests on its build agent's own work plus the three checkers. A review pass over
-`sections/main-*.liquid` and the JS files is worth doing.
+Round 4 was investigated, implemented and then reviewed by two independent agents
+(correctness/a11y and performance/visual). Both returned `FIX_FIRST`; all six
+blocking defects were fixed before deploying. What they found is worth reading as a
+list of the mistakes this codebase invites — see §10.
+
+Earlier rounds still have no independent review: the twelve verify agents planned for
+the original build all died on the org spend limit.
 
 ### 6. Publishing the theme
 
@@ -381,3 +389,97 @@ d1dc050  Cap the header logo on both axes
 7f7b8ea  Add theme validator, visual review harness, and demand-capture snippet
 ed4cf15  Rebuild theme design system as v2 "Clarity" and wire real store data
 ```
+
+---
+
+## 10. Round 4 — what changed, and what is knowingly left
+
+Round 4 fixed six reported problems. Each was investigated before being touched, then
+implemented, then reviewed by two independent adversarial agents. Read §2 first: one of
+the findings is a platform fact that changes how search must be built.
+
+### What changed
+
+| Area | Root cause | Where the fix lives |
+|---|---|---|
+| Typeahead showed no products | `/search/suggest` is language-gated; Hebrew unsupported. Also `MIN_CHARS` was 2 and the sub-minimum branch called `closePanel()`, so the first letter *closed* the panel | `assets/section-header.js`, `sections/predictive-search.liquid` (new `search.performed` branch) |
+| Header stuttered in the first ~40px | `.is-stuck` fired at `scrollY > 40`, one px after the ~39px announcement bar cleared, and animated `block-size`/`padding-block`/`max-block-size` while a `ResizeObserver` rewrote the in-flow reserve spacer per frame → document height jitter → Chrome scroll anchoring fought the fling | `assets/section-header.css` (constant-height wrapper, absolute header), `assets/section-header.js` (`publishHeaderHeight`), `assets/global.js` (rAF-coalesced, hysteretic 48/32) |
+| Hero was not impressive | — | `sections/image-banner.liquid`, `assets/section-image-banner.css` |
+| English on the storefront | The theme's own copy was already 100% Hebrew. The English was Shopify-supplied strings rendered raw | 68 new keys in both locales + 12 Liquid files, all keyed off the stable handle with Shopify's value as fallback |
+| Makita image was a dead click | `feature_link` was only ever consumed by the button | `sections/image-with-text.liquid` — the frame is an `<a>` now |
+| Department backgrounds | Images were never produced as a set; the previous "uniform well" never rendered because `base.css` abs-positions `.media > img` at `inset: 0`, so padding on `.media` cannot inset it | `sections/category-rail.liquid`, `assets/section-category-rail.css` — "one well, one window" |
+
+### The six blocking defects the reviewers caught
+
+All fixed before deploy. Listed because each is a trap this codebase invites again:
+
+1. `showPopular()` did not invalidate the sequence token, so a stale typeahead response
+   could reopen the panel over a cleared input. Any early-return path out of a fetch
+   flow must bump `seq` — `closePanel()` already did.
+2. `formatMoney` matched only `{{amount}}` and `{{amount_no_decimals}}`, returning the
+   raw format string for the three separator variants Shopify also ships. Fixed in
+   **both** `global.js` and `quick-order.js` by matching the placeholder with a regex.
+3. `aria-hidden` on the payment-icon `<li>` left `role="list"` with zero `listitem`
+   children. It belongs on an inner `<span>`.
+4. An `infinite` `transform` animation on SVG `<path>` children — Blink builds no
+   transform property node for those, so it never reached the compositor and
+   re-rastered a masked layer forever, above the fold. Now gated to
+   `(hover: hover) and (min-width: 990px)`.
+5. The mote column sat behind the headline below 990px at **1.44:1** contrast. Hidden
+   under `max-width: 989px`; thinning the count does not help, the survivors are still
+   in the text column.
+6. The desktop sticky-wrapper fallback assumed a one-line nav row, but the twelve
+   departments are documented to wrap. Every section below sat 47px too high until JS
+   corrected it. `--header-row-nav` is now the two-line figure (99px).
+
+### Knowingly left — real, with file:line
+
+None of these is blocking; all are recorded so the next agent does not have to
+rediscover them.
+
+- **`assets/section-header.js`** — `compositionend` calls `onQueryChange` undebounced
+  while the debounced `input` handler is still armed, so every Hebrew IME commit on
+  Android costs two requests (the second aborts and re-issues the first). Share the
+  debounce or add a short suppression flag.
+- **`sections/image-banner.liquid`** — the video start is bound to
+  `window.addEventListener('load', …, { once: true })`. In the **theme editor** the
+  section re-renders after `load` has already fired, so a merchant who uploads a video
+  never sees it play. Needs a `document.readyState === 'complete'` short-circuit. Does
+  not affect real visitors.
+- **`assets/global.js`** — the Ajax cart error path now always shows one generic Hebrew
+  sentence. That was the point (Shopify's English used to win), but it loses the
+  specific reason for 422s that are not the quantity cap (sold-out variant,
+  unpublished product). Worth mapping the common `status`/`description` cases to
+  Hebrew rather than collapsing them.
+- **`assets/section-header.css`** — `.site-header.is-stuck .site-header__nav` keeps
+  `block-size: 0; overflow: hidden` with focusable links inside. `pointer-events: none`
+  fixed the mouse; the links are still in the tab order. Wants `visibility: hidden` or
+  `inert`. Pre-existing.
+- **`assets/section-header.js`** — `initNav`'s guard lives on markup Shopify replaces
+  wholesale on `shopify:section:load`, so each theme-editor header re-render adds
+  another `window` scroll listener. Pre-existing shape.
+- **`assets/facets.js`** — still does a forced `getBoundingClientRect()` read inside
+  rAF per scroll frame and writes `--collection-sticky-offset` on
+  `document.documentElement` (whole-document style invalidation). Much cheaper now that
+  the header height changes once per state flip, but it should just consume the
+  `--sticky-header-height` that `section-header.js` publishes on `:root`, and drop both
+  listeners.
+- **`theme/tools/validate.py`** — balances `{% comment %}` blocks but is blind to
+  `comment`/`endcomment` used in `{% liquid %}` mode, which round 4 introduced in five
+  files. Nothing verifies those are closed. Also `inline_asset_content` was added to
+  `KNOWN_FILTERS` ahead of first use, for the Makita vector.
+- **`assets/section-category-rail.css`** — `object-fit: contain` on `.placeholder-svg`
+  is a no-op (an inline `<svg>` is not a replaced element). Harmless.
+- **Makita sharpness** — still not resolvable in code. Every external host is blocked
+  at the proxy (403 on CONNECT for wikimedia, wikipedia, makita.co.il, cdn.shopify.com),
+  so no vector can be fetched here and **none was invented**. The block now leads with a
+  real 1500×1500 product master and demotes the 500px wordmark to a ~120px badge, where
+  4× finally exceeds what any screen asks for. The real fix is an official vector from
+  the importer: drop it in as `assets/makita-wordmark.svg` and inline it with
+  `inline_asset_content`. One trap when that happens — `base.css` styles `.media > svg`
+  as an absolute `cover` fill, so logo mode needs its own `> svg` rule or the vector
+  gets stretched to the frame.
+- **Nobody has seen any of this in a browser.** `anshilo.com` and `cdn.shopify.com` are
+  both blocked from this environment. Every claim above was verified through the Admin
+  API, `validate.py`, `node --check` and static reading — never with eyes. §7.1 still
+  stands and is still the highest-value remaining task.

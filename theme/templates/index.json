@@ -17,7 +17,9 @@
         "show_chips": true,
         "chip_1": "30+ שנות ניסיון בענף",
         "chip_2": "משלוחים לכל הארץ",
-        "chip_3": "ייעוץ מקצועי חינם"
+        "chip_3": "ייעוץ מקצועי חינם",
+        "motion_intensity": "full",
+        "show_detail_drawing": true
       }
     },
     "category_rail": {
