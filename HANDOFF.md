@@ -143,16 +143,31 @@ palette colour, run the validator — it will tell you if you broke AA.
 
 The deployed theme is byte-identical to the repo **except**:
 
-- `assets/base.css` — the repo carries two small changes not yet deployed: the
-  `--color-success` alpha tints moved from `rgba(14,138,79,…)` to
-  `rgba(11,122,70,…)` to follow the new green (imperceptible at 8–24% alpha), and
-  `scroll-padding-block-start` now reads `--header-reserve` instead of a variable
-  no one ever set. Deploy it whenever you next touch that file; nothing is broken
-  meanwhile except the anchor offset on the A–Z jump bar.
-- `sections/header.liquid` — the repo carries a comment rewrite and a changed
-  `default:` fallback for `logo_width` (175 → 260). Both are no-ops on the
-  storefront: `settings_data.json` always sets `logo_width`, so the fallback never
-  fires, and the `height` attribute it feeds computes the same number either way.
+- `assets/base.css` — the repo carries two small changes not yet deployed:
+  - The `--color-success` alpha tints moved from `rgba(14,138,79,…)` to
+    `rgba(11,122,70,…)` to follow the new green. Imperceptible at 8–24% alpha.
+  - `html { scroll-padding-block-start }` is `var(--header-reserve, 112px)` in the
+    repo and `var(--sticky-header-height, 96px)` on the deployed copy. **Neither
+    variable resolves on `html`** — `section-header.js` sets `--header-reserve` on
+    the header wrapper, and `--sticky-header-height` was never set anywhere — so
+    the live difference is just the fallback: anchor targets (the A–Z jump bar on
+    `/collections`, in-page filter links) currently land 16px higher than intended,
+    slightly under the sticky header. 112px is the measured correct value.
+
+  Deploying this file costs more than it is worth right now: at 46KB the escaped
+  body exceeds what one tool result will return, so it has to be split into chunks
+  and reassembled by hand, which risks corrupting a stylesheet the whole site
+  depends on for a 16px scroll offset. Deploy it as part of the next substantive
+  change to that file, when the payload is being sent anyway.
+- Eight files carry a changed `default:` fallback for `logo_width` (175 → 260) that
+  is **not** deployed: `sections/header.liquid` (plus a comment rewrite),
+  `sections/footer.liquid`, `sections/main-login.liquid`,
+  `sections/main-register.liquid`, `sections/main-password.liquid`,
+  `sections/main-reset-password.liquid`, `sections/main-activate-account.liquid`,
+  `templates/gift_card.liquid`. Every one is a no-op on the storefront:
+  `settings_data.json` always sets `logo_width`, so the fallback never fires. They
+  were aligned only so the repo does not contradict the schema default. Deploy them
+  opportunistically if you are touching those files anyway.
 
 Note that `config/settings_data.json` will always differ in **size** from the repo
 copy: Shopify strips blank lines and prepends its own auto-generated header comment
