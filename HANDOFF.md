@@ -552,3 +552,50 @@ Knowingly left: everything §11 lists, minus the two items the owner's review
 resolved (tile colour, thumb coverage). The facets fix is verified statically
 only — same §2 constraints — but this time the failure mechanism fully explains
 the screenshot, both in geometry and in why LTR analysis missed it.
+
+---
+
+## 13. Round 7 — two more owner reports; DEPLOY PENDING (read before touching)
+
+Round 7 changed 6 theme files (commit `8dbd2c9`): cream tile field
+(`color_tile_bg` default `EFE9DF`), plate padding 8% → 2.5%, `photo_blend` also
+on r7/r12, nav-thumb decoupled to white, and the collection toolbar / desktop
+facets sidebar / A–Z jump bar un-stickied (they floated detached below the
+auto-hiding header — owner screenshot).
+
+**The Shopify MCP disconnected mid-round and did not re-propagate even after
+the owner reconnected the connector**, so round 7 is in git but NOT deployed.
+The built zip was sent to the owner in chat as `shilo-v8-theme.zip` (also at
+the repo root).
+
+**Next agent — the obvious deploy route is now WRONG. Read fully:** after
+round 7 shipped to git, the owner uploaded the two importer-seal images
+through the THEME EDITOR of v7 (`148377370703`) — חותמת 1 = מקיטה/ארגנטולס,
+חותמת 2 = מילווקי/DELCO. Those uploads live ONLY in v7's live
+`config/settings_data.json`. A §3 zip import creates a NEW theme with the
+REPO's settings_data and would silently drop them. Therefore:
+
+1. Read v7's live `config/settings_data.json` via the files API. Capture the
+   `importer_badge_1/2` (+`_vendors`) values, and check whether
+   `color_tile_bg` was materialized as `"#FFFFFF"` by the editor save — if so,
+   the new cream schema default will NOT take effect on its own.
+2. `themeFilesUpsert` onto v7: the 6 round-7 files
+   (config/settings_schema.json, layout/theme.liquid,
+   assets/section-category-rail.css, assets/section-collection.css,
+   assets/section-header.css, templates/index.json) PLUS a corrected
+   settings_data.json built from v7's LIVE copy (badge refs preserved,
+   `color_tile_bg` → the cream). Compare settings_data by VALUES, not bytes (§5).
+3. Merge the badge refs into the repo's `config/settings_data.json` so future
+   zip deploys carry them; delete `shilo-v8-theme.zip` from the repo root;
+   commit + push; update this section.
+
+If a v8 theme already exists in the admin (the owner uploaded the zip
+manually), the badge settings must be re-applied there — either re-uploaded in
+its editor or upserted with the refs captured from v7. Check before assuming.
+
+One process bug worth recording: this section was first written to
+`theme/HANDOFF.md` by mistake (the shell cwd was still `theme/` after building
+the zip) and shipped that way in `8dbd2c9`; had another zip been built before
+the fix, the handoff file would have deployed to the storefront as a theme
+file. It was moved here and deleted from `theme/`. Check your cwd before
+heredoc appends.
