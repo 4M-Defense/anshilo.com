@@ -33,6 +33,16 @@ export function ProductCard({ product, width, showStock = true }: ProductCardPro
   const salePercent = onSale ? Math.round(((compareMin - minPrice) / compareMin) * 100) : 0;
   const hasRange = maxPrice > minPrice;
 
+  /**
+   * כמו באתר (theme/snippets/price.liquid): מוצר טווח שבו רק הווריאנט הזול
+   * פורסם ללא מחיר שומר מחיר "החל מ־" אמיתי לפי הווריאנט היקר, ולא נופל
+   * ל"מחיר בטלפון" — שם זה שמור למוצרים שאין להם מחיר בכלל.
+   */
+  const displayPrice =
+    minPrice <= 0 && maxPrice > 0
+      ? product.priceRange.maxVariantPrice
+      : product.priceRange.minVariantPrice;
+
   const pressIn = () => {
     Animated.spring(scale, {
       toValue: 0.985,
@@ -99,7 +109,7 @@ export function ProductCard({ product, width, showStock = true }: ProductCardPro
           <View style={styles.priceRow}>
             {hasRange && <Text style={styles.fromLabel}>החל מ־</Text>}
             <PriceText
-              price={product.priceRange.minVariantPrice}
+              price={displayPrice}
               compareAt={onSale ? product.compareAtPriceRange.minVariantPrice : null}
               size="md"
             />

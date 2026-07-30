@@ -122,7 +122,7 @@ export default function FavoritesScreen() {
         <EmptyState
           icon="heart-outline"
           title="עדיין אין מועדפים"
-          text="לחצו על הלב במסך המוצר כדי לשמור מוצרים שאהבתם — והם יחכו לכם כאן."
+          text="לחצו על הלב במסך המוצר כדי לשמור מוצרים שאהבתם - והם יחכו לכם כאן."
           actionLabel="לקטלוג"
           onAction={() => router.navigate('/(tabs)/catalog')}
         />

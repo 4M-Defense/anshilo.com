@@ -1,6 +1,7 @@
 # HANDOFF — א.נ. שילו · Shilo Pro v2
 
-**Current state: round 5 shipped. Start at §11 for what just changed, then §2.**
+**Current state: round 6 shipped. Start at §12 for what just changed, then §2.**
+Round 6 is the mobile app only — the theme is untouched since round 5 (§11).
 
 **Written by the previous agent. Read this before touching anything.**
 Run `git log --oneline` for the current head — the list in §9 stops at the commit
@@ -188,16 +189,25 @@ This is the part with a live blocker. Read it fully.
 
 ### 🚩 THE ONE BLOCKER
 
-`mobile-app/src/config.ts` line 19:
+No Storefront API token. Either of these satisfies it (env wins):
 
+```bash
+# preferred — no code change, rotatable
+EXPO_PUBLIC_SHOPIFY_STOREFRONT_TOKEN=…   # .env locally; eas env:create for builds
+```
 ```ts
-storefrontAccessToken: 'PASTE_YOUR_STOREFRONT_TOKEN_HERE',
+const TOKEN_INLINE = '…';                // mobile-app/src/config.ts
 ```
 
-**Until a real token is pasted there the app shows empty screens.** The token can
-only be created in the Shopify admin by the owner — an agent cannot mint it,
-because the Storefront API access scopes are granted to a custom app, not through
-the Admin API this session holds.
+**Until one is set the app cannot show a single product.** As of round 6 it no
+longer looks broken while unset — `isStorefrontConfigured()` short-circuits
+before the first request and the screen states in Hebrew exactly what is missing
+and where to put it.
+
+The token can only be created in the Shopify admin by the owner — an agent
+cannot mint it. Confirmed again in round 6: `storefrontAccessTokenCreate` is
+refused outright by the Shopify MCP safety policy
+(`category: access_escalation`), independent of which scopes the session holds.
 
 Exact steps are in `docs/INSTALL-APP.md` §1. Summary: Settings → Apps and sales
 channels → Develop apps → create app → Configuration → Storefront API → tick
@@ -530,3 +540,166 @@ high-contrast mode — a theme token there would defeat the override).
   the new theme while the app is installed.
 - `whatsapp-button` + `essential-announcer` app embeds also duplicate built-in
   theme features; flagged to the owner in INSTALL-THEME §7, their call.
+
+---
+
+## 12. Round 6 — the TestFlight build: RTL and site-parity
+
+Trigger: the owner shipped a build to TestFlight and reported it "doesn't match
+the site, and isn't adapted to Hebrew." Both complaints were reproducible from
+the code. Nothing here is cosmetic guesswork — each row was verified against
+either the React Native / Expo source in `node_modules` or the live store via
+the Admin API.
+
+### Why the TestFlight build looked wrong when Expo Go looked fine
+
+This is the single most important thing to carry forward.
+
+`forcesRTL` is applied by the **`expo-localization` config plugin**, and config
+plugins do not run in Expo Go — only in a real build. So RTL was OFF in the
+development runtime (first launch) and ON from frame one in TestFlight. The app
+was therefore never tested in the mode it shipped in, and an RTL-only bug class
+sailed straight through.
+
+The bug it hid: React Native does **not** treat `left` as a physical coordinate
+under RTL. With `doLeftAndRightSwapInRTL` on — the default, and it cannot be
+turned off reliably on iOS because `RCTI18nUtil.sharedInstance` re-sets it to
+`true` on every launch (`React/Modules/RCTI18nUtil.m`) — the layout engine
+rewrites `left` → `start` (`LayoutShadowNode.kt#maybeTransformLeftRightToStartEnd`).
+Every one of the ~100 glyphs in `Icon.tsx` is drawn in `left`/`border*Width`
+coordinates, so **every icon in the app rendered mirrored**, while the two
+`dir`-flagged directional icons got mirrored twice and so pointed the wrong way.
+The old comment in `Icon.tsx` asserted the opposite ("stable under forced RTL");
+it was wrong.
+
+### What changed
+
+| Area | Root cause / decision | Where |
+|---|---|---|
+| **Every icon mirrored under RTL** | Engine rewrites `left`→`start`; the `dir` condition was inverted relative to intent | `Icon.tsx` — `needsMirror()` keyed on **both** `isRTL` and `doLeftAndRightSwapInRTL`, so it stays correct in all four combinations. Three ad-hoc `scaleX(-1)` flips in screens replaced by the `dir` prop (`more.tsx`, `catalog.tsx`, `product/[handle].tsx`) |
+| iOS system UI in English | `CFBundleLocalizations` was never set, so iOS resolved the app to its development region. Alerts, share sheet, the checkout browser chrome and the App Store listing all fell back to English | `app.json` — `supportedLocales: ["he"]` on the plugin (→ `CFBundleLocalizations`, and `locales_config.xml` + `android:localeConfig` on Android), plus `CFBundleDevelopmentRegion: "he"`, `CFBundleAllowMixedLocalizations`. Verified with `npx expo config --type introspect` |
+| Money format | `formatMoney` hand-rolled a `₪` prefix with 0–2 decimals and no thousands separator over 999. Now it interprets a Shopify money template, supporting all four placeholders (`amount`, `amount_no_decimals`, and both `_with_comma_separator` variants) with the same semantics, so any shop currency format can be pasted in without touching code. Computed by hand rather than via `toLocaleString` because Hermes ships different Intl data per platform. Negative sign sits outside the symbol (`-₪45.25`) | `config.ts#MONEY_FORMAT`, `client.ts#formatMoney` |
+| ₪0 items were **sellable** | A slice of the catalogue is published unpriced. The theme replaces the buy button with a quote request (`snippets/request-price.liquid`); the app happily added them to cart, and checkout would have handed them over free | `PriceText` shows `מחיר בטלפון` (the site's own string); `product/[handle].tsx` swaps add-to-cart for call/WhatsApp with product + SKU prefilled; `handleAddToCart` guards. `ProductCard` mirrors the theme's exception: a range product whose cheapest variant is unpriced keeps a real "החל מ־" price from `maxVariantPrice` |
+| **WhatsApp button did not work** | `STORE_INFO.whatsapp` is a full `wa.link` URL (matches `store_whatsapp` in the theme), but two screens built `https://wa.me/${…}` from it → `https://wa.me/https://wa.link/sp55tw` | `config.ts#WHATSAPP_URL` / `#TEL_URL` — one place, same URL-vs-number branch the theme uses. `tel:` now uses `phoneDial` (unhyphenated) as the config always intended. Callers: `index.tsx`, `more.tsx`, `product/[handle].tsx` |
+| Free-shipping bar missing | Theme shows one from ₪399 (`free_shipping_threshold`); the app's cart had none | `cart.tsx` — progress bar with the theme's own two strings, threshold in `config.ts#FREE_SHIPPING_THRESHOLD` |
+| Token was a code-only edit | Rotating it meant a commit | `config.ts` reads `EXPO_PUBLIC_SHOPIFY_STOREFRONT_TOKEN` first, falls back to inline. `.env.example` added; `eas.json` profiles now carry `environment` so `eas env:create` values reach builds |
+| Unset token looked like a broken app | Empty screens with no explanation | `isStorefrontConfigured()` short-circuits `storefrontFetch` with a Hebrew message naming the file, the env var and the doc |
+| Two `expo config` warnings | `edgeToEdgeEnabled` is obsolete (Android 16 mandates edge-to-edge); `userInterfaceStyle` was inert on Android without `expo-system-ui` | removed from `app.json`; `expo-system-ui@~57.0.2` added so the light-only palette is actually locked on Android |
+
+`npx tsc --noEmit` → 0 errors. `npx expo config --type introspect` → 0 warnings.
+
+### Knowingly left / needs eyes
+
+- **Nobody has run this on a device.** The icon fix is derived from the RN
+  sources cited above, not from a screenshot. The one thing worth eyeballing
+  first on a real build is the icon set — if some glyph now looks mirrored, the
+  question to ask is whether it should carry `dir`, not whether `needsMirror`
+  is wrong.
+- **The token is still the blocker** (§6). Everything else in this round is
+  invisible until the app can load a product.
+- **Fonts deliberately not matched.** The site bundles Heebo + Assistant, but
+  only as subsetted `woff2` (`theme/assets/*-var-*.woff2`), which React Native
+  cannot load; variable TTFs from Google Fonts would render every weight at 400
+  and look worse than the platform font. The app stays on San Francisco /
+  Roboto, both of which cover Hebrew fully. This is the one accepted visual
+  difference from the site.
+- **₪ vs ש"ח is a deliberate, owner-chosen divergence.** The shop's currency
+  format is `{{amount}} ש"ח`, so the site and checkout say "ש"ח" while the app
+  says "₪". The owner prefers ₪ and was told about the split. To make all three
+  agree, change the format in the admin (הגדרות → כללי → פורמט מטבע) to
+  `₪{{amount}}` and set `MONEY_FORMAT.template` to match. Do **not** "fix" this
+  by reverting the app to ש"ח — that reverses an explicit decision.
+- `MONEY_FORMAT` and `FREE_SHIPPING_THRESHOLD` are mirrored constants, in the
+  same sense `theme.ts` mirrors the web tokens: if the owner changes the
+  shipping threshold in the admin, `FREE_SHIPPING_THRESHOLD` needs the same
+  edit. Both carry a comment saying so.
+
+### How the TestFlight build got there — investigated, and it was not from here
+
+The owner did not know how the build was produced. The evidence says **this
+repo has never been built**:
+
+| Check | Result |
+|---|---|
+| `expo.extra.eas.projectId` in `app.json` | **absent** — `eas build` / `eas init` always writes and commits this to link the build to an EAS project |
+| `expo.owner` | absent |
+| `ios/`, `android/` | absent — `expo prebuild` never ran |
+| `.easignore`, `credentials.json`, `.expo/` | absent |
+| `expo-updates` | **not installed**, yet `eas.json` declares a `channel` on all three profiles — a real `eas build` would have rejected that. The file was hand-authored and never exercised |
+| git history | no build/submit commit; `eas.json` arrived with `e03ad3b`, unused since |
+
+**Sharpened once the owner ran `eas init` and `eas build:list`.** An EAS project
+already existed — `@dvir4m/anshilo-shop`, ID `c36b7d96-fe98-47b2-9455-a1c5bff1ccc4`
+— carrying **7 iOS builds**, two of them made on 2026-07-30, the same day as this
+round. Both are SDK 57, version 1.0.0, build numbers 6 and 7, `distribution:
+store`, built under profile **`testflight`**.
+
+That profile has never existed in this repo (`git log -S'testflight' --
+mobile-app/eas.json` is empty), and neither build's commit is reachable here:
+
+| Build | Commit | In this repo? |
+|---|---|---|
+| 7 | `119e80ef61b7916c57aeee098d6d9412177f0028` | no |
+| 6 | `0cfa2d10b3bcfbc73962ac21aa9cdf8874045d59` | no |
+
+So the TestFlight binary is **not** this codebase. It is a sibling — same Expo
+account, same slug, same SDK — built from a copy nobody here has seen. Do not
+claim the bugs fixed in this round are the ones the owner saw in TestFlight; that
+cannot be checked. What can be said is that the fixes are correct for the app in
+*this* repo, which is what now builds.
+
+Practical consequences, all favourable:
+
+- `eas init` linked this checkout to the existing project rather than creating a
+  second one, so build numbering stays continuous.
+- With `appVersionSource: remote` and `autoIncrement`, the next build is number
+  **8**; app.json carries **1.0.1** against TestFlight's 1.0.0. No collision —
+  which is what the version bump in a09996f was for.
+- Apple signing credentials already exist on the EAS project (the earlier store
+  builds succeeded), so a build will not prompt to generate certificates.
+- TestFlight retains build 7, so the new build can be compared against it rather
+  than replacing it destructively.
+
+### Bundle identifiers — they differ per platform, on purpose
+
+`App Store Connect` (Apple ID 6796238101, SKU `ANSHILO-IOS-001`, primary language
+Hebrew, status *Prepare for Submission*) registers the app as
+**`com.anshilo.shop.test`** — with the `.test` suffix. app.json had
+`com.anshilo.shop`, so a build would not have matched that record, and the EAS
+signing credentials on the project are issued against the `.test` identifier.
+
+Apple does not allow a bundle identifier to change after the app record exists.
+Presented as a choice; the owner chose to keep the existing identifier so the
+fixes could be validated on a device today.
+
+| Platform | Identifier | Why |
+|---|---|---|
+| iOS | `com.anshilo.shop.test` | Locked to the existing App Store Connect record and its credentials |
+| Android | `com.anshilo.shop` | Nothing is published to Play yet, so there is no reason to inherit the `.test` accident on a platform that is still free |
+
+**Do not "tidy" these into matching.** Changing iOS breaks the link to the
+existing record and its testers; changing Android burns a clean identifier for no
+gain. If the app is ever published publicly under a clean iOS identifier, that
+requires a *new* App Store Connect record — a separate exercise, not an edit here.
+
+Also recorded from that check: EAS lists builds 6 and 7 as finished, but App Store
+Connect only ever received **6** — build 7 was built and never submitted. Build 6
+sits at *Waiting for Review*, which is why the external tester
+(`mayshilo@icloud.com`, group `Shilo`) shows *No Builds Available*. The internal
+group `Anshilo Test group` needs no review, so internal testers can install
+without waiting.
+
+It was also **not** a no-code Shopify app builder — the store's publications
+were checked and there is no Vajro / Shopney / Tapcart / MageNative channel.
+
+### What that check did turn up — the token already exists
+
+`publications` on the Admin API lists a channel **"Shilo Mobile App"**, backed
+by Shopify's **Headless** app (`gid://shopify/App/12875497473`, publication
+`gid://shopify/Publication/181771993167`). The owner already followed
+`docs/INSTALL-APP.md` and created it under the name the doc suggested.
+
+**1,867 of 1,918 products are published to it — identical to the online store's
+1,867.** So the channel is stocked and the data side is ready; the public access
+token simply was never copied into the repo. It is in the admin under
+Sales channels → Headless → Shilo Mobile App → Storefront API.

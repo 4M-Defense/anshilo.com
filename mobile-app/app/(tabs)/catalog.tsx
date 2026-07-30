@@ -25,12 +25,19 @@ const TILE_RATIO = 0.82;
 function errorText(err: unknown): string {
   return err instanceof Error && err.message !== ''
     ? err.message
-    : 'שגיאה בטעינת הקטגוריות. נסו שוב.';
+    : 'שגיאה בטעינת המחלקות. נסו שוב.';
 }
 
 /**
- * אריח קטגוריה: תמונת רקע עם שכבת האפלה בגוון דיו (מדורגת — כהה יותר למטה,
- * כדי שהכותרת הלבנה תישאר קריאה), או אריח אות פותחת כשאין תמונה.
+ * אריח מחלקה: התמונה יושבת על לבן ב-contain, והכותרת בפס נפרד מתחתיה.
+ *
+ * קודם התמונה מלאה את האריח ב-cover, עם שלוש שכבות האפלה וכותרת לבנה עליה.
+ * זה עובד לצילום אווירה, אבל חלק גדול מהמחלקות והמותגים בקטלוג הזה מיוצגים
+ * ב**לוגו** (בלאנדסטון, בוש, בונדקס, בונה, גרואה, האנטר) — ו-cover חתך אותם,
+ * ההאפלה עמעמה אותם, והכותרת הלבנה ישבה עליהם. שלוש פגיעות באותו אלמנט.
+ *
+ * הפתרון תואם גם ל-ProductCard וגם למערכת העיצוב של האתר: תמונות קטלוג על
+ * לבן, ב-contain, בלי שכבות מעל, והטקסט בדיו מתחת לתמונה ולא עליה.
  */
 function CategoryTile({
   collection,
@@ -43,8 +50,6 @@ function CategoryTile({
   height: number;
   onPress: () => void;
 }) {
-  const hasImage = collection.image != null;
-  const fg = hasImage ? colors.onInk : colors.ink;
   return (
     <Pressable
       accessibilityRole="button"
@@ -52,36 +57,30 @@ function CategoryTile({
       onPress={onPress}
       style={({ pressed }) => [styles.tile, { width, height }, pressed && styles.tilePressed]}
     >
-      {hasImage && collection.image != null ? (
-        <>
+      <View style={styles.tileImageWrap}>
+        {collection.image != null ? (
           <Image
             source={{ uri: collection.image.url }}
             style={StyleSheet.absoluteFill}
-            contentFit="cover"
+            contentFit="contain"
             transition={200}
             accessibilityLabel={collection.image.altText ?? collection.title}
           />
-          {/* שכבות האפלה נערמות — מדמות מעבר הדרגתי לכהה בתחתית */}
-          <View style={styles.overlayFull} />
-          <View style={styles.overlayLower} />
-          <View style={styles.overlayBottom} />
-        </>
-      ) : (
-        <View style={styles.letterWrap}>
+        ) : (
           <Text
-            style={[styles.letter, { fontSize: height * 0.42 }]}
+            style={[styles.letter, { fontSize: height * 0.34 }]}
             allowFontScaling={false}
           >
             {collection.title.trim().charAt(0)}
           </Text>
-        </View>
-      )}
+        )}
+      </View>
       <View style={styles.tileFooter}>
-        <Text style={[styles.tileTitle, { color: fg }]} numberOfLines={2}>
+        <Text style={styles.tileTitle} numberOfLines={2}>
           {collection.title}
         </Text>
-        {/* שברון "קדימה" — ב-RTL מצביע שמאלה, לכן הופכים במפורש */}
-        <Icon name="chevron-forward" size={16} color={fg} style={styles.flipX} />
+        {/* שברון "קדימה" — ‏dir דואג להיפוך תחת RTL */}
+        <Icon name="chevron-forward" size={16} color={colors.textMuted} dir />
       </View>
     </Pressable>
   );
@@ -203,7 +202,7 @@ export default function CatalogScreen() {
       {/* כותרת מסך — הטאבים ללא header מובנה */}
       <View style={[styles.header, { paddingTop: insets.top + spacing.md }]}>
         <View style={styles.eyebrow} />
-        <Text style={styles.headerTitle}>קטגוריות</Text>
+        <Text style={styles.headerTitle}>מחלקות</Text>
         <Text style={styles.headerSub}>כל מחלקות החנות במקום אחד</Text>
       </View>
 
@@ -238,7 +237,7 @@ export default function CatalogScreen() {
             <View style={styles.emptyWrap}>
               <EmptyState
                 icon="grid-outline"
-                title="אין קטגוריות להצגה"
+                title="אין מחלקות להצגה"
                 text="נראה שהחנות עדיין מסתדרת. נסו לרענן בעוד רגע."
                 actionLabel="רענון"
                 onAction={() => loadFirst()}
@@ -317,69 +316,39 @@ const styles = StyleSheet.create({
   tilePressed: {
     opacity: 0.85,
   },
-  overlayFull: {
-    position: 'absolute',
-    top: 0,
-    bottom: 0,
-    left: 0,
-    right: 0,
-    backgroundColor: colors.ink,
-    opacity: 0.18,
-  },
-  overlayLower: {
-    position: 'absolute',
-    left: 0,
-    right: 0,
-    bottom: 0,
-    height: '60%',
-    backgroundColor: colors.ink,
-    opacity: 0.24,
-  },
-  overlayBottom: {
-    position: 'absolute',
-    left: 0,
-    right: 0,
-    bottom: 0,
-    height: '34%',
-    backgroundColor: colors.ink,
-    opacity: 0.32,
-  },
-  letterWrap: {
-    position: 'absolute',
-    top: 0,
-    bottom: 0,
-    left: 0,
-    right: 0,
+  /* אזור התמונה — לבן, עם ריווח כדי שלוגו לא ייגע בקצוות */
+  tileImageWrap: {
+    flex: 1,
+    backgroundColor: colors.surface,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: colors.accentSoft,
+    padding: spacing.md,
   },
   letter: {
     fontWeight: '800',
     color: colors.accent,
-    opacity: 0.55,
+    opacity: 0.45,
   },
+  /* פס הכותרת — מתחת לתמונה, לא עליה */
   tileFooter: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     gap: spacing.sm,
-    padding: spacing.md,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm + 2,
+    borderTopWidth: 1,
+    borderTopColor: colors.border,
+    backgroundColor: colors.surface,
   },
   tileTitle: {
     flex: 1,
-    fontSize: typography.body,
-    lineHeight: typography.body + 4,
+    fontSize: typography.small,
+    lineHeight: typography.small + 5,
     fontWeight: '700',
+    color: colors.ink,
     textAlign: 'right',
     writingDirection: 'rtl',
-  },
-  flipX: {
-    transform: [{ scaleX: -1 }],
   },
 
   /* פוטר עימוד */

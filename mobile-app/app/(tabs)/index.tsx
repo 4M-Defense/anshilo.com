@@ -12,7 +12,7 @@ import {
   useWindowDimensions,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { getCollections, getProducts } from '@/api/client';
+import { getCollectionsByHandle, getProducts } from '@/api/client';
 import type { Collection, ProductCardData } from '@/api/types';
 import {
   Button,
@@ -23,13 +23,22 @@ import {
   Skeleton,
   SkeletonProductCard,
 } from '@/components';
-import { STORE_INFO } from '@/config';
+import {
+  BRAND_NAMES,
+  HOME_FEED,
+  IMPORTERS,
+  STORE_INFO,
+  STORE_LOGO,
+  TEL_URL,
+  WHATSAPP_URL,
+} from '@/config';
 import { colors, radius, shadows, spacing, typography } from '@/theme';
 
 /* ---------- קבועי פריסה ---------- */
 
 const RAIL_CARD_WIDTH = 168;
 const COLLECTION_TILE_SIZE = 76;
+const BRAND_TILE_WIDTH = 132;
 
 /* ---------- טעינת נתונים אזורית ---------- */
 
@@ -86,7 +95,23 @@ function useRegion<T>(load: () => Promise<T>) {
   return { ...state, reload };
 }
 
-const loadCollections = async (): Promise<Collection[]> => (await getCollections(10)).nodes;
+/**
+ * המחלקות של מסך הבית — בדיוק אותן מחלקות, באותו סדר, כמו רצועת "המחלקות
+ * שלנו" באתר (theme/templates/index.json → section `category_rail`).
+ *
+ * קודם עמד כאן `getCollections(10)`, שמחזיר את עשר הקטגוריות הראשונות בסדר
+ * ברירת המחדל של שופיפיי — כלומר משהו שאין לו שום קשר למחלקות שבאתר. זו
+ * הסיבה שהרצועה באפליקציה לא נראתה כמו באתר.
+ *
+ * handles שלא קיימים בחנות מסוננים בשקט על ידי getCollectionsByHandle, כך
+ * ששינוי בקטלוג לא שובר את המסך.
+ */
+const loadCollections = async (): Promise<Collection[]> =>
+  getCollectionsByHandle(HOME_FEED.departments);
+/** פס המותגים — אותם מותגים ובאותו סדר כמו "המותגים שאנחנו מייצגים" באתר */
+const loadBrands = async (): Promise<Collection[]> =>
+  getCollectionsByHandle(HOME_FEED.brands);
+
 const loadBestSellers = async (): Promise<ProductCardData[]> =>
   (await getProducts({ first: 6, sortKey: 'BEST_SELLING' })).nodes;
 const loadNewArrivals = async (): Promise<ProductCardData[]> =>
@@ -136,7 +161,10 @@ function CollectionTile({
           <Image
             source={{ uri: collection.image.url }}
             style={styles.collectionImage}
-            contentFit="cover"
+            /* contain, לא cover: חלק מהמחלקות והמותגים מיוצגים בלוגו ולא
+               בצילום, ו-cover חותך אותם. ראו ProductCard וגם מערכת העיצוב
+               של האתר — תמונות קטלוג יושבות על לבן ב-contain. */
+            contentFit="contain"
             transition={200}
             accessibilityLabel={collection.image.altText ?? collection.title}
           />
@@ -155,6 +183,67 @@ function CollectionTile({
   );
 }
 
+/**
+ * אריח מותג — הלוגו על לבן ב-contain.
+ *
+ * תמונות הקולקציות של המותגים הן קובצי לוגו (makita-logo.png, Grohe-logo.png
+ * וכו'), ולכן contain ולא cover, ורקע לבן ולא גוון — בדיוק מהסיבה שהאריחים
+ * בקטלוג תוקנו. השם מגיע מ-BRAND_NAMES כשיש override, אחרת מכותרת הקולקציה.
+ */
+function BrandTile({
+  collection,
+  importer,
+  onPress,
+}: {
+  collection: Collection;
+  importer?: { importer: string; note: string; badgeUrl: string };
+  onPress: () => void;
+}) {
+  const label = BRAND_NAMES[collection.handle] ?? collection.title;
+  return (
+    <Pressable
+      accessibilityRole="button"
+      accessibilityLabel={label}
+      onPress={onPress}
+      style={({ pressed }) => [styles.brandTile, pressed && styles.pressed]}
+    >
+      <View style={styles.brandLogoWrap}>
+        {collection.image != null ? (
+          <Image
+            source={{ uri: collection.image.url }}
+            style={styles.brandLogo}
+            contentFit="contain"
+            transition={200}
+            accessibilityLabel={collection.image.altText ?? label}
+          />
+        ) : (
+          <Text style={styles.brandFallback} numberOfLines={2}>
+            {label}
+          </Text>
+        )}
+      </View>
+      <Text style={styles.brandName} numberOfLines={2}>
+        {label}
+      </Text>
+      {importer != null && (
+        <View style={styles.importerRow}>
+          {importer.badgeUrl !== '' && (
+            <Image
+              source={{ uri: importer.badgeUrl }}
+              style={styles.importerBadge}
+              contentFit="contain"
+              accessibilityLabel={`תג יבואן רשמי ${importer.importer}`}
+            />
+          )}
+          <Text style={styles.importerText} numberOfLines={2}>
+            {`${importer.note} · ${importer.importer}`}
+          </Text>
+        </View>
+      )}
+    </Pressable>
+  );
+}
+
 /* ---------- מסך הבית ---------- */
 
 export default function HomeScreen() {
@@ -163,6 +252,7 @@ export default function HomeScreen() {
   const { width } = useWindowDimensions();
 
   const collections = useRegion(loadCollections);
+  const brands = useRegion(loadBrands);
   const bestSellers = useRegion(loadBestSellers);
   const newArrivals = useRegion(loadNewArrivals);
   const [refreshing, setRefreshing] = useState(false);
@@ -173,11 +263,12 @@ export default function HomeScreen() {
     setRefreshing(true);
     await Promise.allSettled([
       collections.reload(),
+      brands.reload(),
       bestSellers.reload(),
       newArrivals.reload(),
     ]);
     setRefreshing(false);
-  }, [collections.reload, bestSellers.reload, newArrivals.reload]);
+  }, [collections.reload, brands.reload, bestSellers.reload, newArrivals.reload]);
 
   const goCatalog = useCallback(() => {
     router.push('/catalog');
@@ -191,19 +282,19 @@ export default function HomeScreen() {
   );
 
   const callStore = useCallback(() => {
-    Linking.openURL(`tel:${STORE_INFO.phone}`).catch(() => {});
+    Linking.openURL(TEL_URL).catch(() => {});
   }, []);
 
-  const whatsappNumber: string = STORE_INFO.whatsapp;
-  const hasWhatsapp = whatsappNumber.trim() !== '';
+  const hasWhatsapp = WHATSAPP_URL !== '';
   const openWhatsapp = useCallback(() => {
-    Linking.openURL(`https://wa.me/${whatsappNumber}`).catch(() => {});
-  }, [whatsappNumber]);
+    Linking.openURL(WHATSAPP_URL).catch(() => {});
+  }, []);
 
   // מדורים ריקים (חנות בלי נתונים) מוסתרים — המסך לעולם לא נשאר ריק כי
   // הכותרת, ההירו וכרטיס יצירת הקשר תמיד מוצגים.
   const hideCollections =
     collections.status === 'ready' && (collections.data?.length ?? 0) === 0;
+  const hideBrands = brands.status === 'ready' && (brands.data?.length ?? 0) === 0;
   const hideBestSellers =
     bestSellers.status === 'ready' && (bestSellers.data?.length ?? 0) === 0;
   const hideNewArrivals =
@@ -214,9 +305,15 @@ export default function HomeScreen() {
       {/* כותרת המסך — שם החנות, סלוגן וכפתור חיוג */}
       <View style={[styles.header, { paddingTop: insets.top + spacing.sm }]}>
         <View style={styles.headerText}>
-          <Text style={styles.storeName} numberOfLines={1}>
-            {STORE_INFO.name}
-          </Text>
+          {/* הלוגו האמיתי של החנות, מה-CDN — אותו קובץ שההדר באתר מציג */}
+          <Image
+            source={{ uri: STORE_LOGO.horizontal }}
+            style={styles.headerLogo}
+            contentFit="contain"
+            contentPosition="right"
+            transition={200}
+            accessibilityLabel={STORE_INFO.name}
+          />
           <Text style={styles.tagline} numberOfLines={1}>
             {STORE_INFO.tagline}
           </Text>
@@ -251,10 +348,10 @@ export default function HomeScreen() {
             <Text style={styles.heroKicker}>{STORE_INFO.tagline}</Text>
             <Text style={styles.heroTitle}>כל מה שהמקצוענים צריכים</Text>
             <Text style={styles.heroSub}>
-              חומרי בניין, כלי עבודה ואספקה טכנית — הכול במקום אחד, עם שירות אישי של
+              חומרי בניין, כלי עבודה ואספקה טכנית - הכול במקום אחד, עם שירות אישי של
               אנשי מקצוע.
             </Text>
-            <Button title="לכל הקטגוריות" onPress={goCatalog} style={styles.heroCta} />
+            <Button title="לכל המחלקות" onPress={goCatalog} style={styles.heroCta} />
           </View>
           <Rule />
         </View>
@@ -264,8 +361,8 @@ export default function HomeScreen() {
           <View style={styles.section}>
             <View style={styles.sectionHeaderWrap}>
               <SectionHeader
-                title="קנייה לפי קטגוריה"
-                actionLabel="לכל הקטגוריות"
+                title="קנייה לפי מחלקה"
+                actionLabel="לכל המחלקות"
                 onAction={goCatalog}
               />
             </View>
@@ -296,6 +393,41 @@ export default function HomeScreen() {
                   <CollectionTile
                     key={c.id}
                     collection={c}
+                    onPress={() => goCollection(c.handle)}
+                  />
+                ))}
+              </ScrollView>
+            )}
+          </View>
+        )}
+
+        {/* פס המותגים — מקביל ל"המותגים שאנחנו מייצגים" באתר */}
+        {!hideBrands && (
+          <View style={styles.section}>
+            <View style={styles.sectionHeaderWrap}>
+              <SectionHeader title="המותגים שאנחנו מייצגים" />
+            </View>
+            {brands.status === 'loading' && (
+              <View style={styles.railSkeleton}>
+                {Array.from({ length: 3 }, (_, i) => (
+                  <Skeleton key={i} width={BRAND_TILE_WIDTH} height={116} radius={radius.card} />
+                ))}
+              </View>
+            )}
+            {brands.status === 'error' && (
+              <RegionError message={brands.message} onRetry={brands.reload} />
+            )}
+            {brands.status === 'ready' && brands.data != null && (
+              <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={styles.railContent}
+              >
+                {brands.data.map((c) => (
+                  <BrandTile
+                    key={c.id}
+                    collection={c}
+                    importer={IMPORTERS.find((i) => i.collection === c.handle)}
                     onPress={() => goCollection(c.handle)}
                   />
                 ))}
@@ -364,7 +496,7 @@ export default function HomeScreen() {
         <View style={styles.contactCard}>
           <Text style={styles.contactTitle}>צריכים ייעוץ מקצועי?</Text>
           <Text style={styles.contactText}>
-            הצוות שלנו זמין לכל שאלה — מחירים, מלאי, אספקה והתאמת חומרים לפרויקט.
+            הצוות שלנו זמין לכל שאלה - מחירים, מלאי, אספקה והתאמת חומרים לפרויקט.
           </Text>
           <View style={styles.contactButtons}>
             <Button
@@ -548,7 +680,10 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.border,
     overflow: 'hidden',
-    backgroundColor: colors.surfaceAlt,
+    /* לבן, לא surfaceAlt — לוגואים של מותגים מגיעים על רקע לבן, וכל גוון
+       אחר יוצר מסגרת אפורה מסביבם */
+    backgroundColor: colors.surface,
+    padding: spacing.xs,
   },
   collectionImage: {
     width: '100%',
@@ -570,6 +705,67 @@ const styles = StyleSheet.create({
     lineHeight: typography.tiny + 4,
     fontWeight: '600',
     color: colors.text,
+    textAlign: 'center',
+    writingDirection: 'rtl',
+  },
+
+  headerLogo: {
+    width: 168,
+    height: 34,
+  },
+
+  /* אריחי מותגים */
+  brandTile: {
+    width: BRAND_TILE_WIDTH,
+    gap: spacing.sm,
+  },
+  brandLogoWrap: {
+    height: 72,
+    borderRadius: radius.card,
+    borderWidth: 1,
+    borderColor: colors.border,
+    /* לבן — לוגואים מגיעים על רקע לבן */
+    backgroundColor: colors.surface,
+    padding: spacing.sm,
+    alignItems: 'center',
+    justifyContent: 'center',
+    overflow: 'hidden',
+  },
+  brandLogo: {
+    width: '100%',
+    height: '100%',
+  },
+  brandFallback: {
+    fontSize: typography.small,
+    fontWeight: '800',
+    color: colors.accent,
+    textAlign: 'center',
+    writingDirection: 'rtl',
+  },
+  brandName: {
+    fontSize: typography.tiny,
+    lineHeight: typography.tiny + 4,
+    fontWeight: '700',
+    color: colors.ink,
+    textAlign: 'center',
+    writingDirection: 'rtl',
+  },
+  importerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: spacing.xs,
+  },
+  importerBadge: {
+    width: 22,
+    height: 22,
+  },
+  importerText: {
+    flex: 1,
+    fontSize: typography.tiny - 1,
+    lineHeight: typography.tiny + 3,
+    fontWeight: '600',
+    color: colors.success,
     textAlign: 'center',
     writingDirection: 'rtl',
   },

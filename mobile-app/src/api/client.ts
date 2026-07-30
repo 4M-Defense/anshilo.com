@@ -1,4 +1,4 @@
-import { SHOPIFY_CONFIG } from '../config';
+import { MONEY_FORMAT, SHOPIFY_CONFIG, isStorefrontConfigured } from '../config';
 import {
   CART_CREATE_MUTATION,
   CART_LINES_ADD_MUTATION,
@@ -46,6 +46,17 @@ export async function storefrontFetch<T>(
   query: string,
   variables?: Record<string, unknown>
 ): Promise<T> {
+  // בלי טוקן אין טעם לפנות לרשת — 401 מובטח. מוטב להסביר מה חסר.
+  if (!isStorefrontConfigured()) {
+    throw new StorefrontError(
+      'האפליקציה עדיין לא חוברה לחנות.\n\n' +
+        'צריך ליצור טוקן Storefront API בניהול החנות ולהזין אותו ' +
+        'ב-mobile-app/src/config.ts (או כמשתנה הסביבה ' +
+        'EXPO_PUBLIC_SHOPIFY_STOREFRONT_TOKEN).\n\n' +
+        'ההוראות המלאות: docs/INSTALL-APP.md'
+    );
+  }
+
   let response: Response;
   try {
     response = await fetch(ENDPOINT, {
@@ -288,12 +299,58 @@ export async function cartNoteUpdate(cartId: string, note: string): Promise<Cart
 
 /* ---------- Money formatting ---------- */
 
+/**
+ * מפריד אלפים ומעגל למספר ספרות מבוקש.
+ *
+ * מחושב ידנית ולא דרך toLocaleString — נתוני ה-Intl של המנוע שונים בין iOS
+ * לאנדרואיד, ומחיר שמוצג אחרת בכל מכשיר הוא בדיוק מה שרצינו למנוע.
+ */
+function groupThousands(
+  /** תמיד חיובי — הסימן מטופל ב-formatMoney, כדי שיצא "‎-₪45" ולא "₪-45" */
+  value: number,
+  thousands: string,
+  decimalPoint: string,
+  decimals: number
+): string {
+  const [whole, fraction] = value.toFixed(decimals).split('.');
+  const grouped = whole.replace(/\B(?=(\d{3})+(?!\d))/g, thousands);
+  return fraction ? `${grouped}${decimalPoint}${fraction}` : grouped;
+}
+
+/** ארבעת ה-placeholders של שופיפיי, באותה סמנטיקה בדיוק */
+const MONEY_TOKENS =
+  /\{\{\s*(amount_no_decimals_with_comma_separator|amount_with_comma_separator|amount_no_decimals|amount)\s*\}\}/g;
+
+function applyMoneyTemplate(template: string, amount: number): string {
+  return template.replace(MONEY_TOKENS, (_match, token: string) => {
+    switch (token) {
+      case 'amount_no_decimals':
+        return groupThousands(amount, ',', '.', 0);
+      case 'amount_with_comma_separator':
+        return groupThousands(amount, '.', ',', 2);
+      case 'amount_no_decimals_with_comma_separator':
+        return groupThousands(amount, '.', ',', 0);
+      default:
+        return groupThousands(amount, ',', '.', 2);
+    }
+  });
+}
+
+/** האם הסכום ריק — מוצר שפורסם ללא מחיר (ראו CALL_FOR_PRICE_LABEL) */
+export function isUnpriced(money: { amount: string } | null | undefined): boolean {
+  if (money == null) return true;
+  const amount = parseFloat(money.amount);
+  return !Number.isFinite(amount) || amount <= 0;
+}
+
 export function formatMoney(money: { amount: string; currencyCode: string }): string {
   const amount = parseFloat(money.amount);
-  const formatted = amount.toLocaleString('he-IL', {
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 2,
-  });
-  const symbol = money.currencyCode === 'ILS' ? '₪' : money.currencyCode + ' ';
-  return `${symbol}${formatted}`;
+  if (!Number.isFinite(amount)) return '';
+  const sign = amount < 0 ? '-' : '';
+  const abs = Math.abs(amount);
+  if (money.currencyCode === MONEY_FORMAT.currencyCode) {
+    return `${sign}${applyMoneyTemplate(MONEY_FORMAT.template, abs)}`;
+  }
+  // מטבע אחר (למשל אם תיפתח שוק נוסף) — הקוד אחרי הסכום, בלי להמציא סימן
+  return `${sign}${groupThousands(abs, ',', '.', 2)} ${money.currencyCode}`;
 }

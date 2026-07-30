@@ -31,3 +31,6 @@ yarn-error.*
 
 # typescript
 *.tsbuildinfo
+
+# הלוגו שמורד מהחנות ע"י scripts/generate-assets.js
+assets/brand-source.png

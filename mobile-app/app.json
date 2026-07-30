@@ -2,23 +2,29 @@
   "expo": {
     "name": "א.נ. שילו",
     "slug": "anshilo-shop",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
-    "scheme": "anshilo",
+    "scheme": [
+      "anshilo",
+      "shop.58110246991.app"
+    ],
     "userInterfaceStyle": "light",
     "newArchEnabled": true,
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.anshilo.shop"
+      "bundleIdentifier": "com.anshilo.shop.test",
+      "infoPlist": {
+        "CFBundleDevelopmentRegion": "he",
+        "CFBundleAllowMixedLocalizations": true
+      }
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#0F1729"
+        "backgroundColor": "#FFFFFF"
       },
-      "package": "com.anshilo.shop",
-      "edgeToEdgeEnabled": true
+      "package": "com.anshilo.shop"
     },
     "web": {
       "bundler": "metro",
@@ -31,7 +37,10 @@
         "expo-localization",
         {
           "supportsRTL": true,
-          "forcesRTL": true
+          "forcesRTL": true,
+          "supportedLocales": [
+            "he"
+          ]
         }
       ],
       [
@@ -40,7 +49,7 @@
           "image": "./assets/splash-icon.png",
           "imageWidth": 200,
           "resizeMode": "contain",
-          "backgroundColor": "#0F1729"
+          "backgroundColor": "#FFFFFF"
         }
       ]
     ],
@@ -48,7 +57,17 @@
       "typedRoutes": true
     },
     "extra": {
-      "supportsRTL": true
+      "supportsRTL": true,
+      "eas": {
+        "projectId": "c36b7d96-fe98-47b2-9455-a1c5bff1ccc4"
+      }
+    },
+    "owner": "dvir4m",
+    "updates": {
+      "url": "https://u.expo.dev/c36b7d96-fe98-47b2-9455-a1c5bff1ccc4"
+    },
+    "runtimeVersion": {
+      "policy": "fingerprint"
     }
   }
 }

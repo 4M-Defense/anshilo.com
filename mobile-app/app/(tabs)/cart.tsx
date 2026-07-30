@@ -16,6 +16,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { StorefrontError, formatMoney } from '@/api/client';
 import type { CartLine, MoneyV2 } from '@/api/types';
 import { Button, EmptyState, Icon, PriceText, QuantityStepper, Skeleton } from '@/components';
+import { FREE_SHIPPING_THRESHOLD } from '@/config';
 import { useCart } from '@/state/CartContext';
 import { colors, radius, shadows, spacing, typography } from '@/theme';
 
@@ -117,7 +118,7 @@ function CartLineRow({
           </Text>
         )}
         {!merchandise.availableForSale && (
-          <Text style={styles.lineUnavailable}>אזל מהמלאי — הסירו את הפריט להמשך</Text>
+          <Text style={styles.lineUnavailable}>אזל מהמלאי - הסירו את הפריט להמשך</Text>
         )}
 
         <View style={styles.lineBottomRow}>
@@ -371,12 +372,54 @@ export default function CartScreen() {
                 : noteStatus === 'saved'
                   ? 'ההערה נשמרה ✓'
                   : noteStatus === 'error'
-                    ? 'שגיאה בשמירת ההערה — נסו שוב'
+                    ? 'שגיאה בשמירת ההערה - נסו שוב'
                     : 'ההערה נשמרת אוטומטית ומצורפת להזמנה'}
             </Text>
           </View>
         )}
       </View>
+
+      {/* פס משלוח חינם — מקביל ל-shipping-bar בעגלה באתר */}
+      {FREE_SHIPPING_THRESHOLD > 0 &&
+        (() => {
+          const subtotal = parseFloat(cart.cost.subtotalAmount.amount);
+          if (!Number.isFinite(subtotal)) return null;
+          const remaining = FREE_SHIPPING_THRESHOLD - subtotal;
+          const reached = remaining <= 0;
+          const progress = Math.max(
+            0,
+            Math.min(100, Math.round((subtotal / FREE_SHIPPING_THRESHOLD) * 100))
+          );
+          return (
+            <View style={styles.shippingCard} accessibilityRole="progressbar">
+              <View style={styles.shippingLabelRow}>
+                <Icon
+                  name={reached ? 'checkmark-circle' : 'truck'}
+                  size={18}
+                  color={reached ? colors.success : colors.ink}
+                  knockout={reached ? colors.successSoft : colors.surface}
+                />
+                <Text style={styles.shippingLabel}>
+                  {reached
+                    ? 'מגיע לכם משלוח חינם! 🎉'
+                    : `הוסיפו ${formatMoney({
+                        amount: remaining.toFixed(2),
+                        currencyCode,
+                      })} וקבלו משלוח חינם`}
+                </Text>
+              </View>
+              <View style={styles.shippingTrack}>
+                <View
+                  style={[
+                    styles.shippingFill,
+                    { width: `${progress}%` },
+                    reached && styles.shippingFillReached,
+                  ]}
+                />
+              </View>
+            </View>
+          );
+        })()}
 
       {/* סיכום הזמנה */}
       <View style={styles.summaryCard}>
@@ -633,6 +676,44 @@ const styles = StyleSheet.create({
   notesStatusError: {
     color: colors.danger,
     fontWeight: '600',
+  },
+
+  /* פס משלוח חינם */
+  shippingCard: {
+    backgroundColor: colors.surface,
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: radius.card,
+    padding: spacing.md,
+    gap: spacing.sm,
+    ...shadows.xs,
+  },
+  shippingLabelRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+  },
+  shippingLabel: {
+    flex: 1,
+    fontSize: typography.small,
+    fontWeight: '700',
+    color: colors.ink,
+    textAlign: 'right',
+    writingDirection: 'rtl',
+  },
+  shippingTrack: {
+    height: 6,
+    borderRadius: radius.pill,
+    backgroundColor: colors.surfaceSunken,
+    overflow: 'hidden',
+  },
+  shippingFill: {
+    height: '100%',
+    borderRadius: radius.pill,
+    backgroundColor: colors.accent,
+  },
+  shippingFillReached: {
+    backgroundColor: colors.success,
   },
 
   summaryCard: {

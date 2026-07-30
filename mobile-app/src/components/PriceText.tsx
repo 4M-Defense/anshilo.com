@@ -1,7 +1,9 @@
 import { StyleSheet, Text, View } from 'react-native';
-import { formatMoney } from '@/api/client';
+import { formatMoney, isUnpriced } from '@/api/client';
 import type { MoneyV2 } from '@/api/types';
+import { CALL_FOR_PRICE_LABEL } from '@/config';
 import { colors, numeric, radius, spacing, type, typography } from '@/theme';
+import { Icon } from './Icon';
 
 export type PriceSize = 'sm' | 'md' | 'lg';
 
@@ -21,10 +23,33 @@ const SIZE_MAP: Record<PriceSize, { price: number; compare: number }> = {
 
 /**
  * מחיר מעוצב — מודגש בדיו; במבצע המחיר עובר לאדום המותג והמחיר הקודם
- * מוצג בקו חוצה. המספר עצמו תמיד בכיווניות LTR כדי ש-₪ יישב לפני הסכום.
+ * מוצג בקו חוצה. הסכום עצמו תמיד בכיווניות LTR, כמו ה-`dir="ltr"` שעוטף כל
+ * מחיר באתר — כך ה-₪ יושב לפני הספרות ולא נזרק לקצה השני של השורה.
+ *
+ * מוצר שפורסם ללא מחיר מקבל "מחיר בטלפון" ולא "0.00 ש"ח" — זהה לאתר
+ * (theme/snippets/price.liquid).
  */
 export function PriceText({ price, compareAt, size = 'md', showSave = false }: PriceTextProps) {
   const s = SIZE_MAP[size];
+
+  if (isUnpriced(price)) {
+    const callSize = s.price - 2;
+    return (
+      <View style={styles.callRow}>
+        <Icon name="call" size={Math.round(s.price * 0.85)} color={colors.accent} />
+        <Text
+          style={[
+            styles.callForPrice,
+            { fontSize: callSize, lineHeight: Math.round(callSize * 1.4) },
+          ]}
+          allowFontScaling={false}
+        >
+          {CALL_FOR_PRICE_LABEL}
+        </Text>
+      </View>
+    );
+  }
+
   const current = parseFloat(price.amount);
   const previous = compareAt != null ? parseFloat(compareAt.amount) : 0;
   const onSale = compareAt != null && previous > current;
@@ -76,6 +101,17 @@ const styles = StyleSheet.create({
     fontWeight: '500',
     textDecorationLine: 'line-through',
     writingDirection: 'ltr',
+  },
+  callRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flexWrap: 'wrap',
+    gap: spacing.xs + 2,
+  },
+  callForPrice: {
+    ...type.bodyStrong,
+    color: colors.accent,
+    fontWeight: '800',
   },
   save: {
     ...type.metaSmall,
