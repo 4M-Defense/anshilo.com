@@ -118,7 +118,7 @@ function CartLineRow({
           </Text>
         )}
         {!merchandise.availableForSale && (
-          <Text style={styles.lineUnavailable}>אזל מהמלאי — הסירו את הפריט להמשך</Text>
+          <Text style={styles.lineUnavailable}>אזל מהמלאי - הסירו את הפריט להמשך</Text>
         )}
 
         <View style={styles.lineBottomRow}>
@@ -372,7 +372,7 @@ export default function CartScreen() {
                 : noteStatus === 'saved'
                   ? 'ההערה נשמרה ✓'
                   : noteStatus === 'error'
-                    ? 'שגיאה בשמירת ההערה — נסו שוב'
+                    ? 'שגיאה בשמירת ההערה - נסו שוב'
                     : 'ההערה נשמרת אוטומטית ומצורפת להזמנה'}
             </Text>
           </View>

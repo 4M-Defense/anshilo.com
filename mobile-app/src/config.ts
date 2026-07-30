@@ -89,6 +89,8 @@ export const STORE_INFO = {
   /** קישור וואטסאפ קצר של החנות */
   whatsapp: 'https://wa.link/sp55tw',
   address: 'קיבוץ קרית ענבים',
+  /** כרטיס העסק בגוגל — זהה להגדרת `store_google` בת'ים */
+  google: 'https://share.google/RZnNkj7nDmReGLfy1',
   website: 'https://anshilo.com',
   /** שנת ההקמה — מופיעה בשורת ה-eyebrow של ההירו */
   since: 1990,
@@ -126,6 +128,20 @@ function buildWhatsappUrl(value: string): string {
 }
 
 export const WHATSAPP_URL = buildWhatsappUrl(STORE_INFO.whatsapp);
+
+/**
+ * ניווט אלינו — הכתובת באפליקציה לחיצה ופותחת את המיקום.
+ *
+ * מעדיף את כרטיס העסק בגוגל (אותו קישור שהאתר מפנה אליו מהפוטר), ואם הוא
+ * ריק נופל לחיפוש הכתובת במפות. תמיד מחזיר קישור פתיח, כך שהכתובת לעולם
+ * אינה כפתור מת.
+ */
+export const DIRECTIONS_URL =
+  STORE_INFO.google.trim() !== ''
+    ? STORE_INFO.google
+    : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
+        `${STORE_INFO.name} ${STORE_INFO.address}`
+      )}`;
 
 /**
  * הסכום שממנו המשלוח חינם — חייב להיות זהה להגדרת `free_shipping_threshold`

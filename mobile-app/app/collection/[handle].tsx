@@ -239,9 +239,9 @@ export default function CollectionScreen() {
   ) : (
     <EmptyState
       icon="file-tray-outline"
-      title="אין מוצרים בקטגוריה הזו"
-      text="נסו קטגוריה אחרת, או חפשו מוצר ספציפי בחיפוש."
-      actionLabel="לכל הקטגוריות"
+      title="אין מוצרים במחלקה הזו"
+      text="נסו מחלקה אחרת, או חפשו מוצר ספציפי בחיפוש."
+      actionLabel="לכל המחלקות"
       onAction={() => router.push('/catalog')}
     />
   );
@@ -299,9 +299,9 @@ export default function CollectionScreen() {
         <View style={styles.centerFill}>
           <EmptyState
             icon="grid-outline"
-            title="הקטגוריה לא נמצאה"
-            text="ייתכן שהקטגוריה הוסרה מהחנות או שהקישור אינו תקין."
-            actionLabel="לכל הקטגוריות"
+            title="המחלקה לא נמצאה"
+            text="ייתכן שהמחלקה הוסרה מהחנות או שהקישור אינו תקין."
+            actionLabel="לכל המחלקות"
             onAction={() => router.replace('/catalog')}
           />
         </View>

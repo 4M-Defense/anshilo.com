@@ -12,7 +12,7 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Icon, Rule, SectionHeader } from '@/components';
-import { STORE_INFO, TEL_URL, WHATSAPP_URL } from '@/config';
+import { DIRECTIONS_URL, STORE_INFO, TEL_URL, WHATSAPP_URL } from '@/config';
 import { colors, radius, shadows, spacing, typography } from '@/theme';
 
 const WEBSITE_LABEL = STORE_INFO.website.replace(/^https?:\/\//, '');
@@ -139,12 +139,23 @@ export default function MoreScreen() {
       {/* כתובת ושעות פעילות */}
       <SectionHeader title="כתובת ושעות פעילות" />
       <View style={[styles.card, styles.infoCard]}>
-        <View style={styles.addressRow}>
+        {/* הכתובת לחיצה ופותחת ניווט אלינו */}
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel={`ניווט אל ${STORE_INFO.name}, ${STORE_INFO.address}`}
+          onPress={() => openLink(DIRECTIONS_URL)}
+          style={({ pressed }) => [styles.addressRow, pressed && styles.rowPressed]}
+        >
           <View style={styles.rowIcon}>
             <Icon name="location" size={20} color={colors.accent} knockout={colors.accentSoft} />
           </View>
-          <Text style={styles.addressText}>{STORE_INFO.address}</Text>
-        </View>
+          <View style={styles.addressLabels}>
+            <Text style={styles.addressText}>{`${STORE_INFO.name}, ${STORE_INFO.address}`}</Text>
+            <Text style={styles.addressHint}>לחצו לניווט</Text>
+          </View>
+          {/* שברון "קדימה" — ‏dir דואג להיפוך תחת RTL */}
+          <Icon name="chevron-forward" size={16} color={colors.textMuted} dir />
+        </Pressable>
         <View style={styles.infoDivider} />
         {STORE_INFO.hours.map((slot) => (
           <View key={slot.days} style={styles.hoursRow}>
@@ -161,9 +172,9 @@ export default function MoreScreen() {
       <View style={styles.aboutCard}>
         <Text style={styles.aboutText}>
           כבר יותר משלושים שנה א.נ. שילו היא הכתובת של אנשי המקצוע ובעלי הבתים בקרית ענבים
-          והסביבה — חנות חומרי בניין, אספקה טכנית ומחסן עצים תחת קורת גג אחת. הצוות שלנו מכיר
+          והסביבה - חנות חומרי בניין, אספקה טכנית ומחסן עצים תחת קורת גג אחת. הצוות שלנו מכיר
           כל מוצר על המדף וישמח לעזור לכם למצוא בדיוק את מה שאתם צריכים, בין אם אתם בונים בית
-          ובין אם מחליפים ברז. מוזמנים לבקר, להתקשר או לכתוב לנו — אצלנו תמיד יש מי שמקשיב.
+          ובין אם מחליפים ברז. מוזמנים לבקר, להתקשר או לכתוב לנו - אצלנו תמיד יש מי שמקשיב.
         </Text>
       </View>
 
@@ -319,6 +330,17 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.md,
+  },
+  addressLabels: {
+    flex: 1,
+    gap: 2,
+  },
+  addressHint: {
+    fontSize: typography.tiny,
+    fontWeight: '600',
+    color: colors.accent,
+    textAlign: 'right',
+    writingDirection: 'rtl',
   },
   addressText: {
     flex: 1,

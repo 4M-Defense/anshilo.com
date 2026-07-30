@@ -358,7 +358,7 @@ export default function SearchScreen() {
           <EmptyState
             icon="search-outline"
             title="לא נמצאו תוצאות"
-            text={`לא מצאנו מוצרים עבור „${executedQuery}". נסו מילה כללית יותר או בדקו את האיות — למשל „מקדחה" במקום דגם מסוים.`}
+            text={`לא מצאנו מוצרים עבור „${executedQuery}". נסו מילה כללית יותר או בדקו את האיות - למשל „מקדחה" במקום דגם מסוים.`}
           />
         </ScrollView>
       ) : (

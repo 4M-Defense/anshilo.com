@@ -12,7 +12,7 @@ import {
   useWindowDimensions,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { getCollections, getProducts } from '@/api/client';
+import { getCollectionsByHandle, getProducts } from '@/api/client';
 import type { Collection, ProductCardData } from '@/api/types';
 import {
   Button,
@@ -23,7 +23,7 @@ import {
   Skeleton,
   SkeletonProductCard,
 } from '@/components';
-import { STORE_INFO, TEL_URL, WHATSAPP_URL } from '@/config';
+import { HOME_FEED, STORE_INFO, TEL_URL, WHATSAPP_URL } from '@/config';
 import { colors, radius, shadows, spacing, typography } from '@/theme';
 
 /* ---------- קבועי פריסה ---------- */
@@ -86,7 +86,19 @@ function useRegion<T>(load: () => Promise<T>) {
   return { ...state, reload };
 }
 
-const loadCollections = async (): Promise<Collection[]> => (await getCollections(10)).nodes;
+/**
+ * המחלקות של מסך הבית — בדיוק אותן מחלקות, באותו סדר, כמו רצועת "המחלקות
+ * שלנו" באתר (theme/templates/index.json → section `category_rail`).
+ *
+ * קודם עמד כאן `getCollections(10)`, שמחזיר את עשר הקטגוריות הראשונות בסדר
+ * ברירת המחדל של שופיפיי — כלומר משהו שאין לו שום קשר למחלקות שבאתר. זו
+ * הסיבה שהרצועה באפליקציה לא נראתה כמו באתר.
+ *
+ * handles שלא קיימים בחנות מסוננים בשקט על ידי getCollectionsByHandle, כך
+ * ששינוי בקטלוג לא שובר את המסך.
+ */
+const loadCollections = async (): Promise<Collection[]> =>
+  getCollectionsByHandle(HOME_FEED.departments);
 const loadBestSellers = async (): Promise<ProductCardData[]> =>
   (await getProducts({ first: 6, sortKey: 'BEST_SELLING' })).nodes;
 const loadNewArrivals = async (): Promise<ProductCardData[]> =>
@@ -136,7 +148,10 @@ function CollectionTile({
           <Image
             source={{ uri: collection.image.url }}
             style={styles.collectionImage}
-            contentFit="cover"
+            /* contain, לא cover: חלק מהמחלקות והמותגים מיוצגים בלוגו ולא
+               בצילום, ו-cover חותך אותם. ראו ProductCard וגם מערכת העיצוב
+               של האתר — תמונות קטלוג יושבות על לבן ב-contain. */
+            contentFit="contain"
             transition={200}
             accessibilityLabel={collection.image.altText ?? collection.title}
           />
@@ -250,10 +265,10 @@ export default function HomeScreen() {
             <Text style={styles.heroKicker}>{STORE_INFO.tagline}</Text>
             <Text style={styles.heroTitle}>כל מה שהמקצוענים צריכים</Text>
             <Text style={styles.heroSub}>
-              חומרי בניין, כלי עבודה ואספקה טכנית — הכול במקום אחד, עם שירות אישי של
+              חומרי בניין, כלי עבודה ואספקה טכנית - הכול במקום אחד, עם שירות אישי של
               אנשי מקצוע.
             </Text>
-            <Button title="לכל הקטגוריות" onPress={goCatalog} style={styles.heroCta} />
+            <Button title="לכל המחלקות" onPress={goCatalog} style={styles.heroCta} />
           </View>
           <Rule />
         </View>
@@ -263,8 +278,8 @@ export default function HomeScreen() {
           <View style={styles.section}>
             <View style={styles.sectionHeaderWrap}>
               <SectionHeader
-                title="קנייה לפי קטגוריה"
-                actionLabel="לכל הקטגוריות"
+                title="קנייה לפי מחלקה"
+                actionLabel="לכל המחלקות"
                 onAction={goCatalog}
               />
             </View>
@@ -363,7 +378,7 @@ export default function HomeScreen() {
         <View style={styles.contactCard}>
           <Text style={styles.contactTitle}>צריכים ייעוץ מקצועי?</Text>
           <Text style={styles.contactText}>
-            הצוות שלנו זמין לכל שאלה — מחירים, מלאי, אספקה והתאמת חומרים לפרויקט.
+            הצוות שלנו זמין לכל שאלה - מחירים, מלאי, אספקה והתאמת חומרים לפרויקט.
           </Text>
           <View style={styles.contactButtons}>
             <Button
@@ -547,7 +562,10 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.border,
     overflow: 'hidden',
-    backgroundColor: colors.surfaceAlt,
+    /* לבן, לא surfaceAlt — לוגואים של מותגים מגיעים על רקע לבן, וכל גוון
+       אחר יוצר מסגרת אפורה מסביבם */
+    backgroundColor: colors.surface,
+    padding: spacing.xs,
   },
   collectionImage: {
     width: '100%',
