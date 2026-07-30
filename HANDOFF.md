@@ -628,8 +628,37 @@ repo has never been built**:
 | `expo-updates` | **not installed**, yet `eas.json` declares a `channel` on all three profiles — a real `eas build` would have rejected that. The file was hand-authored and never exercised |
 | git history | no build/submit commit; `eas.json` arrived with `e03ad3b`, unused since |
 
-So the binary on TestFlight was built from a local clone (or another project)
-and never pushed back. It predates every fix in this round.
+**Sharpened once the owner ran `eas init` and `eas build:list`.** An EAS project
+already existed — `@dvir4m/anshilo-shop`, ID `c36b7d96-fe98-47b2-9455-a1c5bff1ccc4`
+— carrying **7 iOS builds**, two of them made on 2026-07-30, the same day as this
+round. Both are SDK 57, version 1.0.0, build numbers 6 and 7, `distribution:
+store`, built under profile **`testflight`**.
+
+That profile has never existed in this repo (`git log -S'testflight' --
+mobile-app/eas.json` is empty), and neither build's commit is reachable here:
+
+| Build | Commit | In this repo? |
+|---|---|---|
+| 7 | `119e80ef61b7916c57aeee098d6d9412177f0028` | no |
+| 6 | `0cfa2d10b3bcfbc73962ac21aa9cdf8874045d59` | no |
+
+So the TestFlight binary is **not** this codebase. It is a sibling — same Expo
+account, same slug, same SDK — built from a copy nobody here has seen. Do not
+claim the bugs fixed in this round are the ones the owner saw in TestFlight; that
+cannot be checked. What can be said is that the fixes are correct for the app in
+*this* repo, which is what now builds.
+
+Practical consequences, all favourable:
+
+- `eas init` linked this checkout to the existing project rather than creating a
+  second one, so build numbering stays continuous.
+- With `appVersionSource: remote` and `autoIncrement`, the next build is number
+  **8**; app.json carries **1.0.1** against TestFlight's 1.0.0. No collision —
+  which is what the version bump in a09996f was for.
+- Apple signing credentials already exist on the EAS project (the earlier store
+  builds succeeded), so a build will not prompt to generate certificates.
+- TestFlight retains build 7, so the new build can be compared against it rather
+  than replacing it destructively.
 
 It was also **not** a no-code Shopify app builder — the store's publications
 were checked and there is no Vajro / Shopney / Tapcart / MageNative channel.
