@@ -1,0 +1,22 @@
+# מפרסם עדכון JavaScript לטלפון בכל דחיפה לענף העבודה.
+#
+# זה מה שהופך את הזרימה מ"לפתוח טרמינל, git pull, eas update" ל"לדחוף לגיט".
+# עובד רק על שינויי JS/נכסים — שינוי בהגדרות נייטיביות (app.json, תלויות עם
+# קוד נייטיבי) משנה את ה-fingerprint, ואז צריך בנייה חדשה. הזרימה השנייה,
+# build-and-submit.yml, היא לזה.
+#
+# דורש שהריפו יהיה מחובר לפרויקט ב-expo.dev (Project settings → GitHub).
+name: פרסום עדכון
+
+on:
+  push:
+    branches:
+      - claude/shopify-app-hebrew-compat-i1wcji
+
+jobs:
+  publish_update:
+    name: eas update → production
+    type: update
+    environment: production
+    params:
+      branch: production

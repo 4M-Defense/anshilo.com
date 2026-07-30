@@ -1,0 +1,30 @@
+# בנייה נייטיבית מלאה ל-iOS והגשה אוטומטית ל-TestFlight.
+#
+# מופעל **ידנית** ולא בכל דחיפה, בכוונה: בנייה צורכת מזמן התור של EAS ומגיעה
+# ל-App Store Connect, ולכן זו החלטה ולא תופעת לוואי של קומיט. מריצים אותה
+# מהדשבורד של expo.dev, או מהטרמינל:
+#
+#   npx eas workflow:run build-and-submit.yml
+#
+# ההגשה משתמשת ב-`ascAppId` ו-`language: "he"` שמוגדרים ב-eas.json, ולכן היא
+# לא נעצרת לשאלות ולא נופלת על שפה לא נתמכת.
+name: בנייה והגשה ל-TestFlight
+
+on:
+  workflow_dispatch: {}
+
+jobs:
+  build_ios:
+    name: eas build (iOS, production)
+    type: build
+    params:
+      platform: ios
+      profile: production
+
+  submit_ios:
+    name: eas submit → App Store Connect
+    type: submit
+    needs: [build_ios]
+    params:
+      build_id: ${{ needs.build_ios.outputs.build_id }}
+      profile: production

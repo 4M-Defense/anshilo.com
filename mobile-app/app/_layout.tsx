@@ -4,6 +4,7 @@ import { I18nManager } from 'react-native';
 import { AuthProvider } from '@/state/AuthContext';
 import { CartProvider } from '@/state/CartContext';
 import { FavoritesProvider } from '@/state/FavoritesContext';
+import { SettingsProvider } from '@/state/SettingsContext';
 import { colors, fontFamily, typography } from '@/theme';
 
 // כפיית RTL — בבנייה אמיתית (TestFlight / Play) הפלאגין expo-localization
@@ -27,6 +28,7 @@ if (!I18nManager.isRTL) {
 
 export default function RootLayout() {
   return (
+    <SettingsProvider>
     <AuthProvider>
       <CartProvider>
         <FavoritesProvider>
@@ -59,5 +61,6 @@ export default function RootLayout() {
         </FavoritesProvider>
       </CartProvider>
     </AuthProvider>
+    </SettingsProvider>
   );
 }

@@ -24,6 +24,7 @@ import {
   SkeletonProductCard,
   StoreLogo,
 } from '@/components';
+import { useSettings } from '@/state/SettingsContext';
 import { alignEnd, colors, radius, rtlText, spacing, typography } from '@/theme';
 
 const PAGE_SIZE = 24;
@@ -32,7 +33,12 @@ const RECENT_KEY = 'shilo.recentSearches';
 const MAX_RECENT = 8;
 
 /** הצעות חיפוש קבועות — מונחים נפוצים בחנות חומרי בניין */
-const POPULAR_SEARCHES = ['מקדחה', 'מברגה', 'טמבור', 'סולם', 'דיסק השחזה', 'ברגים'] as const;
+/*
+ * ההצעות מגיעות מ-`useSettings()` — כלומר מהחנות, וניתנות לעריכה מהאדמין.
+ *
+ * כאן היה קודם מערך מקובע *שני*, שונה מזה שב-`src/config.ts`, והוא זה שהוצג
+ * בפועל — הרשימה שבקונפיג הייתה קוד מת. עכשיו יש מקור אחד.
+ */
 
 function errorText(err: unknown): string {
   return err instanceof Error && err.message !== ''
@@ -83,6 +89,7 @@ export default function SearchScreen() {
   const insets = useSafeAreaInsets();
   const { width } = useWindowDimensions();
   const cardWidth = (width - spacing.lg * 2 - spacing.md) / 2;
+  const { popularSearches } = useSettings();
 
   const [text, setText] = useState('');
   const trimmed = text.trim();
@@ -343,7 +350,7 @@ export default function SearchScreen() {
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>חיפושים פופולריים</Text>
             <View style={styles.chipsWrap}>
-              {POPULAR_SEARCHES.map((q) => (
+              {popularSearches.map((q) => (
                 <SearchChip key={q} label={q} tone="popular" onPress={() => onChipPress(q)} />
               ))}
             </View>

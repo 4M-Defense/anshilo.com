@@ -24,14 +24,8 @@ import {
   SkeletonProductCard,
   StoreLogo,
 } from '@/components';
-import {
-  BRAND_NAMES,
-  HOME_FEED,
-  IMPORTERS,
-  STORE_INFO,
-  TEL_URL,
-  WHATSAPP_URL,
-} from '@/config';
+import { BRAND_NAMES, IMPORTERS, STORE_INFO } from '@/config';
+import { useSettings } from '@/state/SettingsContext';
 import { alignEnd, colors, radius, rtlText, shadows, spacing, typography } from '@/theme';
 
 /* ---------- קבועי פריסה ---------- */
@@ -106,11 +100,11 @@ function useRegion<T>(load: () => Promise<T>) {
  * handles שלא קיימים בחנות מסוננים בשקט על ידי getCollectionsByHandle, כך
  * ששינוי בקטלוג לא שובר את המסך.
  */
-const loadCollections = async (): Promise<Collection[]> =>
-  getCollectionsByHandle(HOME_FEED.departments);
-/** פס המותגים — אותם מותגים ובאותו סדר כמו "המותגים שאנחנו מייצגים" באתר */
-const loadBrands = async (): Promise<Collection[]> =>
-  getCollectionsByHandle(HOME_FEED.brands);
+/*
+ * המחלקות והמותגים של דף הבית נבנים בתוך הרכיב, כי רשימות ה-handles מגיעות
+ * מ-`useSettings()` — כלומר מהחנות. הלוגיקה עצמה זהה: `getCollectionsByHandle`
+ * מסנן בשקט handles שלא קיימים, ולכן עריכה שגויה באדמין לא שוברת את המסך.
+ */
 
 const loadBestSellers = async (): Promise<ProductCardData[]> =>
   (await getProducts({ first: 6, sortKey: 'BEST_SELLING' })).nodes;
@@ -251,6 +245,27 @@ export default function HomeScreen() {
   const router = useRouter();
   const { width } = useWindowDimensions();
 
+  const {
+    homeDepartments,
+    homeBrands,
+    phoneDial,
+    whatsappUrl,
+    address,
+    hours,
+  } = useSettings();
+
+  /*
+   * מיוצב על מחרוזת ולא על המערך עצמו: `useSettings` מחזיר מערך חדש בכל רענון
+   * (וגם בכל חזרה לחזית), ותלות במערך הייתה מפעילה טעינה מחדש בכל פעם.
+   */
+  const departmentsKey = homeDepartments.join(',');
+  const brandsKey = homeBrands.join(',');
+  const loadCollections = useCallback(
+    () => getCollectionsByHandle(departmentsKey.split(',')),
+    [departmentsKey]
+  );
+  const loadBrands = useCallback(() => getCollectionsByHandle(brandsKey.split(',')), [brandsKey]);
+
   const collections = useRegion(loadCollections);
   const brands = useRegion(loadBrands);
   const bestSellers = useRegion(loadBestSellers);
@@ -282,13 +297,13 @@ export default function HomeScreen() {
   );
 
   const callStore = useCallback(() => {
-    Linking.openURL(TEL_URL).catch(() => {});
-  }, []);
+    Linking.openURL(`tel:${phoneDial}`).catch(() => {});
+  }, [phoneDial]);
 
-  const hasWhatsapp = WHATSAPP_URL !== '';
+  const hasWhatsapp = whatsappUrl !== '';
   const openWhatsapp = useCallback(() => {
-    Linking.openURL(WHATSAPP_URL).catch(() => {});
-  }, []);
+    Linking.openURL(whatsappUrl).catch(() => {});
+  }, [whatsappUrl]);
 
   // מדורים ריקים (חנות בלי נתונים) מוסתרים — המסך לעולם לא נשאר ריק כי
   // הכותרת, ההירו וכרטיס יצירת הקשר תמיד מוצגים.
@@ -513,7 +528,7 @@ export default function HomeScreen() {
             <Icon name="time-outline" size={16} color={colors.textMuted} />
             <Text style={styles.contactMetaTitle}>שעות פעילות</Text>
           </View>
-          {STORE_INFO.hours.map((row) => (
+          {hours.map((row) => (
             <View key={row.days} style={styles.hoursRow}>
               <Text style={styles.hoursDays}>{row.days}</Text>
               <Text style={styles.hoursValue} allowFontScaling={false}>
@@ -523,7 +538,7 @@ export default function HomeScreen() {
           ))}
           <View style={styles.contactMetaRow}>
             <Icon name="location-outline" size={16} color={colors.textMuted} />
-            <Text style={styles.addressText}>{STORE_INFO.address}</Text>
+            <Text style={styles.addressText}>{rtlText(address)}</Text>
           </View>
         </View>
       </ScrollView>

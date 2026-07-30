@@ -164,7 +164,7 @@ export const TEL_URL = `tel:${STORE_INFO.phoneDial}`;
  * בלי ההבחנה נבנה קישור מסוג `https://wa.me/https://wa.link/…` שלא נפתח.
  * מחזיר מחרוזת ריקה אם אין וואטסאפ מוגדר — הקורא מסתיר את הכפתור.
  */
-function buildWhatsappUrl(value: string): string {
+export function buildWhatsappUrl(value: string): string {
   const raw = value.trim();
   if (raw === '') return '';
   if (/^https?:\/\//i.test(raw)) return raw;
@@ -181,12 +181,15 @@ export const WHATSAPP_URL = buildWhatsappUrl(STORE_INFO.whatsapp);
  * ריק נופל לחיפוש הכתובת במפות. תמיד מחזיר קישור פתיח, כך שהכתובת לעולם
  * אינה כפתור מת.
  */
-export const DIRECTIONS_URL =
-  STORE_INFO.google.trim() !== ''
-    ? STORE_INFO.google
-    : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
-        `${STORE_INFO.name} ${STORE_INFO.address}`
-      )}`;
+export function directionsUrlFor(google: string, address: string): string {
+  const card = google.trim();
+  if (card !== '') return card;
+  return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
+    `${STORE_INFO.name} ${address}`
+  )}`;
+}
+
+export const DIRECTIONS_URL = directionsUrlFor(STORE_INFO.google, STORE_INFO.address);
 
 /**
  * הסכום שממנו המשלוח חינם — חייב להיות זהה להגדרת `free_shipping_threshold`

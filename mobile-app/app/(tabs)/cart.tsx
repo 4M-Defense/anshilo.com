@@ -24,8 +24,8 @@ import {
   Skeleton,
   StoreLogo,
 } from '@/components';
-import { FREE_SHIPPING_THRESHOLD } from '@/config';
 import { useCart } from '@/state/CartContext';
+import { useSettings } from '@/state/SettingsContext';
 import { alignEnd, colors, radius, rtlText, shadows, spacing, typography } from '@/theme';
 
 function errorMessage(e: unknown, fallback: string): string {
@@ -174,6 +174,8 @@ export default function CartScreen() {
   const insets = useSafeAreaInsets();
   const { cart, initializing, busy, itemCount, updateLine, removeLine, setNote, refresh } =
     useCart();
+  /* רף המשלוח החינם נקרא מהחנות — שינוי באדמין מופיע כאן בלי בנייה */
+  const { freeShippingThreshold } = useSettings();
 
   const [refreshing, setRefreshing] = useState(false);
   const [checkingOut, setCheckingOut] = useState(false);
@@ -391,15 +393,15 @@ export default function CartScreen() {
       </View>
 
       {/* פס משלוח חינם — מקביל ל-shipping-bar בעגלה באתר */}
-      {FREE_SHIPPING_THRESHOLD > 0 &&
+      {freeShippingThreshold > 0 &&
         (() => {
           const subtotal = parseFloat(cart.cost.subtotalAmount.amount);
           if (!Number.isFinite(subtotal)) return null;
-          const remaining = FREE_SHIPPING_THRESHOLD - subtotal;
+          const remaining = freeShippingThreshold - subtotal;
           const reached = remaining <= 0;
           const progress = Math.max(
             0,
-            Math.min(100, Math.round((subtotal / FREE_SHIPPING_THRESHOLD) * 100))
+            Math.min(100, Math.round((subtotal / freeShippingThreshold) * 100))
           );
           return (
             <View style={styles.shippingCard} accessibilityRole="progressbar">

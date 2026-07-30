@@ -13,7 +13,8 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Image } from 'expo-image';
 import { Icon, Rule, SectionHeader } from '@/components';
-import { DIRECTIONS_URL, STORE_INFO, STORE_LOGO, TEL_URL, WHATSAPP_URL } from '@/config';
+import { STORE_INFO, STORE_LOGO } from '@/config';
+import { useSettings } from '@/state/SettingsContext';
 import { useAuth } from '@/state/AuthContext';
 import { alignEnd, colors, radius, shadows, spacing, typography } from '@/theme';
 
@@ -85,6 +86,8 @@ export default function MoreScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const { status, profile } = useAuth();
+  /* טלפון, וואטסאפ, כתובת ושעות — נקראים מהחנות, לא מקובעים בקוד */
+  const { phone, phoneDial, whatsappUrl, address, directionsUrl, hours } = useSettings();
 
   const openLink = useCallback((url: string) => {
     Linking.openURL(url).catch(() => {
@@ -158,15 +161,15 @@ export default function MoreScreen() {
           first
           icon="call-outline"
           label="התקשרו אלינו"
-          sublabel={STORE_INFO.phone}
-          onPress={() => openLink(TEL_URL)}
+          sublabel={phone}
+          onPress={() => openLink(`tel:${phoneDial}`)}
         />
-        {WHATSAPP_URL !== '' && (
+        {whatsappUrl !== '' && (
           <ActionRow
             icon="logo-whatsapp"
             label="וואטסאפ"
             sublabel="מענה מהיר בצ'אט"
-            onPress={() => openLink(WHATSAPP_URL)}
+            onPress={() => openLink(whatsappUrl)}
           />
         )}
         <ActionRow
@@ -183,22 +186,22 @@ export default function MoreScreen() {
         {/* הכתובת לחיצה ופותחת ניווט אלינו */}
         <Pressable
           accessibilityRole="button"
-          accessibilityLabel={`ניווט אל ${STORE_INFO.name}, ${STORE_INFO.address}`}
-          onPress={() => openLink(DIRECTIONS_URL)}
+          accessibilityLabel={`ניווט אל ${STORE_INFO.name}, ${address}`}
+          onPress={() => openLink(directionsUrl)}
           style={({ pressed }) => [styles.addressRow, pressed && styles.rowPressed]}
         >
           <View style={styles.rowIcon}>
             <Icon name="location" size={20} color={colors.accent} knockout={colors.accentSoft} />
           </View>
           <View style={styles.addressLabels}>
-            <Text style={styles.addressText}>{`${STORE_INFO.name}, ${STORE_INFO.address}`}</Text>
+            <Text style={styles.addressText}>{`${STORE_INFO.name}, ${address}`}</Text>
             <Text style={styles.addressHint}>לחצו לניווט</Text>
           </View>
           {/* שברון "קדימה" — ‏dir דואג להיפוך תחת RTL */}
           <Icon name="chevron-forward" size={16} color={colors.textMuted} dir />
         </Pressable>
         <View style={styles.infoDivider} />
-        {STORE_INFO.hours.map((slot) => (
+        {hours.map((slot) => (
           <View key={slot.days} style={styles.hoursRow}>
             <Text style={styles.hoursDays}>{slot.days}</Text>
             <Text style={styles.hoursValue} allowFontScaling={false}>
