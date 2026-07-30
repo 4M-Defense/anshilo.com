@@ -578,7 +578,7 @@ it was wrong.
 |---|---|---|
 | **Every icon mirrored under RTL** | Engine rewrites `left`→`start`; the `dir` condition was inverted relative to intent | `Icon.tsx` — `needsMirror()` keyed on **both** `isRTL` and `doLeftAndRightSwapInRTL`, so it stays correct in all four combinations. Three ad-hoc `scaleX(-1)` flips in screens replaced by the `dir` prop (`more.tsx`, `catalog.tsx`, `product/[handle].tsx`) |
 | iOS system UI in English | `CFBundleLocalizations` was never set, so iOS resolved the app to its development region. Alerts, share sheet, the checkout browser chrome and the App Store listing all fell back to English | `app.json` — `supportedLocales: ["he"]` on the plugin (→ `CFBundleLocalizations`, and `locales_config.xml` + `android:localeConfig` on Android), plus `CFBundleDevelopmentRegion: "he"`, `CFBundleAllowMixedLocalizations`. Verified with `npx expo config --type introspect` |
-| Money format ≠ site | Shop money format is `{{amount}} ש"ח` (Admin API `shop.currencyFormats`); the app printed `₪123`. Every price in the app disagreed with the site and with checkout | `config.ts#MONEY_FORMAT`, `client.ts#formatMoney` — reimplements Shopify's `{{amount}}` (comma thousands, always 2 decimals) by hand rather than via `toLocaleString`, because Hermes ships different Intl data per platform |
+| Money format | `formatMoney` hand-rolled a `₪` prefix with 0–2 decimals and no thousands separator over 999. Now it interprets a Shopify money template, supporting all four placeholders (`amount`, `amount_no_decimals`, and both `_with_comma_separator` variants) with the same semantics, so any shop currency format can be pasted in without touching code. Computed by hand rather than via `toLocaleString` because Hermes ships different Intl data per platform. Negative sign sits outside the symbol (`-₪45.25`) | `config.ts#MONEY_FORMAT`, `client.ts#formatMoney` |
 | ₪0 items were **sellable** | A slice of the catalogue is published unpriced. The theme replaces the buy button with a quote request (`snippets/request-price.liquid`); the app happily added them to cart, and checkout would have handed them over free | `PriceText` shows `מחיר בטלפון` (the site's own string); `product/[handle].tsx` swaps add-to-cart for call/WhatsApp with product + SKU prefilled; `handleAddToCart` guards. `ProductCard` mirrors the theme's exception: a range product whose cheapest variant is unpriced keeps a real "החל מ־" price from `maxVariantPrice` |
 | **WhatsApp button did not work** | `STORE_INFO.whatsapp` is a full `wa.link` URL (matches `store_whatsapp` in the theme), but two screens built `https://wa.me/${…}` from it → `https://wa.me/https://wa.link/sp55tw` | `config.ts#WHATSAPP_URL` / `#TEL_URL` — one place, same URL-vs-number branch the theme uses. `tel:` now uses `phoneDial` (unhyphenated) as the config always intended. Callers: `index.tsx`, `more.tsx`, `product/[handle].tsx` |
 | Free-shipping bar missing | Theme shows one from ₪399 (`free_shipping_threshold`); the app's cart had none | `cart.tsx` — progress bar with the theme's own two strings, threshold in `config.ts#FREE_SHIPPING_THRESHOLD` |
@@ -603,11 +603,45 @@ it was wrong.
   and look worse than the platform font. The app stays on San Francisco /
   Roboto, both of which cover Hebrew fully. This is the one accepted visual
   difference from the site.
-- **Unverified assumption:** that the TestFlight build the owner reported on was
-  built from this repo. If it came from a no-code app builder instead, these
-  fixes are still the right ones for this app, but they will not change that
-  binary — a fresh EAS build is required either way.
-- `MONEY_FORMAT` and `FREE_SHIPPING_THRESHOLD` are now mirrored constants, in
-  the same sense `theme.ts` mirrors the web tokens: if the owner changes the
-  currency format or the shipping threshold in the admin, these need the same
+- **₪ vs ש"ח is a deliberate, owner-chosen divergence.** The shop's currency
+  format is `{{amount}} ש"ח`, so the site and checkout say "ש"ח" while the app
+  says "₪". The owner prefers ₪ and was told about the split. To make all three
+  agree, change the format in the admin (הגדרות → כללי → פורמט מטבע) to
+  `₪{{amount}}` and set `MONEY_FORMAT.template` to match. Do **not** "fix" this
+  by reverting the app to ש"ח — that reverses an explicit decision.
+- `MONEY_FORMAT` and `FREE_SHIPPING_THRESHOLD` are mirrored constants, in the
+  same sense `theme.ts` mirrors the web tokens: if the owner changes the
+  shipping threshold in the admin, `FREE_SHIPPING_THRESHOLD` needs the same
   edit. Both carry a comment saying so.
+
+### How the TestFlight build got there — investigated, and it was not from here
+
+The owner did not know how the build was produced. The evidence says **this
+repo has never been built**:
+
+| Check | Result |
+|---|---|
+| `expo.extra.eas.projectId` in `app.json` | **absent** — `eas build` / `eas init` always writes and commits this to link the build to an EAS project |
+| `expo.owner` | absent |
+| `ios/`, `android/` | absent — `expo prebuild` never ran |
+| `.easignore`, `credentials.json`, `.expo/` | absent |
+| `expo-updates` | **not installed**, yet `eas.json` declares a `channel` on all three profiles — a real `eas build` would have rejected that. The file was hand-authored and never exercised |
+| git history | no build/submit commit; `eas.json` arrived with `e03ad3b`, unused since |
+
+So the binary on TestFlight was built from a local clone (or another project)
+and never pushed back. It predates every fix in this round.
+
+It was also **not** a no-code Shopify app builder — the store's publications
+were checked and there is no Vajro / Shopney / Tapcart / MageNative channel.
+
+### What that check did turn up — the token already exists
+
+`publications` on the Admin API lists a channel **"Shilo Mobile App"**, backed
+by Shopify's **Headless** app (`gid://shopify/App/12875497473`, publication
+`gid://shopify/Publication/181771993167`). The owner already followed
+`docs/INSTALL-APP.md` and created it under the name the doc suggested.
+
+**1,867 of 1,918 products are published to it — identical to the online store's
+1,867.** So the channel is stocked and the data side is ready; the public access
+token simply was never copied into the repo. It is in the admin under
+Sales channels → Headless → Shilo Mobile App → Storefront API.

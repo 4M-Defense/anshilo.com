@@ -50,14 +50,24 @@ export function isStorefrontConfigured(): boolean {
 /**
  * תבנית הצגת המחיר.
  *
- * חייבת להיות זהה להגדרה בחנות (הגדרות → כללי → פורמט מטבע), אחרת אותו מוצר
- * מוצג במחיר בנוסח אחד באפליקציה ובנוסח אחר באתר וב-Checkout.
- * אומת מול ה-Admin API: shop.currencyFormats.moneyFormat === '{{amount}} ש"ח'.
+ * התבנית תומכת באותם placeholders של שופיפיי, כך שאפשר להעביר לכאן כל פורמט
+ * מטבע של החנות בלי לגעת בקוד:
+ *   {{amount}}                                  → 1,234.56
+ *   {{amount_no_decimals}}                      → 1,235
+ *   {{amount_with_comma_separator}}              → 1.234,56
+ *   {{amount_no_decimals_with_comma_separator}}  → 1.235
+ *
+ * ⚠️ שימו לב — כאן יש הפרש מכוון מהחנות, לפי החלטת הבעלים:
+ * בהגדרות החנות פורמט המטבע הוא `{{amount}} ש"ח` (אומת מול ה-Admin API,
+ * shop.currencyFormats.moneyFormat), והאפליקציה מציגה ₪ כי זה קריא יותר.
+ * המשמעות: האתר וה-Checkout יאמרו "ש"ח" והאפליקציה תאמר "₪".
+ * כדי שכל הערוצים יגידו ₪ צריך לשנות את הפורמט בניהול החנות
+ * (הגדרות → כללי → פורמט מטבע) ל-`₪{{amount}}` — ואז להחזיר את השורה כאן
+ * להיות זהה לו.
  */
 export const MONEY_FORMAT = {
   currencyCode: 'ILS',
-  /** {{amount}} — סכום עם פסיק לאלפים ושתי ספרות עשרוניות, כמו הפילטר money */
-  template: '{{amount}} ש"ח',
+  template: '₪{{amount}}',
 } as const;
 
 /**

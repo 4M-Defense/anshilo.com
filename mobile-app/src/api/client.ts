@@ -300,14 +300,40 @@ export async function cartNoteUpdate(cartId: string, note: string): Promise<Cart
 /* ---------- Money formatting ---------- */
 
 /**
- * משחזר את `{{amount}}` של שופיפיי: פסיק לאלפים, נקודה עשרונית, תמיד שתי
- * ספרות. מחושב ידנית ולא דרך toLocaleString — נתוני ה-Intl של המנוע שונים
- * בין iOS לאנדרואיד, ומחיר שמוצג אחרת בכל מכשיר הוא בדיוק מה שרצינו למנוע.
+ * מפריד אלפים ומעגל למספר ספרות מבוקש.
+ *
+ * מחושב ידנית ולא דרך toLocaleString — נתוני ה-Intl של המנוע שונים בין iOS
+ * לאנדרואיד, ומחיר שמוצג אחרת בכל מכשיר הוא בדיוק מה שרצינו למנוע.
  */
-function groupThousands(value: number): string {
-  const [whole, decimals] = Math.abs(value).toFixed(2).split('.');
-  const grouped = whole.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
-  return `${value < 0 ? '-' : ''}${grouped}.${decimals}`;
+function groupThousands(
+  /** תמיד חיובי — הסימן מטופל ב-formatMoney, כדי שיצא "‎-₪45" ולא "₪-45" */
+  value: number,
+  thousands: string,
+  decimalPoint: string,
+  decimals: number
+): string {
+  const [whole, fraction] = value.toFixed(decimals).split('.');
+  const grouped = whole.replace(/\B(?=(\d{3})+(?!\d))/g, thousands);
+  return fraction ? `${grouped}${decimalPoint}${fraction}` : grouped;
+}
+
+/** ארבעת ה-placeholders של שופיפיי, באותה סמנטיקה בדיוק */
+const MONEY_TOKENS =
+  /\{\{\s*(amount_no_decimals_with_comma_separator|amount_with_comma_separator|amount_no_decimals|amount)\s*\}\}/g;
+
+function applyMoneyTemplate(template: string, amount: number): string {
+  return template.replace(MONEY_TOKENS, (_match, token: string) => {
+    switch (token) {
+      case 'amount_no_decimals':
+        return groupThousands(amount, ',', '.', 0);
+      case 'amount_with_comma_separator':
+        return groupThousands(amount, '.', ',', 2);
+      case 'amount_no_decimals_with_comma_separator':
+        return groupThousands(amount, '.', ',', 0);
+      default:
+        return groupThousands(amount, ',', '.', 2);
+    }
+  });
 }
 
 /** האם הסכום ריק — מוצר שפורסם ללא מחיר (ראו CALL_FOR_PRICE_LABEL) */
@@ -320,10 +346,11 @@ export function isUnpriced(money: { amount: string } | null | undefined): boolea
 export function formatMoney(money: { amount: string; currencyCode: string }): string {
   const amount = parseFloat(money.amount);
   if (!Number.isFinite(amount)) return '';
-  const formatted = groupThousands(amount);
+  const sign = amount < 0 ? '-' : '';
+  const abs = Math.abs(amount);
   if (money.currencyCode === MONEY_FORMAT.currencyCode) {
-    return MONEY_FORMAT.template.replace('{{amount}}', formatted);
+    return `${sign}${applyMoneyTemplate(MONEY_FORMAT.template, abs)}`;
   }
-  // מטבע אחר (למשל אם תיפתח שוק נוסף) — הקוד לפני הסכום, בלי להמציא סימן
-  return `${formatted} ${money.currencyCode}`;
+  // מטבע אחר (למשל אם תיפתח שוק נוסף) — הקוד אחרי הסכום, בלי להמציא סימן
+  return `${sign}${groupThousands(abs, ',', '.', 2)} ${money.currencyCode}`;
 }
