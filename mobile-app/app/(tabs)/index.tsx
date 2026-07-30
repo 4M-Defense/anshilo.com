@@ -23,13 +23,14 @@ import {
   Skeleton,
   SkeletonProductCard,
 } from '@/components';
-import { HOME_FEED, STORE_INFO, TEL_URL, WHATSAPP_URL } from '@/config';
+import { BRAND_NAMES, HOME_FEED, IMPORTERS, STORE_INFO, TEL_URL, WHATSAPP_URL } from '@/config';
 import { colors, radius, shadows, spacing, typography } from '@/theme';
 
 /* ---------- קבועי פריסה ---------- */
 
 const RAIL_CARD_WIDTH = 168;
 const COLLECTION_TILE_SIZE = 76;
+const BRAND_TILE_WIDTH = 132;
 
 /* ---------- טעינת נתונים אזורית ---------- */
 
@@ -99,6 +100,10 @@ function useRegion<T>(load: () => Promise<T>) {
  */
 const loadCollections = async (): Promise<Collection[]> =>
   getCollectionsByHandle(HOME_FEED.departments);
+/** פס המותגים — אותם מותגים ובאותו סדר כמו "המותגים שאנחנו מייצגים" באתר */
+const loadBrands = async (): Promise<Collection[]> =>
+  getCollectionsByHandle(HOME_FEED.brands);
+
 const loadBestSellers = async (): Promise<ProductCardData[]> =>
   (await getProducts({ first: 6, sortKey: 'BEST_SELLING' })).nodes;
 const loadNewArrivals = async (): Promise<ProductCardData[]> =>
@@ -170,6 +175,67 @@ function CollectionTile({
   );
 }
 
+/**
+ * אריח מותג — הלוגו על לבן ב-contain.
+ *
+ * תמונות הקולקציות של המותגים הן קובצי לוגו (makita-logo.png, Grohe-logo.png
+ * וכו'), ולכן contain ולא cover, ורקע לבן ולא גוון — בדיוק מהסיבה שהאריחים
+ * בקטלוג תוקנו. השם מגיע מ-BRAND_NAMES כשיש override, אחרת מכותרת הקולקציה.
+ */
+function BrandTile({
+  collection,
+  importer,
+  onPress,
+}: {
+  collection: Collection;
+  importer?: { importer: string; note: string; badgeUrl: string };
+  onPress: () => void;
+}) {
+  const label = BRAND_NAMES[collection.handle] ?? collection.title;
+  return (
+    <Pressable
+      accessibilityRole="button"
+      accessibilityLabel={label}
+      onPress={onPress}
+      style={({ pressed }) => [styles.brandTile, pressed && styles.pressed]}
+    >
+      <View style={styles.brandLogoWrap}>
+        {collection.image != null ? (
+          <Image
+            source={{ uri: collection.image.url }}
+            style={styles.brandLogo}
+            contentFit="contain"
+            transition={200}
+            accessibilityLabel={collection.image.altText ?? label}
+          />
+        ) : (
+          <Text style={styles.brandFallback} numberOfLines={2}>
+            {label}
+          </Text>
+        )}
+      </View>
+      <Text style={styles.brandName} numberOfLines={2}>
+        {label}
+      </Text>
+      {importer != null && (
+        <View style={styles.importerRow}>
+          {importer.badgeUrl !== '' && (
+            <Image
+              source={{ uri: importer.badgeUrl }}
+              style={styles.importerBadge}
+              contentFit="contain"
+              accessibilityLabel={`תג יבואן רשמי ${importer.importer}`}
+            />
+          )}
+          <Text style={styles.importerText} numberOfLines={2}>
+            {`${importer.note} · ${importer.importer}`}
+          </Text>
+        </View>
+      )}
+    </Pressable>
+  );
+}
+
 /* ---------- מסך הבית ---------- */
 
 export default function HomeScreen() {
@@ -178,6 +244,7 @@ export default function HomeScreen() {
   const { width } = useWindowDimensions();
 
   const collections = useRegion(loadCollections);
+  const brands = useRegion(loadBrands);
   const bestSellers = useRegion(loadBestSellers);
   const newArrivals = useRegion(loadNewArrivals);
   const [refreshing, setRefreshing] = useState(false);
@@ -188,11 +255,12 @@ export default function HomeScreen() {
     setRefreshing(true);
     await Promise.allSettled([
       collections.reload(),
+      brands.reload(),
       bestSellers.reload(),
       newArrivals.reload(),
     ]);
     setRefreshing(false);
-  }, [collections.reload, bestSellers.reload, newArrivals.reload]);
+  }, [collections.reload, brands.reload, bestSellers.reload, newArrivals.reload]);
 
   const goCatalog = useCallback(() => {
     router.push('/catalog');
@@ -218,6 +286,7 @@ export default function HomeScreen() {
   // הכותרת, ההירו וכרטיס יצירת הקשר תמיד מוצגים.
   const hideCollections =
     collections.status === 'ready' && (collections.data?.length ?? 0) === 0;
+  const hideBrands = brands.status === 'ready' && (brands.data?.length ?? 0) === 0;
   const hideBestSellers =
     bestSellers.status === 'ready' && (bestSellers.data?.length ?? 0) === 0;
   const hideNewArrivals =
@@ -310,6 +379,41 @@ export default function HomeScreen() {
                   <CollectionTile
                     key={c.id}
                     collection={c}
+                    onPress={() => goCollection(c.handle)}
+                  />
+                ))}
+              </ScrollView>
+            )}
+          </View>
+        )}
+
+        {/* פס המותגים — מקביל ל"המותגים שאנחנו מייצגים" באתר */}
+        {!hideBrands && (
+          <View style={styles.section}>
+            <View style={styles.sectionHeaderWrap}>
+              <SectionHeader title="המותגים שאנחנו מייצגים" />
+            </View>
+            {brands.status === 'loading' && (
+              <View style={styles.railSkeleton}>
+                {Array.from({ length: 3 }, (_, i) => (
+                  <Skeleton key={i} width={BRAND_TILE_WIDTH} height={116} radius={radius.card} />
+                ))}
+              </View>
+            )}
+            {brands.status === 'error' && (
+              <RegionError message={brands.message} onRetry={brands.reload} />
+            )}
+            {brands.status === 'ready' && brands.data != null && (
+              <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={styles.railContent}
+              >
+                {brands.data.map((c) => (
+                  <BrandTile
+                    key={c.id}
+                    collection={c}
+                    importer={IMPORTERS.find((i) => i.collection === c.handle)}
                     onPress={() => goCollection(c.handle)}
                   />
                 ))}
@@ -587,6 +691,62 @@ const styles = StyleSheet.create({
     lineHeight: typography.tiny + 4,
     fontWeight: '600',
     color: colors.text,
+    textAlign: 'center',
+    writingDirection: 'rtl',
+  },
+
+  /* אריחי מותגים */
+  brandTile: {
+    width: BRAND_TILE_WIDTH,
+    gap: spacing.sm,
+  },
+  brandLogoWrap: {
+    height: 72,
+    borderRadius: radius.card,
+    borderWidth: 1,
+    borderColor: colors.border,
+    /* לבן — לוגואים מגיעים על רקע לבן */
+    backgroundColor: colors.surface,
+    padding: spacing.sm,
+    alignItems: 'center',
+    justifyContent: 'center',
+    overflow: 'hidden',
+  },
+  brandLogo: {
+    width: '100%',
+    height: '100%',
+  },
+  brandFallback: {
+    fontSize: typography.small,
+    fontWeight: '800',
+    color: colors.accent,
+    textAlign: 'center',
+    writingDirection: 'rtl',
+  },
+  brandName: {
+    fontSize: typography.tiny,
+    lineHeight: typography.tiny + 4,
+    fontWeight: '700',
+    color: colors.ink,
+    textAlign: 'center',
+    writingDirection: 'rtl',
+  },
+  importerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: spacing.xs,
+  },
+  importerBadge: {
+    width: 22,
+    height: 22,
+  },
+  importerText: {
+    flex: 1,
+    fontSize: typography.tiny - 1,
+    lineHeight: typography.tiny + 3,
+    fontWeight: '600',
+    color: colors.success,
     textAlign: 'center',
     writingDirection: 'rtl',
   },
