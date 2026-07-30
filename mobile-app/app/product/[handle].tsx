@@ -38,7 +38,7 @@ import {
 import { STORE_INFO, TEL_URL, WHATSAPP_URL } from '@/config';
 import { useCart } from '@/state/CartContext';
 import { useFavorites } from '@/state/FavoritesContext';
-import { colors, radius, rtlText, shadows, spacing, typography } from '@/theme';
+import { alignEnd, colors, radius, rtlText, shadows, spacing, typography } from '@/theme';
 
 /* ---------- המרת descriptionHtml לטקסט קריא ---------- */
 
@@ -666,6 +666,13 @@ export default function ProductScreen() {
         </View>
       )}
 
+      {/*
+        רצועת שורת המצב — התוכן גולל מתחת לכותרת הצפה, ובלי הרצועה הזאת שורות
+        התוכן מתנגשות בשעה וב-5G בראש המסך. הרצועה בצבע הקנבס ומכסה בדיוק את
+        גובה ה-safe area, בלי לזוז עם הגלילה.
+      */}
+      <View style={[styles.statusBarScrim, { height: insets.top }]} pointerEvents="none" />
+
       {/* ----- כותרת צפה ----- */}
       <View
         style={[styles.floatingHeader, { top: insets.top + spacing.sm }]}
@@ -713,6 +720,13 @@ const styles = StyleSheet.create({
   },
 
   /* כותרת צפה */
+  statusBarScrim: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    backgroundColor: colors.surface,
+  },
   floatingHeader: {
     position: 'absolute',
     left: 0,
@@ -822,7 +836,7 @@ const styles = StyleSheet.create({
     lineHeight: typography.h1 + 8,
     fontWeight: '800',
     color: colors.ink,
-    textAlign: 'right',
+    textAlign: alignEnd,
     writingDirection: 'rtl',
   },
   priceRow: {
@@ -833,7 +847,7 @@ const styles = StyleSheet.create({
   sku: {
     fontSize: typography.tiny,
     color: colors.textMuted,
-    textAlign: 'right',
+    textAlign: alignEnd,
     writingDirection: 'rtl',
   },
 
@@ -846,7 +860,7 @@ const styles = StyleSheet.create({
     fontSize: typography.small,
     fontWeight: '700',
     color: colors.ink,
-    textAlign: 'right',
+    textAlign: alignEnd,
     writingDirection: 'rtl',
   },
   optionValue: {
@@ -918,7 +932,7 @@ const styles = StyleSheet.create({
     fontSize: typography.small,
     fontWeight: '600',
     color: colors.text,
-    textAlign: 'right',
+    textAlign: alignEnd,
     writingDirection: 'rtl',
   },
 
@@ -931,7 +945,7 @@ const styles = StyleSheet.create({
     fontSize: typography.body,
     lineHeight: typography.body + 9,
     color: colors.text,
-    textAlign: 'right',
+    textAlign: alignEnd,
     writingDirection: 'rtl',
   },
 
@@ -976,7 +990,7 @@ const styles = StyleSheet.create({
     fontSize: typography.small,
     lineHeight: Math.round(typography.small * 1.5),
     color: colors.textMuted,
-    textAlign: 'right',
+    textAlign: alignEnd,
     writingDirection: 'rtl',
   },
   successBanner: {
@@ -993,7 +1007,7 @@ const styles = StyleSheet.create({
     fontSize: typography.small,
     fontWeight: '700',
     color: colors.success,
-    textAlign: 'right',
+    textAlign: alignEnd,
     writingDirection: 'rtl',
   },
   successAction: {
@@ -1016,7 +1030,7 @@ const styles = StyleSheet.create({
     fontSize: typography.small,
     fontWeight: '600',
     color: colors.danger,
-    textAlign: 'right',
+    textAlign: alignEnd,
     writingDirection: 'rtl',
   },
 

@@ -10,7 +10,7 @@ import {
 } from '@/api/customerAccount';
 import { Button, EmptyState, Icon, SectionHeader, Skeleton } from '@/components';
 import { useAuth } from '@/state/AuthContext';
-import { colors, radius, rtlText, shadows, spacing, typography } from '@/theme';
+import { alignEnd, colors, radius, rtlText, shadows, spacing, typography } from '@/theme';
 
 /** תאריך בעברית, בלי תלות בנתוני Intl של המנוע (שונים בין iOS לאנדרואיד) */
 function formatDate(iso: string): string {
@@ -277,13 +277,13 @@ const styles = StyleSheet.create({
     fontSize: typography.h3,
     fontWeight: '800',
     color: colors.ink,
-    textAlign: 'right',
+    textAlign: alignEnd,
     writingDirection: 'rtl',
   },
   profileMeta: {
     fontSize: typography.small,
     color: colors.textMuted,
-    textAlign: 'right',
+    textAlign: alignEnd,
     writingDirection: 'rtl',
   },
 
@@ -298,7 +298,7 @@ const styles = StyleSheet.create({
     fontSize: typography.body,
     lineHeight: typography.body + 6,
     color: colors.text,
-    textAlign: 'right',
+    textAlign: alignEnd,
     writingDirection: 'rtl',
   },
 
@@ -348,7 +348,7 @@ const styles = StyleSheet.create({
   orderItem: {
     fontSize: typography.small,
     color: colors.textMuted,
-    textAlign: 'right',
+    textAlign: alignEnd,
     writingDirection: 'rtl',
   },
 
@@ -365,7 +365,7 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: typography.small,
     color: colors.danger,
-    textAlign: 'right',
+    textAlign: alignEnd,
     writingDirection: 'rtl',
   },
   retry: { fontSize: typography.small, fontWeight: '800', color: colors.danger },

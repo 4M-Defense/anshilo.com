@@ -15,7 +15,7 @@ import { Image } from 'expo-image';
 import { Icon, Rule, SectionHeader } from '@/components';
 import { DIRECTIONS_URL, STORE_INFO, STORE_LOGO, TEL_URL, WHATSAPP_URL } from '@/config';
 import { useAuth } from '@/state/AuthContext';
-import { colors, radius, shadows, spacing, typography } from '@/theme';
+import { alignEnd, colors, radius, shadows, spacing, typography } from '@/theme';
 
 const WEBSITE_LABEL = STORE_INFO.website.replace(/^https?:\/\//, '');
 
@@ -253,13 +253,13 @@ const styles = StyleSheet.create({
     fontSize: typography.h1,
     fontWeight: '800',
     color: colors.ink,
-    textAlign: 'right',
+    textAlign: alignEnd,
     writingDirection: 'rtl',
   },
   headerSub: {
     fontSize: typography.small,
     color: colors.textMuted,
-    textAlign: 'right',
+    textAlign: alignEnd,
     writingDirection: 'rtl',
   },
 
@@ -300,7 +300,7 @@ const styles = StyleSheet.create({
     fontSize: typography.h1,
     fontWeight: '800',
     color: colors.onInk,
-    textAlign: 'right',
+    textAlign: alignEnd,
     writingDirection: 'rtl',
   },
   brandTagline: {
@@ -308,7 +308,7 @@ const styles = StyleSheet.create({
     fontWeight: '500',
     color: colors.onInk,
     opacity: 0.8,
-    textAlign: 'right',
+    textAlign: alignEnd,
     writingDirection: 'rtl',
   },
   brandExpRow: {
@@ -321,7 +321,7 @@ const styles = StyleSheet.create({
     fontSize: typography.small,
     fontWeight: '700',
     color: colors.accent,
-    textAlign: 'right',
+    textAlign: alignEnd,
     writingDirection: 'rtl',
   },
 
@@ -366,13 +366,13 @@ const styles = StyleSheet.create({
     fontSize: typography.body,
     fontWeight: '700',
     color: colors.ink,
-    textAlign: 'right',
+    textAlign: alignEnd,
     writingDirection: 'rtl',
   },
   rowSub: {
     fontSize: typography.small,
     color: colors.textMuted,
-    textAlign: 'right',
+    textAlign: alignEnd,
     writingDirection: 'rtl',
   },
 
@@ -394,7 +394,7 @@ const styles = StyleSheet.create({
     fontSize: typography.tiny,
     fontWeight: '600',
     color: colors.accent,
-    textAlign: 'right',
+    textAlign: alignEnd,
     writingDirection: 'rtl',
   },
   addressText: {
@@ -402,7 +402,7 @@ const styles = StyleSheet.create({
     fontSize: typography.body,
     fontWeight: '700',
     color: colors.ink,
-    textAlign: 'right',
+    textAlign: alignEnd,
     writingDirection: 'rtl',
   },
   infoDivider: {
@@ -421,7 +421,7 @@ const styles = StyleSheet.create({
     fontSize: typography.body,
     fontWeight: '600',
     color: colors.text,
-    textAlign: 'right',
+    textAlign: alignEnd,
     writingDirection: 'rtl',
   },
   hoursValue: {
@@ -441,7 +441,7 @@ const styles = StyleSheet.create({
     fontSize: typography.body,
     lineHeight: typography.body + 9,
     color: colors.text,
-    textAlign: 'right',
+    textAlign: alignEnd,
     writingDirection: 'rtl',
   },
 

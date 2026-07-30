@@ -16,7 +16,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { getCollections } from '@/api/client';
 import type { Collection, PageInfo } from '@/api/types';
 import { EmptyState, ErrorView, Icon, Skeleton, StoreLogo } from '@/components';
-import { colors, radius, rtlText, shadows, spacing, typography } from '@/theme';
+import { alignEnd, colors, radius, rtlText, shadows, spacing, typography } from '@/theme';
 
 const PAGE_SIZE = 24;
 /** יחס גובה-רוחב של אריח קטגוריה */
@@ -279,13 +279,13 @@ const styles = StyleSheet.create({
     fontSize: typography.h1,
     fontWeight: '800',
     color: colors.ink,
-    textAlign: 'right',
+    textAlign: alignEnd,
     writingDirection: 'rtl',
   },
   headerSub: {
     fontSize: typography.small,
     color: colors.textMuted,
-    textAlign: 'right',
+    textAlign: alignEnd,
     writingDirection: 'rtl',
   },
 
@@ -353,7 +353,7 @@ const styles = StyleSheet.create({
     lineHeight: typography.small + 5,
     fontWeight: '700',
     color: colors.ink,
-    textAlign: 'right',
+    textAlign: alignEnd,
     writingDirection: 'rtl',
   },
 
@@ -377,7 +377,7 @@ const styles = StyleSheet.create({
     fontSize: typography.small,
     lineHeight: typography.small + 5,
     color: colors.text,
-    textAlign: 'right',
+    textAlign: alignEnd,
     writingDirection: 'rtl',
   },
   footerRetry: {

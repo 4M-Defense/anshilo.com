@@ -14,7 +14,7 @@ import { getProductByHandle } from '@/api/client';
 import type { ProductCardData } from '@/api/types';
 import { EmptyState, ErrorView, Icon, ProductCard, SkeletonProductCard } from '@/components';
 import { useFavorites } from '@/state/FavoritesContext';
-import { colors, radius, spacing, typography } from '@/theme';
+import { alignEnd, colors, radius, spacing, typography } from '@/theme';
 
 function errorText(err: unknown): string {
   return err instanceof Error && err.message !== ''
@@ -244,7 +244,7 @@ const styles = StyleSheet.create({
     fontSize: typography.small,
     lineHeight: typography.small + 5,
     color: colors.text,
-    textAlign: 'right',
+    textAlign: alignEnd,
     writingDirection: 'rtl',
   },
   partialRetry: {

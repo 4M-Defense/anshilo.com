@@ -26,7 +26,7 @@ import {
 } from '@/components';
 import { FREE_SHIPPING_THRESHOLD } from '@/config';
 import { useCart } from '@/state/CartContext';
-import { colors, radius, rtlText, shadows, spacing, typography } from '@/theme';
+import { alignEnd, colors, radius, rtlText, shadows, spacing, typography } from '@/theme';
 
 function errorMessage(e: unknown, fallback: string): string {
   return e instanceof StorefrontError ? e.message : fallback;
@@ -529,7 +529,7 @@ const styles = StyleSheet.create({
     fontSize: typography.h1,
     fontWeight: '800',
     color: colors.ink,
-    textAlign: 'right',
+    textAlign: alignEnd,
     writingDirection: 'rtl',
   },
   headerCount: {
@@ -590,7 +590,7 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: colors.text,
     lineHeight: typography.small + 5,
-    textAlign: 'right',
+    textAlign: alignEnd,
     writingDirection: 'rtl',
   },
   trashButton: {
@@ -609,14 +609,14 @@ const styles = StyleSheet.create({
   lineOptions: {
     fontSize: typography.tiny,
     color: colors.textMuted,
-    textAlign: 'right',
+    textAlign: alignEnd,
     writingDirection: 'rtl',
   },
   lineUnavailable: {
     fontSize: typography.tiny,
     fontWeight: '700',
     color: colors.danger,
-    textAlign: 'right',
+    textAlign: alignEnd,
     writingDirection: 'rtl',
   },
   lineBottomRow: {
@@ -658,7 +658,7 @@ const styles = StyleSheet.create({
     fontSize: typography.small,
     fontWeight: '700',
     color: colors.ink,
-    textAlign: 'right',
+    textAlign: alignEnd,
     writingDirection: 'rtl',
   },
   notesBody: {
@@ -675,13 +675,13 @@ const styles = StyleSheet.create({
     padding: spacing.md,
     fontSize: typography.small,
     color: colors.text,
-    textAlign: 'right',
+    textAlign: alignEnd,
     writingDirection: 'rtl',
   },
   notesStatus: {
     fontSize: typography.tiny,
     color: colors.textMuted,
-    textAlign: 'right',
+    textAlign: alignEnd,
     writingDirection: 'rtl',
   },
   notesStatusError: {
@@ -709,7 +709,7 @@ const styles = StyleSheet.create({
     fontSize: typography.small,
     fontWeight: '700',
     color: colors.ink,
-    textAlign: 'right',
+    textAlign: alignEnd,
     writingDirection: 'rtl',
   },
   shippingTrack: {
@@ -775,7 +775,7 @@ const styles = StyleSheet.create({
   summaryHint: {
     fontSize: typography.tiny,
     color: colors.textMuted,
-    textAlign: 'right',
+    textAlign: alignEnd,
     writingDirection: 'rtl',
   },
   checkoutButton: {

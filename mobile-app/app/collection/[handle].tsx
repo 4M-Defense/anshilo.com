@@ -15,7 +15,7 @@ import {
 import { getCollectionProducts, type CollectionSort } from '@/api/client';
 import type { Collection, PageInfo, ProductCardData } from '@/api/types';
 import { EmptyState, ErrorView, ProductCard, Skeleton, SkeletonProductCard } from '@/components';
-import { colors, radius, rtlText, spacing, typography } from '@/theme';
+import { alignEnd, colors, radius, rtlText, spacing, typography } from '@/theme';
 
 const PAGE_SIZE = 24;
 /** תיאור ארוך מזה מקבל "קרא עוד" */
@@ -383,7 +383,7 @@ const styles = StyleSheet.create({
     fontSize: typography.small,
     lineHeight: typography.small + 8,
     color: colors.textMuted,
-    textAlign: 'right',
+    textAlign: alignEnd,
     writingDirection: 'rtl',
   },
   readMore: {
@@ -455,7 +455,7 @@ const styles = StyleSheet.create({
     fontSize: typography.small,
     lineHeight: typography.small + 5,
     color: colors.text,
-    textAlign: 'right',
+    textAlign: alignEnd,
     writingDirection: 'rtl',
   },
   footerRetry: {

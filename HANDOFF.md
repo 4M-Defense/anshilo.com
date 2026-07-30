@@ -797,3 +797,104 @@ deliberate, not a duplicate to collapse.
   as UTF-16LE. The escape survives Metro and Hermes.
 - `npx expo lint` could not run — no ESLint config in the project, and the proxy
   blocked the automatic install. Not a regression; it has never been configured.
+
+---
+
+## 14. Round 8 — the Round 7 diagnosis was wrong; here is the measured one
+
+The owner pushed back on Round 7: *"אתה לא רואה שיש מקרים שהטקסט מתחיל משמאל
+במקום בימין ואין התאמה מושלמת לעברית?"* — and sent the last two screenshots.
+
+They were right. **Do not trust the Round 7 explanation above; it is wrong.**
+
+### What Round 7 got wrong
+
+Round 7 claimed the effective alignment was *natural* — resolved per the first
+strong character — on the evidence that `אבטחה` sat right while `CLICK SWITCH`
+sat left in the departments grid. That reading of the screenshot was simply
+incorrect, and the fix that followed from it (`rtlText` alone) could not have
+worked.
+
+This round the screenshots were **measured** instead of eyeballed, with Pillow +
+numpy: find the card, threshold against the background colour, group the ink into
+horizontal bands, and print each band's left and right extent. The hero card on
+the home screen:
+
+| line | left | right |
+|---|---|---|
+| eyebrow `חומרי בניין ואספקה טכנית` | 74 | 533 |
+| title line 1 `כל מה שהמקצוענים` | 76 | 763 |
+| title line 2 `צריכים` | 76 | 307 |
+| paragraph line 1 | 75 | 920 |
+| paragraph line 2 | 75 | 693 |
+| CTA button `לכל המחלקות` | 583 | 1010 |
+
+**Every text line shares the same left edge (74–76) and no two share a right
+edge.** All of it is hard **left**-aligned — including the paragraph, which
+Round 7 read as right-aligned. And the CTA, whose only positioning is
+`alignSelf: 'flex-start'`, sits at the *right* — so Yoga's direction genuinely is
+RTL. The departments grid says the same thing: `אבטחה`, `NOA`, `CLICK SWITCH`,
+`אביזרי ניקוי` all start immediately right of the chevron with the slack on the
+right. Hebrew and Latin behave **identically**. Nothing about natural alignment.
+
+### The real cause
+
+`textAlign: 'right'` is delivered to the renderer as **left** under RTL. This is
+documented React Native behaviour, not a bug in this app — when
+`doLeftAndRightSwapInRTL` is on (the default, and `RCTI18nUtil` re-arms it on
+every launch) the renderer swaps left↔right. Both platforms:
+
+- `TextAttributeProps.getTextAlignment`:
+  `"right" -> if (isRTL) Gravity.LEFT else Gravity.RIGHT`
+- `TextLayoutManager.getTextAlignment` (Fabric): `"right"` → `ALIGN_OPPOSITE`,
+  and the opposite of a Hebrew paragraph is left
+- iOS: `NSTextAlignmentRight` → `NSTextAlignmentLeft`
+
+Which raises the obvious question — why did anything align right? Because
+**everything that looked correct was aligned by flexbox, not by `textAlign`.**
+The screen headers and `SectionHeader` wrap their text in a container with
+`alignItems: 'flex-start'`, which shrink-wraps the Text and places it at the
+start — the right, under RTL. `textAlign` never mattered there. The bug was
+visible only where a Text was full-width or `flex: 1`, and every one of those
+was wrong. 57 style declarations were asking for the wrong value.
+
+### The fix
+
+`alignEnd` in `src/theme.ts` asks for the value that *survives* the swap:
+
+```ts
+const SWAPS_LEFT_RIGHT = I18nManager.isRTL && I18nManager.doLeftAndRightSwapInRTL;
+export const alignEnd: TextStyle['textAlign'] = SWAPS_LEFT_RIGHT ? 'left' : 'right';
+```
+
+Self-correcting: with the swap off, or the app running LTR, it returns `'right'`
+directly. All 55 inline `textAlign: 'right'` across the nine screens, plus
+`rtl.text`, now use it.
+
+### `rtlText` is still needed — as the other half, not as the fix
+
+It is not redundant, for two reasons:
+
+1. On Android `'left'` maps to `ALIGN_NORMAL`, which *is* natural alignment. A
+   Hebrew-initial string lands right on its own; `CLICK SWITCH` or
+   `3 תוצאות` would still land left. The mark fixes those.
+2. On both platforms the base direction decides the order of runs inside a mixed
+   string. `סיקה - sika` orders differently in an LTR-base paragraph than in an
+   RTL one — the hyphen and the Latin word trade places.
+
+So: **`alignEnd` handles Hebrew, `rtlText` handles everything else.** Neither
+alone is sufficient. Round 7 shipped one half and called it done.
+
+### Also fixed
+
+The product screen let content scroll under the floating buttons with nothing
+behind the status bar, so trust rows collided with the clock and the 5G
+indicator (visible in IMG_3230). A `statusBarScrim` of `insets.top` height in the
+canvas colour now sits behind it.
+
+### Verified
+
+`tsc --noEmit` clean; `expo export --platform ios` bundles 1,200 modules. The
+alignment itself cannot be verified from here — it needs a device. The
+measurement scripts are the check that matters, and they are what should be used
+on the next screenshots rather than reading them by eye.

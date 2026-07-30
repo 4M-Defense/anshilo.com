@@ -1,4 +1,4 @@
-import { Platform, type TextStyle, type ViewStyle } from 'react-native';
+import { I18nManager, Platform, type TextStyle, type ViewStyle } from 'react-native';
 
 /**
  * מערכת העיצוב של האפליקציה — מראה (mirror) של אסימוני ה-CSS של ת'ים
@@ -241,27 +241,66 @@ export const type = {
   },
 } as const satisfies Record<string, TextStyle>;
 
+/**
+ * הערך שצריך לבקש כדי שטקסט ייצמד **לימין** בפועל.
+ *
+ * זה לא באג באפליקציה אלא התנהגות מתועדת של React Native: כש-
+ * `doLeftAndRightSwapInRTL` דלוק — וזו ברירת המחדל, ובאייפון `RCTI18nUtil`
+ * מדליק אותה מחדש בכל עלייה — הרנדרר **מחליף** `textAlign` שמאל↔ימין תחת RTL.
+ * שני הפלטפורמות עושות את זה:
+ *
+ * - אנדרואיד, `TextAttributeProps.getTextAlignment`:
+ *   `"right" -> if (isRTL) Gravity.LEFT else Gravity.RIGHT`
+ * - אנדרואיד/Fabric, `TextLayoutManager.getTextAlignment`:
+ *   `"right"` → `ALIGN_OPPOSITE`, וההופכי של פסקה בעברית הוא שמאל
+ * - iOS: `NSTextAlignmentRight` מוחלף ל-`NSTextAlignmentLeft`
+ *
+ * כלומר סטייל שכתוב בו `textAlign: 'right'` מגיע למסך כ**שמאל**. זה מה שנמדד
+ * על המכשיר: בלוח המחלקות כל הכותרות — `אבטחה`, `NOA`, `CLICK SWITCH`,
+ * `אביזרי ניקוי` — יצאו צמודות לשמאל, באופן אחיד ובלי קשר לשפה. ומה שכן יצא
+ * מיושר לימין באפליקציה (כותרות המסכים, `SectionHeader`) יושר שם על ידי
+ * flexbox — `alignItems: 'flex-start'` עוטף את הטקסט וממקם אותו בהתחלה, שהיא
+ * ימין ב-RTL — ולא על ידי `textAlign` בכלל.
+ *
+ * לכן מבקשים את הערך ש**שורד** את ההחלפה. זה מתקן את עצמו: אם ההחלפה כבויה,
+ * או שהאפליקציה רצה LTR, הביטוי מחזיר `'right'` ישירות.
+ *
+ * באנדרואיד `'left'` מתנהג כיישור **טבעי** (לפי התו החזק הראשון) ולא כשמאל
+ * קשיח, ולכן מחרוזת שמתחילה בלטינית או בספרה עוד צריכה את `rtlText` למטה.
+ * שני החצאים משלימים זה את זה: `alignEnd` מטפל בעברית, `rtlText` בשאר.
+ */
+const SWAPS_LEFT_RIGHT = I18nManager.isRTL && I18nManager.doLeftAndRightSwapInRTL;
+export const alignEnd: TextStyle['textAlign'] = SWAPS_LEFT_RIGHT ? 'left' : 'right';
+
 /** עברית מיושרת לימין — הצירוף הזה חוזר בכל מסך */
 export const rtl = {
-  text: { textAlign: 'right', writingDirection: 'rtl' },
+  text: { textAlign: alignEnd, writingDirection: 'rtl' },
   center: { textAlign: 'center', writingDirection: 'rtl' },
 } as const satisfies Record<string, TextStyle>;
 
 /**
- * עוטף טקסט שמגיע מהחנות כך שיתיישר לימין גם אם הוא מתחיל בלטינית או במספר.
+ * מוסיף U+200F, RIGHT-TO-LEFT MARK, בתחילת מחרוזת שמגיעה מהחנות.
  *
- * הבעיה שזה פותר, כפי שנראתה על מכשיר: באותו רכיב בדיוק, "אבטחה" יושב מימין
- * ו-"CLICK SWITCH" יושב משמאל. הסיבה איננה באג בסטייל — היא ש-React Native
- * מהפך `textAlign: 'right'` ל-`'left'` תחת RTL (doLeftAndRightSwapInRTL),
- * ו-iOS מפרש `left` כיישור **טבעי**: לפי התו החזק הראשון. עברית מיושרת לימין,
- * ומחרוזת שמתחילה ב-Latin או בספרה נדחפת שמאלה.
+ * זה החצי השני של `alignEnd` למעלה, ולא תחליף לו. `alignEnd` מטפל ביישור;
+ * הפונקציה הזאת מטפלת ב**כיוון הבסיס של הפסקה**, ושני דברים תלויים בו:
  *
- * הפתרון הוא לתת לשורה תו RTL חזק בהתחלה — U+200F, RIGHT-TO-LEFT MARK. הוא
- * בלתי נראה, אינו משנה את סדר הקריאה בתוך המילה הלטינית ("CLICK SWITCH"
- * נקרא כרגיל), אבל הוא קובע את כיוון הבסיס של הפסקה ולכן היישור יוצא ימין.
+ * 1. באנדרואיד `'left'` (הערך ש-`alignEnd` מבקש תחת RTL) מתורגם ל-
+ *    `ALIGN_NORMAL`, וזה יישור **טבעי** — לפי התו החזק הראשון. מחרוזת שמתחילה
+ *    בעברית תיפול לימין מעצמה, אבל `CLICK SWITCH` או `3 תוצאות` ייפלו שמאלה.
+ *    הסימן קובע שהתו החזק הראשון הוא RTL, ולכן שתיהן נופלות לימין.
+ * 2. בשתי הפלטפורמות, סדר הרכיבים בתוך מחרוזת מעורבת נקבע לפי כיוון הבסיס.
+ *    `סיקה - sika` בפסקה שכיוון הבסיס שלה LTR מסודר אחרת מאותה מחרוזת בפסקה
+ *    RTL — המקף והמילה הלטינית מחליפים מקום.
  *
- * להשתמש בזה על **טקסט שמגיע מהחנות** — שמות מוצרים, מחלקות, מותגים, יצרן,
- * תיאורים. לא צריך על מחרוזות שכתובות בקוד בעברית, שם התו הראשון עברי ממילא.
+ * הסימן בלתי נראה, עולה תו אחד, ואינו הופך את סדר הקריאה בתוך הרצף הלטיני:
+ * `CLICK SWITCH` נקרא כרגיל, כי אלגוריתם ה-bidi מטפל ברצף בנפרד.
+ *
+ * להשתמש על **טקסט שמגיע מהחנות או מהודעת שגיאה** — שמות מוצרים, מחלקות,
+ * מותגים, יצרן, תיאורים, מספרי הזמנות ותאריכים. מחרוזות עבריות שכתובות בקוד
+ * לא צריכות את זה: התו הראשון שלהן עברי ממילא.
+ *
+ * **לא** להשתמש על מחירים. `formatMoney` מחזיר `₪1,234.00`, וכיוון בסיס RTL
+ * יזיז את סימן השקל לצד הלא נכון.
  */
 export function rtlText(value: string | null | undefined): string {
   if (value == null) return '';

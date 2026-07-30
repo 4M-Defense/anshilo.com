@@ -32,7 +32,7 @@ import {
   TEL_URL,
   WHATSAPP_URL,
 } from '@/config';
-import { colors, radius, rtlText, shadows, spacing, typography } from '@/theme';
+import { alignEnd, colors, radius, rtlText, shadows, spacing, typography } from '@/theme';
 
 /* ---------- קבועי פריסה ---------- */
 
@@ -558,7 +558,7 @@ const styles = StyleSheet.create({
     fontSize: typography.h2,
     fontWeight: '800',
     color: colors.ink,
-    textAlign: 'right',
+    textAlign: alignEnd,
     writingDirection: 'rtl',
   },
   tagline: {
@@ -566,7 +566,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: colors.textMuted,
     letterSpacing: 0.4,
-    textAlign: 'right',
+    textAlign: alignEnd,
     writingDirection: 'rtl',
   },
   phoneButton: {
@@ -609,7 +609,7 @@ const styles = StyleSheet.create({
     letterSpacing: 1,
     color: colors.onInk,
     opacity: 0.65,
-    textAlign: 'right',
+    textAlign: alignEnd,
     writingDirection: 'rtl',
   },
   heroTitle: {
@@ -617,7 +617,7 @@ const styles = StyleSheet.create({
     lineHeight: typography.h1 + 7,
     fontWeight: '800',
     color: colors.accent,
-    textAlign: 'right',
+    textAlign: alignEnd,
     writingDirection: 'rtl',
   },
   heroSub: {
@@ -625,7 +625,7 @@ const styles = StyleSheet.create({
     lineHeight: typography.small + 8,
     color: colors.onInk,
     opacity: 0.85,
-    textAlign: 'right',
+    textAlign: alignEnd,
     writingDirection: 'rtl',
   },
   heroCta: {
@@ -778,7 +778,7 @@ const styles = StyleSheet.create({
     fontSize: typography.small,
     lineHeight: typography.small + 5,
     color: colors.text,
-    textAlign: 'right',
+    textAlign: alignEnd,
     writingDirection: 'rtl',
   },
   regionRetry: {
@@ -806,14 +806,14 @@ const styles = StyleSheet.create({
     fontSize: typography.h3,
     fontWeight: '800',
     color: colors.ink,
-    textAlign: 'right',
+    textAlign: alignEnd,
     writingDirection: 'rtl',
   },
   contactText: {
     fontSize: typography.small,
     lineHeight: typography.small + 7,
     color: colors.textMuted,
-    textAlign: 'right',
+    textAlign: alignEnd,
     writingDirection: 'rtl',
   },
   contactButtons: {
@@ -839,7 +839,7 @@ const styles = StyleSheet.create({
     fontSize: typography.small,
     fontWeight: '700',
     color: colors.text,
-    textAlign: 'right',
+    textAlign: alignEnd,
     writingDirection: 'rtl',
   },
   hoursRow: {
@@ -862,7 +862,7 @@ const styles = StyleSheet.create({
   addressText: {
     fontSize: typography.small,
     color: colors.textMuted,
-    textAlign: 'right',
+    textAlign: alignEnd,
     writingDirection: 'rtl',
   },
 });

@@ -24,7 +24,7 @@ import {
   SkeletonProductCard,
   StoreLogo,
 } from '@/components';
-import { colors, radius, rtlText, spacing, typography } from '@/theme';
+import { alignEnd, colors, radius, rtlText, spacing, typography } from '@/theme';
 
 const PAGE_SIZE = 24;
 const DEBOUNCE_MS = 350;
@@ -426,7 +426,7 @@ const styles = StyleSheet.create({
     fontSize: typography.h1,
     fontWeight: '800',
     color: colors.ink,
-    textAlign: 'right',
+    textAlign: alignEnd,
     writingDirection: 'rtl',
   },
   searchField: {
@@ -447,7 +447,7 @@ const styles = StyleSheet.create({
     height: '100%',
     fontSize: typography.body,
     color: colors.text,
-    textAlign: 'right',
+    textAlign: alignEnd,
     writingDirection: 'rtl',
     paddingVertical: 0,
   },
@@ -472,7 +472,7 @@ const styles = StyleSheet.create({
     fontSize: typography.h3,
     fontWeight: '800',
     color: colors.ink,
-    textAlign: 'right',
+    textAlign: alignEnd,
     writingDirection: 'rtl',
   },
   clearAll: {
@@ -533,7 +533,7 @@ const styles = StyleSheet.create({
     fontSize: typography.small,
     fontWeight: '600',
     color: colors.textMuted,
-    textAlign: 'right',
+    textAlign: alignEnd,
     writingDirection: 'rtl',
   },
   listContent: {
@@ -571,7 +571,7 @@ const styles = StyleSheet.create({
     fontSize: typography.small,
     lineHeight: typography.small + 5,
     color: colors.text,
-    textAlign: 'right',
+    textAlign: alignEnd,
     writingDirection: 'rtl',
   },
   footerRetry: {
