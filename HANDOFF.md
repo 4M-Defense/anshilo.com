@@ -660,6 +660,35 @@ Practical consequences, all favourable:
 - TestFlight retains build 7, so the new build can be compared against it rather
   than replacing it destructively.
 
+### Bundle identifiers — they differ per platform, on purpose
+
+`App Store Connect` (Apple ID 6796238101, SKU `ANSHILO-IOS-001`, primary language
+Hebrew, status *Prepare for Submission*) registers the app as
+**`com.anshilo.shop.test`** — with the `.test` suffix. app.json had
+`com.anshilo.shop`, so a build would not have matched that record, and the EAS
+signing credentials on the project are issued against the `.test` identifier.
+
+Apple does not allow a bundle identifier to change after the app record exists.
+Presented as a choice; the owner chose to keep the existing identifier so the
+fixes could be validated on a device today.
+
+| Platform | Identifier | Why |
+|---|---|---|
+| iOS | `com.anshilo.shop.test` | Locked to the existing App Store Connect record and its credentials |
+| Android | `com.anshilo.shop` | Nothing is published to Play yet, so there is no reason to inherit the `.test` accident on a platform that is still free |
+
+**Do not "tidy" these into matching.** Changing iOS breaks the link to the
+existing record and its testers; changing Android burns a clean identifier for no
+gain. If the app is ever published publicly under a clean iOS identifier, that
+requires a *new* App Store Connect record — a separate exercise, not an edit here.
+
+Also recorded from that check: EAS lists builds 6 and 7 as finished, but App Store
+Connect only ever received **6** — build 7 was built and never submitted. Build 6
+sits at *Waiting for Review*, which is why the external tester
+(`mayshilo@icloud.com`, group `Shilo`) shows *No Builds Available*. The internal
+group `Anshilo Test group` needs no review, so internal testers can install
+without waiting.
+
 It was also **not** a no-code Shopify app builder — the store's publications
 were checked and there is no Vajro / Shopney / Tapcart / MageNative channel.
 

@@ -10,7 +10,7 @@
     "newArchEnabled": true,
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.anshilo.shop",
+      "bundleIdentifier": "com.anshilo.shop.test",
       "infoPlist": {
         "CFBundleDevelopmentRegion": "he",
         "CFBundleAllowMixedLocalizations": true
@@ -35,7 +35,9 @@
         {
           "supportsRTL": true,
           "forcesRTL": true,
-          "supportedLocales": ["he"]
+          "supportedLocales": [
+            "he"
+          ]
         }
       ],
       [
@@ -52,7 +54,11 @@
       "typedRoutes": true
     },
     "extra": {
-      "supportsRTL": true
-    }
+      "supportsRTL": true,
+      "eas": {
+        "projectId": "c36b7d96-fe98-47b2-9455-a1c5bff1ccc4"
+      }
+    },
+    "owner": "dvir4m"
   }
 }
