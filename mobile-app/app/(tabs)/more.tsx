@@ -11,8 +11,9 @@ import {
   View,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { Image } from 'expo-image';
 import { Icon, Rule, SectionHeader } from '@/components';
-import { DIRECTIONS_URL, STORE_INFO, TEL_URL, WHATSAPP_URL } from '@/config';
+import { DIRECTIONS_URL, STORE_INFO, STORE_LOGO, TEL_URL, WHATSAPP_URL } from '@/config';
 import { useAuth } from '@/state/AuthContext';
 import { colors, radius, shadows, spacing, typography } from '@/theme';
 
@@ -90,6 +91,16 @@ export default function MoreScreen() {
       <View style={styles.brandCard}>
         <View style={styles.brandBody}>
           <View style={styles.brandEyebrow} />
+          {/* הסמל של החנות על משטח הדיו — לבן מסביב כדי שהכחול ייקרא */}
+          <View style={styles.brandLogoPlate}>
+            <Image
+              source={{ uri: STORE_LOGO.square }}
+              style={styles.brandLogo}
+              contentFit="contain"
+              transition={200}
+              accessibilityLabel={STORE_INFO.name}
+            />
+          </View>
           <Text style={styles.brandName}>{STORE_INFO.name}</Text>
           <Text style={styles.brandTagline}>{STORE_INFO.tagline}</Text>
           <View style={styles.brandExpRow}>
@@ -252,6 +263,20 @@ const styles = StyleSheet.create({
     borderRadius: radius.pill,
     backgroundColor: colors.accent,
     marginBottom: spacing.xs,
+  },
+  brandLogoPlate: {
+    width: 76,
+    height: 76,
+    borderRadius: radius.card,
+    backgroundColor: colors.surface,
+    padding: spacing.sm,
+    marginBottom: spacing.sm,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  brandLogo: {
+    width: '100%',
+    height: '100%',
   },
   brandName: {
     fontSize: typography.h1,

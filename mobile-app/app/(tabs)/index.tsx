@@ -23,7 +23,15 @@ import {
   Skeleton,
   SkeletonProductCard,
 } from '@/components';
-import { BRAND_NAMES, HOME_FEED, IMPORTERS, STORE_INFO, TEL_URL, WHATSAPP_URL } from '@/config';
+import {
+  BRAND_NAMES,
+  HOME_FEED,
+  IMPORTERS,
+  STORE_INFO,
+  STORE_LOGO,
+  TEL_URL,
+  WHATSAPP_URL,
+} from '@/config';
 import { colors, radius, shadows, spacing, typography } from '@/theme';
 
 /* ---------- קבועי פריסה ---------- */
@@ -297,9 +305,15 @@ export default function HomeScreen() {
       {/* כותרת המסך — שם החנות, סלוגן וכפתור חיוג */}
       <View style={[styles.header, { paddingTop: insets.top + spacing.sm }]}>
         <View style={styles.headerText}>
-          <Text style={styles.storeName} numberOfLines={1}>
-            {STORE_INFO.name}
-          </Text>
+          {/* הלוגו האמיתי של החנות, מה-CDN — אותו קובץ שההדר באתר מציג */}
+          <Image
+            source={{ uri: STORE_LOGO.horizontal }}
+            style={styles.headerLogo}
+            contentFit="contain"
+            contentPosition="right"
+            transition={200}
+            accessibilityLabel={STORE_INFO.name}
+          />
           <Text style={styles.tagline} numberOfLines={1}>
             {STORE_INFO.tagline}
           </Text>
@@ -693,6 +707,11 @@ const styles = StyleSheet.create({
     color: colors.text,
     textAlign: 'center',
     writingDirection: 'rtl',
+  },
+
+  headerLogo: {
+    width: 168,
+    height: 34,
   },
 
   /* אריחי מותגים */

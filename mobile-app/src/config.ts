@@ -106,6 +106,22 @@ export const CUSTOMER_ACCOUNT = {
   logoutEndpoint: 'https://shopify.com/authentication/58110246991/logout',
 } as const;
 
+/**
+ * הלוגו של החנות, מה-CDN של שופיפיי — אותו קובץ שההדר באתר משתמש בו
+ * (הגדרת `logo` בת'ים: final-logo-for-the-website.png, 500×100).
+ *
+ * נטען מהחנות ולא נארז באפליקציה, כדי שהחלפת לוגו באתר תתגלגל לאפליקציה
+ * מעצמה. `square` הוא הסמל בלבד, לשימוש במקומות צרים.
+ */
+export const STORE_LOGO = {
+  /** אופקי — סמל + שם, מתאים להדר */
+  horizontal:
+    'https://cdn.shopify.com/s/files/1/0581/1024/6991/files/final-logo-for-the-website.png?v=1706483466',
+  /** מרובע — הסמל בלבד */
+  square:
+    'https://cdn.shopify.com/s/files/1/0581/1024/6991/files/favicon-for-website-2.png?v=1706484070',
+} as const;
+
 /** פרטי החנות — זהים להגדרות הת'ים באתר */
 export const STORE_INFO = {
   name: 'א.נ. שילו בע"מ',
@@ -240,10 +256,8 @@ export const HOME_FEED = {
  *
  * מותג שאינו כאן מוצג בכותרת הקולקציה כפי שהיא.
  *
- * `grohe` הוא היוצא מן הכלל: בשופיפיי הקולקציה נקראת "גרו", והבעלים העיר
- * שהשם הנכון הוא "גרואה". שינוי הכותרת בחנות עצמה נחסם כאן (כתיבה לחנות
- * חיה), ולכן ההצגה מתוקנת באפליקציה. כשהכותרת תתוקן גם בשופיפיי אפשר
- * למחוק את השורה הזאת.
+ * `grohe` תוקן גם בשופיפיי עצמה מ-"גרו" ל-"גרואה", ולכן השורה כאן היא כבר
+ * רק תוספת ה-GROHE הלטיני, בעקבות מה שהאתר עושה לכל מותג.
  */
 export const BRAND_NAMES: Record<string, string> = {
   makita: 'מקיטה MAKITA',
@@ -260,25 +274,26 @@ export const BRAND_NAMES: Record<string, string> = {
  * יבואנים רשמיים — המדבקות שהבעלים ביקש להציג.
  *
  * ארגנטולס היא היבואנית הרשמית של מקיטה, ודלקו של מילווקי. באתר יש על כך
- * רק אמירה בטקסט ("הכל מיבואן רשמי, עם אחריות מלאה") ולא תג מצויר, ותמונות
- * המדבקות אינן קיימות בקבצים של החנות — נבדק ולא נמצא.
+ * רק אמירה בטקסט ("הכל מיבואן רשמי, עם אחריות מלאה") ולא תג מצויר — באפליקציה
+ * מוצג התג עצמו.
  *
- * לכן `badgeUrl` ריק בכינתיים והמדור מציג את שורת היבואן בלי תג. ברגע
- * שהמדבקות יעלו ל-Shopify → Content → Files, מדביקים כאן את הכתובות והתג
- * מופיע. עם expo-updates זה מגיע למכשירים בדקה, בלי בנייה.
+ * התמונות יושבות ב-Shopify → Content → Files. הן נטענות משם ולא נארזות
+ * באפליקציה, כך שהחלפת מדבקה בחנות מתגלגלת לאפליקציה בלי גרסה חדשה.
  */
 export const IMPORTERS = [
   {
     collection: 'makita',
     importer: 'ארגנטולס',
     note: 'יבואן רשמי, אחריות מלאה',
-    badgeUrl: '',
+    badgeUrl:
+      'https://cdn.shopify.com/s/files/1/0581/1024/6991/files/makita-argentolas-stamp.png?v=1785318917',
   },
   {
     collection: 'מילווקי',
     importer: 'דלקו',
     note: 'יבואן רשמי, אחריות מלאה',
-    badgeUrl: '',
+    badgeUrl:
+      'https://cdn.shopify.com/s/files/1/0581/1024/6991/files/delco-milwaukee-stamp.png?v=1785319031',
   },
 ] as const;
 
