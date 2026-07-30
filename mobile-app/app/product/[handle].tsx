@@ -35,7 +35,7 @@ import {
   SectionHeader,
   Skeleton,
 } from '@/components';
-import { STORE_INFO, TEL_URL, WHATSAPP_URL } from '@/config';
+import { STORE_INFO, TEL_URL, WHATSAPP_URL, importerForVendor } from '@/config';
 import { useCart } from '@/state/CartContext';
 import { useFavorites } from '@/state/FavoritesContext';
 import { alignEnd, colors, radius, rtlText, shadows, spacing, typography } from '@/theme';
@@ -320,6 +320,7 @@ export default function ProductScreen() {
    * והאפליקציה חייבת להתנהג זהה (theme/snippets/request-price.liquid).
    */
   const unpriced = price == null || isUnpriced(price);
+  const importer = importerForVendor(product?.vendor);
   const salePercent =
     price != null && compareAt != null && parseFloat(compareAt.amount) > parseFloat(price.amount)
       ? Math.round(
@@ -477,6 +478,20 @@ export default function ProductScreen() {
               <View style={styles.vendorChip}>
                 <Text style={styles.vendorChipText} numberOfLines={1}>
                   {rtlText(product.vendor)}
+                </Text>
+              </View>
+            )}
+            {/* מדבקת היבואן הרשמי — אותה מדבקה שמופיעה על אריח המותג בדף הבית */}
+            {importer != null && (
+              <View style={styles.importerRow}>
+                <Image
+                  source={{ uri: importer.badgeUrl }}
+                  style={styles.importerStamp}
+                  contentFit="contain"
+                  accessibilityLabel={`יבואן רשמי ${importer.importer}`}
+                />
+                <Text style={styles.importerText} numberOfLines={2}>
+                  {rtlText(`${importer.note} · ${importer.importer}`)}
                 </Text>
               </View>
             )}
@@ -802,6 +817,25 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     gap: spacing.md,
+  },
+  importerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs,
+    flexShrink: 1,
+  },
+  importerStamp: {
+    width: 34,
+    height: 34,
+  },
+  importerText: {
+    flexShrink: 1,
+    fontSize: typography.tiny,
+    lineHeight: typography.tiny + 4,
+    fontWeight: '700',
+    color: colors.textMuted,
+    textAlign: alignEnd,
+    writingDirection: 'rtl',
   },
   vendorChip: {
     backgroundColor: colors.surfaceAlt,

@@ -286,6 +286,8 @@ export const BRAND_NAMES: Record<string, string> = {
 export const IMPORTERS = [
   {
     collection: 'makita',
+    /** `vendor` של המוצרים בשופיפיי — מה שמאפשר להציג את המדבקה על המוצר עצמו */
+    vendor: 'מקיטה',
     importer: 'ארגנטולס',
     note: 'יבואן רשמי, אחריות מלאה',
     badgeUrl:
@@ -293,12 +295,29 @@ export const IMPORTERS = [
   },
   {
     collection: 'מילווקי',
+    vendor: 'מילווקי',
     importer: 'דלקו',
     note: 'יבואן רשמי, אחריות מלאה',
     badgeUrl:
       'https://cdn.shopify.com/s/files/1/0581/1024/6991/files/delco-milwaukee-stamp.png?v=1785319031',
   },
 ] as const;
+
+export type Importer = (typeof IMPORTERS)[number];
+
+/**
+ * מדבקת היבואן של מוצר, לפי היצרן שלו בשופיפיי.
+ *
+ * הצמדה ל-`vendor` ולא לקולקציה בכוונה: כרטיס מוצר מופיע גם בחיפוש, גם
+ * במועדפים וגם ב"הנמכרים ביותר", שם אין הקשר של קולקציה — ו-`vendor` מגיע עם
+ * המוצר בכל אחד מהמסלולים האלה. נבדק מול החנות: 354 מוצרי `מקיטה`
+ * ו-61 מוצרי `מילווקי`, שני השמות נקיים ואחידים.
+ */
+export function importerForVendor(vendor: string | null | undefined): Importer | null {
+  const name = vendor?.trim();
+  if (name == null || name === '') return null;
+  return IMPORTERS.find((i) => i.vendor === name) ?? null;
+}
 
 /** הצעות חיפוש קבועות — זהות ל-popular_searches של הת'ים */
 export const POPULAR_SEARCHES = [

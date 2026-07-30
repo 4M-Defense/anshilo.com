@@ -35,7 +35,14 @@ export function StoreLogo({ height = 26, variant = 'horizontal', style }: StoreL
 }
 
 const styles = StyleSheet.create({
+  /*
+   * `flex-start` ולא `flex-end`: תחת RTL ההתחלה היא **ימין**. `flex-end` היה
+   * דוחף את הלוגו שמאלה בכל כותרת שהתיבה שלה רחבה מהתמונה — העגלה, החיפוש
+   * והמחלקות. בדף הבית זה לא נראה, כי שם התיבה מצטמצמת לרוחב התמונה ולכן
+   * ל-`alignItems` אין מה ליישר. אותה טעות של חשיבה בצדדים פיזיים במקום
+   * לוגיים שהפילה את `textAlign: 'right'`.
+   */
   wrap: {
-    alignItems: 'flex-end',
+    alignItems: 'flex-start',
   },
 });
