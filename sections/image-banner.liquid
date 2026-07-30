@@ -173,83 +173,98 @@
       "שולחן השרטוט החי" — the whole stage is decorative and stays out of the
       accessibility tree. Layer order and the reasoning behind each layer live in
       assets/section-image-banner.css; only the parts that need markup are here.
+
+      .hero-stage exists to carry the clip. Every layer inside it deliberately
+      overhangs the banner — a grid one tile too tall so its drift never shows a
+      seam, an aura parked mostly off-stage, a beam bleeding 20% past both ends —
+      and that overhang used to be cut off by `contain: paint` on the section
+      itself. Which also cut off the search dropdown, the one descendant that is
+      supposed to hang out of the hero. Wrapping the stage moves the clip to the
+      layers that need clipping, so the section can stay open for the panel.
     {%- endcomment -%}
-    <span class="hero-stage__plane hero-stage__plane--far" aria-hidden="true"></span>
-    <span class="hero-stage__plane hero-stage__plane--near" data-hero-parallax="1" aria-hidden="true"></span>
-    <span class="hero-stage__aura" aria-hidden="true"></span>
-    <span class="hero-stage__shaft" aria-hidden="true"></span>
+    <span class="hero-stage" aria-hidden="true">
+      <span class="hero-stage__plane hero-stage__plane--far"></span>
+      <span class="hero-stage__plane hero-stage__plane--near" data-hero-parallax="1"></span>
+      <span class="hero-stage__aura"></span>
+      <span class="hero-stage__shaft"></span>
 
-    {%- if motion == 'full' -%}
-      {%- comment -%}
-        Deterministic pseudo-random placement — coprime multipliers against prime-ish
-        moduli, so the 16 motes never line up and the markup is identical on every
-        render (no JS, no cache-busting churn). --x and --y are percentages of the
-        BEAM column, not of the banner, because .hero-stage__motes shares the beam's
-        box and tilt; that is also what keeps the whole effect direction-safe.
-        --dy is paired with --dur so every mote drifts at 12-16 px/s: one updraft
-        carrying particles of different sizes, not sixteen unrelated speeds.
-        The delays are NEGATIVE on purpose: each mote is already mid-flight in the
-        first frame, instead of the hero opening on an empty beam that slowly fills.
-      {%- endcomment -%}
-      <span class="hero-stage__motes" aria-hidden="true">
-        {%- for i in (1..16) -%}
-          {%- liquid
-            assign mx = i | times: 37 | modulo: 82 | plus: 6
-            assign sy = i | times: 53 | modulo: 68
-            assign md = i | times: 29 | modulo: 5 | plus: 3
-            assign st = i | times: 17 | modulo: 14
-            assign my = sy | plus: 2
-            assign mdx = st | minus: 7 | times: 4
-            assign mdy = st | times: 22 | plus: 200
-            assign mdur = st | plus: 17
-            assign mdelay = i | times: 23 | modulo: 19
-          -%}
-          <span
-            class="hero-stage__mote"
-            style="--x: {{ mx }}%; --y: {{ my }}%; --d: {{ md }}px; --dx: {{ mdx }}px; --dy: -{{ mdy }}px; --dur: {{ mdur }}s; --delay: -{{ mdelay }}s;"
-          ></span>
-        {%- endfor -%}
-      </span>
-    {%- endif -%}
+      {%- if motion == 'full' -%}
+        {%- comment -%}
+          Deterministic pseudo-random placement — coprime multipliers against prime-ish
+          moduli, so the 16 motes never line up and the markup is identical on every
+          render (no JS, no cache-busting churn). --x and --y are percentages of the
+          BEAM column, not of the banner, because .hero-stage__motes shares the beam's
+          box and tilt; that is also what keeps the whole effect direction-safe.
+          --dy is paired with --dur so every mote drifts at 12-16 px/s: one updraft
+          carrying particles of different sizes, not sixteen unrelated speeds.
+          The delays are NEGATIVE on purpose: each mote is already mid-flight in the
+          first frame, instead of the hero opening on an empty beam that slowly fills.
+        {%- endcomment -%}
+        <span class="hero-stage__motes">
+          {%- for i in (1..16) -%}
+            {%- liquid
+              assign mx = i | times: 37 | modulo: 82 | plus: 6
+              assign sy = i | times: 53 | modulo: 68
+              assign md = i | times: 29 | modulo: 5 | plus: 3
+              assign st = i | times: 17 | modulo: 14
+              assign my = sy | plus: 2
+              assign mdx = st | minus: 7 | times: 4
+              assign mdy = st | times: 22 | plus: 200
+              assign mdur = st | plus: 17
+              assign mdelay = i | times: 23 | modulo: 19
+            -%}
+            <span
+              class="hero-stage__mote"
+              style="--x: {{ mx }}%; --y: {{ my }}%; --d: {{ md }}px; --dx: {{ mdx }}px; --dy: -{{ mdy }}px; --dur: {{ mdur }}s; --delay: -{{ mdelay }}s;"
+            ></span>
+          {%- endfor -%}
+        </span>
+      {%- endif -%}
 
-    {%- if section.settings.show_detail_drawing -%}
-      {%- comment -%}
-        A timber stud wall in orthographic elevation: top and bottom plate, four
-        studs, a diagonal brace, an ISO centre line, and a red dimension line
-        reading 600 — the standard stud spacing. Every member is a <rect> so it can
-        draw itself with scaleX/scaleY from its own edge; stroke-dashoffset would
-        repaint the whole SVG on every frame. The label is <text> inside the
-        viewBox rather than a positioned <span>, which makes it immune to direction
-        flipping, and direction="ltr" keeps the digits out of bidi reordering.
-      {%- endcomment -%}
-      <span class="hero-stage__draw" data-hero-parallax="-1.6" aria-hidden="true">
-        <svg viewBox="0 0 480 560" fill="none" preserveAspectRatio="xMidYMid meet" focusable="false">
-          <g class="hero-draw__frame">
-            <rect data-draw="x" x="40" y="58" width="400" height="18" style="--d: 0s"></rect>
-            <rect data-draw="x" x="40" y="414" width="400" height="18" style="--d: 0.08s"></rect>
-            <rect data-draw="y" x="86" y="76" width="14" height="338" style="--d: 0.26s"></rect>
-            <rect data-draw="y" x="186" y="76" width="14" height="338" style="--d: 0.34s"></rect>
-            <rect data-draw="y" x="286" y="76" width="14" height="338" style="--d: 0.42s"></rect>
-            <rect data-draw="y" x="386" y="76" width="14" height="338" style="--d: 0.5s"></rect>
-          </g>
-          <g class="hero-draw__brace">
-            <line x1="100" y1="414" x2="386" y2="76"></line>
-          </g>
-          <g class="hero-draw__centre">
-            <line x1="40" y1="245" x2="440" y2="245"></line>
-          </g>
-          <g class="hero-draw__dim">
-            <line class="hero-draw__witness hero-draw__witness--a" x1="93" y1="440" x2="93" y2="502"></line>
-            <line class="hero-draw__witness hero-draw__witness--b" x1="193" y1="440" x2="193" y2="502"></line>
-            <line class="hero-draw__dimline" x1="93" y1="486" x2="193" y2="486"></line>
-            <path class="hero-draw__tick hero-draw__tick--a" d="M100 480 L93 486 L100 492"></path>
-            <path class="hero-draw__tick hero-draw__tick--b" d="M186 480 L193 486 L186 492"></path>
-          </g>
-          <text class="hero-draw__label" x="143" y="472" text-anchor="middle" direction="ltr">600</text>
-        </svg>
-      </span>
-    {%- endif -%}
+      {%- if section.settings.show_detail_drawing -%}
+        {%- comment -%}
+          A timber stud wall in orthographic elevation: top and bottom plate, four
+          studs, a diagonal brace, an ISO centre line, and a red dimension line
+          reading 600 — the standard stud spacing. Every member is a <rect> so it can
+          draw itself with scaleX/scaleY from its own edge; stroke-dashoffset would
+          repaint the whole SVG on every frame. The label is <text> inside the
+          viewBox rather than a positioned <span>, which makes it immune to direction
+          flipping, and direction="ltr" keeps the digits out of bidi reordering.
+        {%- endcomment -%}
+        <span class="hero-stage__draw" data-hero-parallax="-1.6">
+          <svg viewBox="0 0 480 560" fill="none" preserveAspectRatio="xMidYMid meet" focusable="false">
+            <g class="hero-draw__frame">
+              <rect data-draw="x" x="40" y="58" width="400" height="18" style="--d: 0s"></rect>
+              <rect data-draw="x" x="40" y="414" width="400" height="18" style="--d: 0.08s"></rect>
+              <rect data-draw="y" x="86" y="76" width="14" height="338" style="--d: 0.26s"></rect>
+              <rect data-draw="y" x="186" y="76" width="14" height="338" style="--d: 0.34s"></rect>
+              <rect data-draw="y" x="286" y="76" width="14" height="338" style="--d: 0.42s"></rect>
+              <rect data-draw="y" x="386" y="76" width="14" height="338" style="--d: 0.5s"></rect>
+            </g>
+            <g class="hero-draw__brace">
+              <line x1="100" y1="414" x2="386" y2="76"></line>
+            </g>
+            <g class="hero-draw__centre">
+              <line x1="40" y1="245" x2="440" y2="245"></line>
+            </g>
+            <g class="hero-draw__dim">
+              <line class="hero-draw__witness hero-draw__witness--a" x1="93" y1="440" x2="93" y2="502"></line>
+              <line class="hero-draw__witness hero-draw__witness--b" x1="193" y1="440" x2="193" y2="502"></line>
+              <line class="hero-draw__dimline" x1="93" y1="486" x2="193" y2="486"></line>
+              <path class="hero-draw__tick hero-draw__tick--a" d="M100 480 L93 486 L100 492"></path>
+              <path class="hero-draw__tick hero-draw__tick--b" d="M186 480 L193 486 L186 492"></path>
+            </g>
+            <text class="hero-draw__label" x="143" y="472" text-anchor="middle" direction="ltr">600</text>
+          </svg>
+        </span>
+      {%- endif -%}
+    </span>
 
+    {%- comment -%}
+      The laser stays OUTSIDE .hero-stage: it paints at z-index 8, above the
+      legibility scrim, and it is the one stage element that never overhangs — it
+      travels exactly to the banner's bottom edge and fades out as it lands there.
+    {%- endcomment -%}
     {%- if motion != 'off' -%}
       <span class="hero-stage__level" aria-hidden="true"></span>
     {%- endif -%}
