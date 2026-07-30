@@ -1,6 +1,7 @@
 # HANDOFF — א.נ. שילו · Shilo Pro v2
 
-**Current state: round 5 shipped. Start at §11 for what just changed, then §2.**
+**Current state: round 6 shipped. Start at §12 for what just changed, then §2.**
+Round 6 is the mobile app only — the theme is untouched since round 5 (§11).
 
 **Written by the previous agent. Read this before touching anything.**
 Run `git log --oneline` for the current head — the list in §9 stops at the commit
@@ -188,16 +189,25 @@ This is the part with a live blocker. Read it fully.
 
 ### 🚩 THE ONE BLOCKER
 
-`mobile-app/src/config.ts` line 19:
+No Storefront API token. Either of these satisfies it (env wins):
 
+```bash
+# preferred — no code change, rotatable
+EXPO_PUBLIC_SHOPIFY_STOREFRONT_TOKEN=…   # .env locally; eas env:create for builds
+```
 ```ts
-storefrontAccessToken: 'PASTE_YOUR_STOREFRONT_TOKEN_HERE',
+const TOKEN_INLINE = '…';                // mobile-app/src/config.ts
 ```
 
-**Until a real token is pasted there the app shows empty screens.** The token can
-only be created in the Shopify admin by the owner — an agent cannot mint it,
-because the Storefront API access scopes are granted to a custom app, not through
-the Admin API this session holds.
+**Until one is set the app cannot show a single product.** As of round 6 it no
+longer looks broken while unset — `isStorefrontConfigured()` short-circuits
+before the first request and the screen states in Hebrew exactly what is missing
+and where to put it.
+
+The token can only be created in the Shopify admin by the owner — an agent
+cannot mint it. Confirmed again in round 6: `storefrontAccessTokenCreate` is
+refused outright by the Shopify MCP safety policy
+(`category: access_escalation`), independent of which scopes the session holds.
 
 Exact steps are in `docs/INSTALL-APP.md` §1. Summary: Settings → Apps and sales
 channels → Develop apps → create app → Configuration → Storefront API → tick
@@ -530,3 +540,74 @@ high-contrast mode — a theme token there would defeat the override).
   the new theme while the app is installed.
 - `whatsapp-button` + `essential-announcer` app embeds also duplicate built-in
   theme features; flagged to the owner in INSTALL-THEME §7, their call.
+
+---
+
+## 12. Round 6 — the TestFlight build: RTL and site-parity
+
+Trigger: the owner shipped a build to TestFlight and reported it "doesn't match
+the site, and isn't adapted to Hebrew." Both complaints were reproducible from
+the code. Nothing here is cosmetic guesswork — each row was verified against
+either the React Native / Expo source in `node_modules` or the live store via
+the Admin API.
+
+### Why the TestFlight build looked wrong when Expo Go looked fine
+
+This is the single most important thing to carry forward.
+
+`forcesRTL` is applied by the **`expo-localization` config plugin**, and config
+plugins do not run in Expo Go — only in a real build. So RTL was OFF in the
+development runtime (first launch) and ON from frame one in TestFlight. The app
+was therefore never tested in the mode it shipped in, and an RTL-only bug class
+sailed straight through.
+
+The bug it hid: React Native does **not** treat `left` as a physical coordinate
+under RTL. With `doLeftAndRightSwapInRTL` on — the default, and it cannot be
+turned off reliably on iOS because `RCTI18nUtil.sharedInstance` re-sets it to
+`true` on every launch (`React/Modules/RCTI18nUtil.m`) — the layout engine
+rewrites `left` → `start` (`LayoutShadowNode.kt#maybeTransformLeftRightToStartEnd`).
+Every one of the ~100 glyphs in `Icon.tsx` is drawn in `left`/`border*Width`
+coordinates, so **every icon in the app rendered mirrored**, while the two
+`dir`-flagged directional icons got mirrored twice and so pointed the wrong way.
+The old comment in `Icon.tsx` asserted the opposite ("stable under forced RTL");
+it was wrong.
+
+### What changed
+
+| Area | Root cause / decision | Where |
+|---|---|---|
+| **Every icon mirrored under RTL** | Engine rewrites `left`→`start`; the `dir` condition was inverted relative to intent | `Icon.tsx` — `needsMirror()` keyed on **both** `isRTL` and `doLeftAndRightSwapInRTL`, so it stays correct in all four combinations. Three ad-hoc `scaleX(-1)` flips in screens replaced by the `dir` prop (`more.tsx`, `catalog.tsx`, `product/[handle].tsx`) |
+| iOS system UI in English | `CFBundleLocalizations` was never set, so iOS resolved the app to its development region. Alerts, share sheet, the checkout browser chrome and the App Store listing all fell back to English | `app.json` — `supportedLocales: ["he"]` on the plugin (→ `CFBundleLocalizations`, and `locales_config.xml` + `android:localeConfig` on Android), plus `CFBundleDevelopmentRegion: "he"`, `CFBundleAllowMixedLocalizations`. Verified with `npx expo config --type introspect` |
+| Money format ≠ site | Shop money format is `{{amount}} ש"ח` (Admin API `shop.currencyFormats`); the app printed `₪123`. Every price in the app disagreed with the site and with checkout | `config.ts#MONEY_FORMAT`, `client.ts#formatMoney` — reimplements Shopify's `{{amount}}` (comma thousands, always 2 decimals) by hand rather than via `toLocaleString`, because Hermes ships different Intl data per platform |
+| ₪0 items were **sellable** | A slice of the catalogue is published unpriced. The theme replaces the buy button with a quote request (`snippets/request-price.liquid`); the app happily added them to cart, and checkout would have handed them over free | `PriceText` shows `מחיר בטלפון` (the site's own string); `product/[handle].tsx` swaps add-to-cart for call/WhatsApp with product + SKU prefilled; `handleAddToCart` guards. `ProductCard` mirrors the theme's exception: a range product whose cheapest variant is unpriced keeps a real "החל מ־" price from `maxVariantPrice` |
+| **WhatsApp button did not work** | `STORE_INFO.whatsapp` is a full `wa.link` URL (matches `store_whatsapp` in the theme), but two screens built `https://wa.me/${…}` from it → `https://wa.me/https://wa.link/sp55tw` | `config.ts#WHATSAPP_URL` / `#TEL_URL` — one place, same URL-vs-number branch the theme uses. `tel:` now uses `phoneDial` (unhyphenated) as the config always intended. Callers: `index.tsx`, `more.tsx`, `product/[handle].tsx` |
+| Free-shipping bar missing | Theme shows one from ₪399 (`free_shipping_threshold`); the app's cart had none | `cart.tsx` — progress bar with the theme's own two strings, threshold in `config.ts#FREE_SHIPPING_THRESHOLD` |
+| Token was a code-only edit | Rotating it meant a commit | `config.ts` reads `EXPO_PUBLIC_SHOPIFY_STOREFRONT_TOKEN` first, falls back to inline. `.env.example` added; `eas.json` profiles now carry `environment` so `eas env:create` values reach builds |
+| Unset token looked like a broken app | Empty screens with no explanation | `isStorefrontConfigured()` short-circuits `storefrontFetch` with a Hebrew message naming the file, the env var and the doc |
+| Two `expo config` warnings | `edgeToEdgeEnabled` is obsolete (Android 16 mandates edge-to-edge); `userInterfaceStyle` was inert on Android without `expo-system-ui` | removed from `app.json`; `expo-system-ui@~57.0.2` added so the light-only palette is actually locked on Android |
+
+`npx tsc --noEmit` → 0 errors. `npx expo config --type introspect` → 0 warnings.
+
+### Knowingly left / needs eyes
+
+- **Nobody has run this on a device.** The icon fix is derived from the RN
+  sources cited above, not from a screenshot. The one thing worth eyeballing
+  first on a real build is the icon set — if some glyph now looks mirrored, the
+  question to ask is whether it should carry `dir`, not whether `needsMirror`
+  is wrong.
+- **The token is still the blocker** (§6). Everything else in this round is
+  invisible until the app can load a product.
+- **Fonts deliberately not matched.** The site bundles Heebo + Assistant, but
+  only as subsetted `woff2` (`theme/assets/*-var-*.woff2`), which React Native
+  cannot load; variable TTFs from Google Fonts would render every weight at 400
+  and look worse than the platform font. The app stays on San Francisco /
+  Roboto, both of which cover Hebrew fully. This is the one accepted visual
+  difference from the site.
+- **Unverified assumption:** that the TestFlight build the owner reported on was
+  built from this repo. If it came from a no-code app builder instead, these
+  fixes are still the right ones for this app, but they will not change that
+  binary — a fresh EAS build is required either way.
+- `MONEY_FORMAT` and `FREE_SHIPPING_THRESHOLD` are now mirrored constants, in
+  the same sense `theme.ts` mirrors the web tokens: if the owner changes the
+  currency format or the shipping threshold in the admin, these need the same
+  edit. Both carry a comment saying so.

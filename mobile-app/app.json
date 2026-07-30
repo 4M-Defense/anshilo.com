@@ -10,15 +10,18 @@
     "newArchEnabled": true,
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.anshilo.shop"
+      "bundleIdentifier": "com.anshilo.shop",
+      "infoPlist": {
+        "CFBundleDevelopmentRegion": "he",
+        "CFBundleAllowMixedLocalizations": true
+      }
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#0F1729"
       },
-      "package": "com.anshilo.shop",
-      "edgeToEdgeEnabled": true
+      "package": "com.anshilo.shop"
     },
     "web": {
       "bundler": "metro",
@@ -31,7 +34,8 @@
         "expo-localization",
         {
           "supportsRTL": true,
-          "forcesRTL": true
+          "forcesRTL": true,
+          "supportedLocales": ["he"]
         }
       ],
       [

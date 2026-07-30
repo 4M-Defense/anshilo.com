@@ -80,8 +80,8 @@ function CategoryTile({
         <Text style={[styles.tileTitle, { color: fg }]} numberOfLines={2}>
           {collection.title}
         </Text>
-        {/* שברון "קדימה" — ב-RTL מצביע שמאלה, לכן הופכים במפורש */}
-        <Icon name="chevron-forward" size={16} color={fg} style={styles.flipX} />
+        {/* שברון "קדימה" — ‏dir דואג להיפוך תחת RTL */}
+        <Icon name="chevron-forward" size={16} color={fg} dir />
       </View>
     </Pressable>
   );
@@ -377,9 +377,6 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     textAlign: 'right',
     writingDirection: 'rtl',
-  },
-  flipX: {
-    transform: [{ scaleX: -1 }],
   },
 
   /* פוטר עימוד */

@@ -12,11 +12,9 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Icon, Rule, SectionHeader } from '@/components';
-import { STORE_INFO } from '@/config';
+import { STORE_INFO, TEL_URL, WHATSAPP_URL } from '@/config';
 import { colors, radius, shadows, spacing, typography } from '@/theme';
 
-/** מרחיבים לטיפוס string — בקונפיג הערך מוצר כליטרל (as const) */
-const WHATSAPP_NUMBER: string = STORE_INFO.whatsapp;
 const WEBSITE_LABEL = STORE_INFO.website.replace(/^https?:\/\//, '');
 
 /** שורת פעולה בכרטיס — אייקון בבועה, תווית, ושברון "קדימה" (מוטה שמאלה ב-RTL) */
@@ -57,8 +55,8 @@ function ActionRow({
           </Text>
         )}
       </View>
-      {/* שברון "קדימה" — ב-RTL מצביע שמאלה, לכן הופכים במפורש */}
-      <Icon name="chevron-forward" size={16} color={colors.textMuted} style={styles.flipX} />
+      {/* שברון "קדימה" — ‏dir דואג להיפוך תחת RTL */}
+      <Icon name="chevron-forward" size={16} color={colors.textMuted} dir />
     </Pressable>
   );
 }
@@ -120,14 +118,14 @@ export default function MoreScreen() {
           icon="call-outline"
           label="התקשרו אלינו"
           sublabel={STORE_INFO.phone}
-          onPress={() => openLink(`tel:${STORE_INFO.phone}`)}
+          onPress={() => openLink(TEL_URL)}
         />
-        {WHATSAPP_NUMBER !== '' && (
+        {WHATSAPP_URL !== '' && (
           <ActionRow
             icon="logo-whatsapp"
             label="וואטסאפ"
             sublabel="מענה מהיר בצ'אט"
-            onPress={() => openLink(`https://wa.me/${WHATSAPP_NUMBER}`)}
+            onPress={() => openLink(WHATSAPP_URL)}
           />
         )}
         <ActionRow
@@ -310,9 +308,6 @@ const styles = StyleSheet.create({
     color: colors.textMuted,
     textAlign: 'right',
     writingDirection: 'rtl',
-  },
-  flipX: {
-    transform: [{ scaleX: -1 }],
   },
 
   /* כתובת ושעות */

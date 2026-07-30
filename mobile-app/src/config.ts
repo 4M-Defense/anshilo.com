@@ -11,15 +11,61 @@
  * 4. API credentials → Install app → העתיקו את ה-Storefront API access token
  * 5. הדביקו אותו כאן למטה
  */
+/** הערך שמסמן "עוד לא הודבק טוקן" — נבדק ב-isStorefrontConfigured. */
+const TOKEN_PLACEHOLDER = 'PASTE_YOUR_STOREFRONT_TOKEN_HERE';
+
+/**
+ * אפשרות ב': במקום להדביק את הטוקן בקובץ, אפשר להעביר אותו כמשתנה סביבה.
+ * מקומית — בקובץ `.env` בתיקיית mobile-app (ראו `.env.example`).
+ * בבנייה בענן — `eas env:create --name EXPO_PUBLIC_SHOPIFY_STOREFRONT_TOKEN`.
+ * זה עדיף, כי אז החלפת טוקן לא דורשת שינוי קוד.
+ */
+const TOKEN_FROM_ENV = process.env.EXPO_PUBLIC_SHOPIFY_STOREFRONT_TOKEN?.trim();
+
+/** אפשרות א': להדביק את הטוקן כאן. משתנה הסביבה, אם קיים, גובר על זה. */
+const TOKEN_INLINE = TOKEN_PLACEHOLDER;
+
 export const SHOPIFY_CONFIG = {
   /** דומיין ה-myshopify של החנות (לא הדומיין המותאם anshilo.com!).
    *  אומת מול ה-Admin API: shop.myshopifyDomain. */
   storeDomain: '3007b3-4.myshopify.com',
   /** טוקן Storefront API (ציבורי, בטוח לשימוש באפליקציה) */
-  storefrontAccessToken: 'PASTE_YOUR_STOREFRONT_TOKEN_HERE',
+  storefrontAccessToken: TOKEN_FROM_ENV || TOKEN_INLINE,
   /** גרסת ה-API — עדכנו פעם בשנה לגרסה נתמכת */
   apiVersion: '2025-07',
 } as const;
+
+/**
+ * האם יש בכלל טוקן להתחבר איתו.
+ *
+ * בלי זה כל קריאה לחנות מוחזרת ב-401 והאפליקציה נראית "שבורה" — מסכים
+ * ריקים בלי סיבה מוסברת. עדיף לזהות את זה לפני הקריאה הראשונה ולהציג
+ * הוראות מדויקות, ולא שגיאת רשת גנרית.
+ */
+export function isStorefrontConfigured(): boolean {
+  const token = SHOPIFY_CONFIG.storefrontAccessToken?.trim();
+  return !!token && token !== TOKEN_PLACEHOLDER;
+}
+
+/**
+ * תבנית הצגת המחיר.
+ *
+ * חייבת להיות זהה להגדרה בחנות (הגדרות → כללי → פורמט מטבע), אחרת אותו מוצר
+ * מוצג במחיר בנוסח אחד באפליקציה ובנוסח אחר באתר וב-Checkout.
+ * אומת מול ה-Admin API: shop.currencyFormats.moneyFormat === '{{amount}} ש"ח'.
+ */
+export const MONEY_FORMAT = {
+  currencyCode: 'ILS',
+  /** {{amount}} — סכום עם פסיק לאלפים ושתי ספרות עשרוניות, כמו הפילטר money */
+  template: '{{amount}} ש"ח',
+} as const;
+
+/**
+ * חלק מהקטלוג מפורסם ללא מחיר. הצגת "0.00 ש"ח" נראית כמו תקלה, ולכן
+ * האתר מציג שם בקשת הצעת מחיר — והאפליקציה חייבת לומר בדיוק אותו דבר.
+ * מקור הנוסח: theme/locales/he.default.json → products.price.call_for_price
+ */
+export const CALL_FOR_PRICE_LABEL = 'מחיר בטלפון';
 
 /** פרטי החנות — זהים להגדרות הת'ים באתר */
 export const STORE_INFO = {
@@ -46,6 +92,37 @@ export const STORE_INFO = {
     instagram: 'https://www.instagram.com/a.nshilo',
   },
 } as const;
+
+/**
+ * קישור התקשרות — תמיד מהמספר בלי מקפים.
+ * (`STORE_INFO.phone` הוא לתצוגה בלבד; `tel:` צריך את `phoneDial`.)
+ */
+export const TEL_URL = `tel:${STORE_INFO.phoneDial}`;
+
+/**
+ * קישור וואטסאפ.
+ *
+ * `STORE_INFO.whatsapp` יכול להיות קישור מלא (wa.link/…) או מספר בפורמט
+ * בינלאומי — בדיוק כמו הגדרת `store_whatsapp` בת'ים, ולכן צריך להבחין.
+ * בלי ההבחנה נבנה קישור מסוג `https://wa.me/https://wa.link/…` שלא נפתח.
+ * מחזיר מחרוזת ריקה אם אין וואטסאפ מוגדר — הקורא מסתיר את הכפתור.
+ */
+function buildWhatsappUrl(value: string): string {
+  const raw = value.trim();
+  if (raw === '') return '';
+  if (/^https?:\/\//i.test(raw)) return raw;
+  const digits = raw.replace(/\D/g, '');
+  return digits === '' ? '' : `https://wa.me/${digits}`;
+}
+
+export const WHATSAPP_URL = buildWhatsappUrl(STORE_INFO.whatsapp);
+
+/**
+ * הסכום שממנו המשלוח חינם — חייב להיות זהה להגדרת `free_shipping_threshold`
+ * בת'ים (הגדרות ערכת העיצוב → עגלה וחיפוש), אחרת העגלה באפליקציה מבטיחה
+ * משלוח חינם בסכום אחר מזה שבאתר. 0 מסתיר את פס ההתקדמות.
+ */
+export const FREE_SHIPPING_THRESHOLD = 399;
 
 /** מספרי הקטלוג שמוצגים באפליקציה — תואמים לחנות בפועל */
 export const CATALOG_STATS = {

@@ -5,11 +5,23 @@ import { CartProvider } from '@/state/CartContext';
 import { FavoritesProvider } from '@/state/FavoritesContext';
 import { colors, fontFamily, typography } from '@/theme';
 
-// כפיית RTL — הפלאגין expo-localization כבר כופה זאת ברמת ה-native;
-// זהו קו הגנה נוסף (Expo Go / ריצה ראשונה). נכנס לתוקף אחרי טעינה מחדש.
+// כפיית RTL — בבנייה אמיתית (TestFlight / Play) הפלאגין expo-localization
+// כבר כופה זאת ברמת ה-native, לפני שה-JS בכלל עולה, ולכן התנאי כאן לא ייכנס.
+//
+// ב-Expo Go פלאגיני config *אינם* פועלים, ולכן הקריאות למטה הן מה שכן קורה —
+// והן נכנסות לתוקף רק בטעינה הבאה. מכאן נובע פער אמיתי: הרצה ראשונה ב-Expo Go
+// היא LTR, בעוד שהבנייה ל-TestFlight היא RTL מהפריים הראשון. כל בדיקה של
+// פריסה, אייקונים או יישור טקסט חייבת להיעשות כשה-RTL באמת דלוק, אחרת בודקים
+// אפליקציה אחרת מזו שהלקוחות יקבלו.
 if (!I18nManager.isRTL) {
   I18nManager.allowRTL(true);
   I18nManager.forceRTL(true);
+  if (__DEV__) {
+    console.warn(
+      '[RTL] הפריסה עדיין LTR. טענו מחדש (r ב-Expo CLI) לפני בדיקת פריסה — ' +
+        'אחרת מה שנראה על המסך אינו מה שייבנה ל-TestFlight.'
+    );
+  }
 }
 
 export default function RootLayout() {

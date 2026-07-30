@@ -1,4 +1,4 @@
-import { SHOPIFY_CONFIG } from '../config';
+import { MONEY_FORMAT, SHOPIFY_CONFIG, isStorefrontConfigured } from '../config';
 import {
   CART_CREATE_MUTATION,
   CART_LINES_ADD_MUTATION,
@@ -46,6 +46,17 @@ export async function storefrontFetch<T>(
   query: string,
   variables?: Record<string, unknown>
 ): Promise<T> {
+  // בלי טוקן אין טעם לפנות לרשת — 401 מובטח. מוטב להסביר מה חסר.
+  if (!isStorefrontConfigured()) {
+    throw new StorefrontError(
+      'האפליקציה עדיין לא חוברה לחנות.\n\n' +
+        'צריך ליצור טוקן Storefront API בניהול החנות ולהזין אותו ' +
+        'ב-mobile-app/src/config.ts (או כמשתנה הסביבה ' +
+        'EXPO_PUBLIC_SHOPIFY_STOREFRONT_TOKEN).\n\n' +
+        'ההוראות המלאות: docs/INSTALL-APP.md'
+    );
+  }
+
   let response: Response;
   try {
     response = await fetch(ENDPOINT, {
@@ -288,12 +299,31 @@ export async function cartNoteUpdate(cartId: string, note: string): Promise<Cart
 
 /* ---------- Money formatting ---------- */
 
+/**
+ * משחזר את `{{amount}}` של שופיפיי: פסיק לאלפים, נקודה עשרונית, תמיד שתי
+ * ספרות. מחושב ידנית ולא דרך toLocaleString — נתוני ה-Intl של המנוע שונים
+ * בין iOS לאנדרואיד, ומחיר שמוצג אחרת בכל מכשיר הוא בדיוק מה שרצינו למנוע.
+ */
+function groupThousands(value: number): string {
+  const [whole, decimals] = Math.abs(value).toFixed(2).split('.');
+  const grouped = whole.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+  return `${value < 0 ? '-' : ''}${grouped}.${decimals}`;
+}
+
+/** האם הסכום ריק — מוצר שפורסם ללא מחיר (ראו CALL_FOR_PRICE_LABEL) */
+export function isUnpriced(money: { amount: string } | null | undefined): boolean {
+  if (money == null) return true;
+  const amount = parseFloat(money.amount);
+  return !Number.isFinite(amount) || amount <= 0;
+}
+
 export function formatMoney(money: { amount: string; currencyCode: string }): string {
   const amount = parseFloat(money.amount);
-  const formatted = amount.toLocaleString('he-IL', {
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 2,
-  });
-  const symbol = money.currencyCode === 'ILS' ? '₪' : money.currencyCode + ' ';
-  return `${symbol}${formatted}`;
+  if (!Number.isFinite(amount)) return '';
+  const formatted = groupThousands(amount);
+  if (money.currencyCode === MONEY_FORMAT.currencyCode) {
+    return MONEY_FORMAT.template.replace('{{amount}}', formatted);
+  }
+  // מטבע אחר (למשל אם תיפתח שוק נוסף) — הקוד לפני הסכום, בלי להמציא סימן
+  return `${formatted} ${money.currencyCode}`;
 }

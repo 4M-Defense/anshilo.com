@@ -23,7 +23,7 @@ import {
   Skeleton,
   SkeletonProductCard,
 } from '@/components';
-import { STORE_INFO } from '@/config';
+import { STORE_INFO, TEL_URL, WHATSAPP_URL } from '@/config';
 import { colors, radius, shadows, spacing, typography } from '@/theme';
 
 /* ---------- קבועי פריסה ---------- */
@@ -191,14 +191,13 @@ export default function HomeScreen() {
   );
 
   const callStore = useCallback(() => {
-    Linking.openURL(`tel:${STORE_INFO.phone}`).catch(() => {});
+    Linking.openURL(TEL_URL).catch(() => {});
   }, []);
 
-  const whatsappNumber: string = STORE_INFO.whatsapp;
-  const hasWhatsapp = whatsappNumber.trim() !== '';
+  const hasWhatsapp = WHATSAPP_URL !== '';
   const openWhatsapp = useCallback(() => {
-    Linking.openURL(`https://wa.me/${whatsappNumber}`).catch(() => {});
-  }, [whatsappNumber]);
+    Linking.openURL(WHATSAPP_URL).catch(() => {});
+  }, []);
 
   // מדורים ריקים (חנות בלי נתונים) מוסתרים — המסך לעולם לא נשאר ריק כי
   // הכותרת, ההירו וכרטיס יצירת הקשר תמיד מוצגים.

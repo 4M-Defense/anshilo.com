@@ -4,6 +4,7 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   FlatList,
+  Linking,
   Pressable,
   ScrollView,
   Share,
@@ -19,6 +20,7 @@ import {
   StorefrontError,
   getProductByHandle,
   getProductRecommendations,
+  isUnpriced,
 } from '@/api/client';
 import type { Product, ProductCardData, ShopifyImage } from '@/api/types';
 import {
@@ -33,7 +35,7 @@ import {
   SectionHeader,
   Skeleton,
 } from '@/components';
-import { STORE_INFO } from '@/config';
+import { STORE_INFO, TEL_URL, WHATSAPP_URL } from '@/config';
 import { useCart } from '@/state/CartContext';
 import { useFavorites } from '@/state/FavoritesContext';
 import { colors, radius, shadows, spacing, typography } from '@/theme';
@@ -311,6 +313,13 @@ export default function ProductScreen() {
 
   const price = selectedVariant?.price ?? product?.priceRange.minVariantPrice ?? null;
   const compareAt = selectedVariant?.compareAtPrice ?? null;
+
+  /**
+   * חלק מהקטלוג מפורסם ללא מחיר. "הוספה לעגלה" שם הייתה מוסרת את הפריט
+   * בחינם ב-Checkout, ולכן האתר מחליף שם את כפתור הקנייה בבקשת הצעת מחיר —
+   * והאפליקציה חייבת להתנהג זהה (theme/snippets/request-price.liquid).
+   */
+  const unpriced = price == null || isUnpriced(price);
   const salePercent =
     price != null && compareAt != null && parseFloat(compareAt.amount) > parseFloat(price.amount)
       ? Math.round(
@@ -345,7 +354,7 @@ export default function ProductScreen() {
   }, [handle, toggleFavorite]);
 
   const handleAddToCart = useCallback(async () => {
-    if (!selectedVariant || soldOut) return;
+    if (!selectedVariant || soldOut || unpriced) return;
     setAddError(null);
     setAdding(true);
     try {
@@ -359,7 +368,30 @@ export default function ProductScreen() {
     } finally {
       setAdding(false);
     }
-  }, [selectedVariant, soldOut, qty, addItem]);
+  }, [selectedVariant, soldOut, unpriced, qty, addItem]);
+
+  /**
+   * פנייה לקבלת הצעת מחיר על פריט שפורסם ללא מחיר, עם שם המוצר והמק״ט
+   * כבר בתוך ההודעה — מקביל ל-snippet ‏request-price באתר.
+   */
+  const quoteMessage = useMemo(() => {
+    if (product == null) return '';
+    const sku = selectedVariant?.sku;
+    const skuPart = sku != null && sku !== '' ? ` (מק״ט ${sku})` : '';
+    return `שלום, אשמח להצעת מחיר על ${product.title}${skuPart}.`;
+  }, [product, selectedVariant?.sku]);
+
+  const requestQuoteByWhatsapp = useCallback(() => {
+    if (WHATSAPP_URL === '') return;
+    const separator = WHATSAPP_URL.includes('?') ? '&' : '?';
+    Linking.openURL(`${WHATSAPP_URL}${separator}text=${encodeURIComponent(quoteMessage)}`).catch(
+      () => {}
+    );
+  }, [quoteMessage]);
+
+  const requestQuoteByPhone = useCallback(() => {
+    Linking.openURL(TEL_URL).catch(() => {});
+  }, []);
 
   const description = useMemo(
     () => (product ? htmlToText(product.descriptionHtml || '') : ''),
@@ -585,26 +617,52 @@ export default function ProductScreen() {
               <Text style={styles.errorBannerText}>{addError}</Text>
             </View>
           )}
-          <View style={styles.bottomBarRow}>
-            <QuantityStepper
-              value={qty}
-              onChange={setQty}
-              max={maxQty}
-              disabled={soldOut || adding || busy}
-            />
-            <Button
-              title={soldOut ? 'אזל מהמלאי' : 'הוספה לעגלה'}
-              onPress={handleAddToCart}
-              loading={adding || busy}
-              disabled={soldOut}
-              icon={
-                soldOut ? undefined : (
-                  <Icon name="cart-outline" size={18} color={colors.onAccent} />
-                )
-              }
-              style={styles.addButton}
-            />
-          </View>
+          {unpriced ? (
+            /* פריט ללא מחיר — בקשת הצעת מחיר במקום קנייה, כמו באתר */
+            <View style={styles.quoteBlock}>
+              <Text style={styles.quoteNote}>
+                המחיר של הפריט הזה נקבע לפי כמות ודגם. התקשרו או שלחו הודעה ונחזור אליכם
+                עם הצעת מחיר.
+              </Text>
+              <View style={styles.bottomBarRow}>
+                <Button
+                  title="התקשרו אלינו"
+                  onPress={requestQuoteByPhone}
+                  icon={<Icon name="call" size={18} color={colors.onAccent} />}
+                  style={styles.addButton}
+                />
+                {WHATSAPP_URL !== '' && (
+                  <Button
+                    title="וואטסאפ"
+                    variant="secondary"
+                    onPress={requestQuoteByWhatsapp}
+                    icon={<Icon name="logo-whatsapp" size={18} color={colors.onInk} />}
+                  />
+                )}
+              </View>
+            </View>
+          ) : (
+            <View style={styles.bottomBarRow}>
+              <QuantityStepper
+                value={qty}
+                onChange={setQty}
+                max={maxQty}
+                disabled={soldOut || adding || busy}
+              />
+              <Button
+                title={soldOut ? 'אזל מהמלאי' : 'הוספה לעגלה'}
+                onPress={handleAddToCart}
+                loading={adding || busy}
+                disabled={soldOut}
+                icon={
+                  soldOut ? undefined : (
+                    <Icon name="cart-outline" size={18} color={colors.onAccent} />
+                  )
+                }
+                style={styles.addButton}
+              />
+            </View>
+          )}
         </View>
       )}
 
@@ -614,13 +672,8 @@ export default function ProductScreen() {
         pointerEvents="box-none"
       >
         <CircleButton label="חזרה" onPress={goBack}>
-          {/* ב-RTL חץ "חזרה" מצביע ימינה — היפוך מפורש */}
-          <Icon
-            name="arrow-back"
-            size={20}
-            color={colors.ink}
-            style={{ transform: [{ scaleX: -1 }] }}
-          />
+          {/* חץ "חזרה" — ‏dir דואג להיפוך תחת RTL */}
+          <Icon name="arrow-back" size={20} color={colors.ink} dir />
         </CircleButton>
         <View style={styles.floatingActions}>
           <CircleButton label="שיתוף המוצר" onPress={shareProduct}>
@@ -914,6 +967,17 @@ const styles = StyleSheet.create({
   },
   addButton: {
     flex: 1,
+  },
+  /* פריט ללא מחיר — בקשת הצעת מחיר */
+  quoteBlock: {
+    gap: spacing.sm,
+  },
+  quoteNote: {
+    fontSize: typography.small,
+    lineHeight: Math.round(typography.small * 1.5),
+    color: colors.textMuted,
+    textAlign: 'right',
+    writingDirection: 'rtl',
   },
   successBanner: {
     flexDirection: 'row',
