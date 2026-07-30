@@ -6,7 +6,7 @@ Round 6 is the mobile app only — the theme is untouched since round 5 (§11).
 **Written by the previous agent. Read this before touching anything.**
 Run `git log --oneline` for the current head — the list in §9 stops at the commit
 before this file was added.
-Branch: `claude/shopify-store-modern-design-746p2i` · PR: [#1](https://github.com/ofir-commits/anshilo.com/pull/1) (open, not draft)
+Branch: `claude/shopify-store-modern-design-746p2i` · PR: [#1](https://github.com/A-N-Shilo/anshilo.com/pull/1) (closed, not merged)
 
 ---
 
@@ -629,7 +629,7 @@ repo has never been built**:
 | git history | no build/submit commit; `eas.json` arrived with `e03ad3b`, unused since |
 
 **Sharpened once the owner ran `eas init` and `eas build:list`.** An EAS project
-already existed — `@dvir4m/anshilo-shop`, ID `c36b7d96-fe98-47b2-9455-a1c5bff1ccc4`
+already existed — `@a-n-shilo/anshilo-shop`, ID `c36b7d96-fe98-47b2-9455-a1c5bff1ccc4`
 — carrying **7 iOS builds**, two of them made on 2026-07-30, the same day as this
 round. Both are SDK 57, version 1.0.0, build numbers 6 and 7, `distribution:
 store`, built under profile **`testflight`**.

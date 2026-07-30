@@ -60,12 +60,12 @@ cd $HOME
 ### 1ב — להוריד
 
 התיקונים יושבים בענף `claude/shopify-app-hebrew-compat-i1wcji`
-([PR #3](https://github.com/ofir-commits/anshilo.com/pull/3)), **לא** בענף הראשי.
+([PR #3](https://github.com/A-N-Shilo/anshilo.com/pull/3)), **לא** בענף הראשי.
 
 🖥️ **טרמינל:**
 
 ```bash
-git clone -b claude/shopify-app-hebrew-compat-i1wcji https://github.com/ofir-commits/anshilo.com.git
+git clone -b claude/shopify-app-hebrew-compat-i1wcji https://github.com/A-N-Shilo/anshilo.com.git
 cd anshilo.com/mobile-app
 npm install
 ```
@@ -439,7 +439,7 @@ Google Play Console → Testing → Internal testing → Create new release.
 ```bash
 # פעם אחת
 cd $HOME
-git clone -b claude/shopify-app-hebrew-compat-i1wcji https://github.com/ofir-commits/anshilo.com.git
+git clone -b claude/shopify-app-hebrew-compat-i1wcji https://github.com/A-N-Shilo/anshilo.com.git
 cd anshilo.com/mobile-app
 npm install
 cp .env.example .env          # ← להדביק את הטוקן בקובץ
