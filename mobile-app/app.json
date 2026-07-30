@@ -62,6 +62,12 @@
         "projectId": "c36b7d96-fe98-47b2-9455-a1c5bff1ccc4"
       }
     },
-    "owner": "dvir4m"
+    "owner": "dvir4m",
+    "updates": {
+      "url": "https://u.expo.dev/c36b7d96-fe98-47b2-9455-a1c5bff1ccc4"
+    },
+    "runtimeVersion": {
+      "policy": "fingerprint"
+    }
   }
 }
