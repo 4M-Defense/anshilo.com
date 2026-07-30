@@ -26,6 +26,7 @@ import type {
   ProductCardData,
   ProductSortKey,
   ShopInfo,
+  ShopifyImage,
   UserError,
 } from './types';
 
@@ -110,6 +111,29 @@ export async function getShopInfo(): Promise<ShopInfo> {
 
 /* ---------- Collections ---------- */
 
+/**
+ * תמונה למחלקה שאין לה תמונה משלה.
+ *
+ * חלק מהמחלקות בחנות מעולם לא קיבלו תמונה — "רהיטים ושטיחים", "ניקוי רצפות",
+ * "ניקוי כללי וחיטוי" ועוד — והאריח שלהן הציג אות ראשונה גדולה במקום תמונה.
+ * במקום לדרוש העלאה ידנית לכל אחת, לוקחים את התמונה הראשית של אחד המוצרים
+ * שבתוכה: היא תמיד מייצגת את המחלקה, היא מתעדכנת מעצמה כשהקטלוג משתנה,
+ * וגם מחלקה חדשה שתיווצר בעתיד תקבל תמונה בלי שאף אחד יזכור לטפל בה.
+ *
+ * נלקחים ארבעה מוצרים ולא אחד, כי למוצר הראשון לא בהכרח יש תמונה.
+ * האות הראשונה נשארת כמפלט אחרון — למחלקה ריקה לגמרי.
+ */
+type WithProductImages = Collection & {
+  products?: { nodes: { featuredImage: ShopifyImage | null }[] };
+};
+
+function withFallbackImage(collection: WithProductImages): Collection {
+  const { products, ...rest } = collection;
+  if (rest.image != null) return rest;
+  const fromProduct = products?.nodes.find((n) => n.featuredImage != null)?.featuredImage;
+  return { ...rest, image: fromProduct ?? null };
+}
+
 export async function getCollections(
   first = 50,
   after?: string
@@ -117,7 +141,10 @@ export async function getCollections(
   const data = await storefrontFetch<{
     collections: { nodes: Collection[]; pageInfo: PageInfo };
   }>(COLLECTIONS_QUERY, { first, after: after ?? null });
-  return data.collections;
+  return {
+    nodes: data.collections.nodes.map(withFallbackImage),
+    pageInfo: data.collections.pageInfo,
+  };
 }
 
 /** הופך רשימת handles למשתני $h0..$hn של שאילתות ה-batch */
@@ -143,7 +170,8 @@ export async function getCollectionsByHandle(
   );
   return handles
     .map((_, i) => data[collectionAlias(i)])
-    .filter((c): c is Collection => c != null);
+    .filter((c): c is Collection => c != null)
+    .map(withFallbackImage);
 }
 
 /**

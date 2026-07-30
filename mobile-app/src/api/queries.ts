@@ -105,6 +105,12 @@ export const COLLECTIONS_QUERY = `#graphql
         title
         description
         image { ...ImageFields }
+        # גיבוי תמונה כשלמחלקה אין תמונה משלה — ראו withFallbackImage ב-client.ts
+        products(first: 4) {
+          nodes {
+            featuredImage { ...ImageFields }
+          }
+        }
       }
       pageInfo {
         hasNextPage
@@ -122,6 +128,11 @@ const COLLECTION_CARD_SELECTION = `
   title
   description
   image { ...ImageFields }
+  products(first: 4) {
+    nodes {
+      featuredImage { ...ImageFields }
+    }
+  }
 `;
 
 /** שמות האליאסים בשאילתות ה-batch — c0, c1, c2… בסדר ה-handles שהועברו */
