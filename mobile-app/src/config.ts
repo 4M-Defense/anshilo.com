@@ -88,16 +88,22 @@ export const CALL_FOR_PRICE_LABEL = 'מחיר בטלפון';
  * `shop.{shop_id}.*` (ראו getting-started של Customer Account API), ולכן
  * `anshilo://` *אינו* קביל כאן — הסכמה הזאת רשומה ב-app.json לצד `anshilo`.
  *
- * TODO: `clientId` נלקח מהאדמין כשה-Client type היה "Public (web app)".
- * המעבר ל-Mobile client עשוי להנפיק מזהה חדש — לאמת באדמין לפני מימוש הזרימה.
+ * כל הערכים כאן אומתו באדמין: ה-Client type הוא "Public (mobile app)",
+ * ה-Callback URI רשום בדיוק כמו למטה (שופיפיי אף מילאה אותו בעצמה באותו
+ * ערך אחרי המעבר לסוג מובייל), וה-Client ID לא הונפק מחדש במעבר.
+ * שלוש כתובות ה-endpoint הועתקו מ-Application endpoints שבאותו עמוד.
  */
 export const CUSTOMER_ACCOUNT = {
   /** מזהה החנות — מופיע גם בכתובת ההתחברות shopify.com/58110246991/account */
   shopId: '58110246991',
   clientId: '784a0c66-6ed4-4aba-92a5-8705cbc0ff05',
+  /** חייב להיות זהה לרשום באדמין, אחרת שופיפיי דוחה את הבקשה */
   redirectUri: 'shop.58110246991.app://callback',
   /** מה שהאפליקציה מבקשת: זהות, אימייל, וגישה מלאה לחשבון הלקוח */
   scopes: 'openid email customer-account-api:full',
+  authorizationEndpoint: 'https://shopify.com/authentication/58110246991/oauth/authorize',
+  tokenEndpoint: 'https://shopify.com/authentication/58110246991/oauth/token',
+  logoutEndpoint: 'https://shopify.com/authentication/58110246991/logout',
 } as const;
 
 /** פרטי החנות — זהים להגדרות הת'ים באתר */
