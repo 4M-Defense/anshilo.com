@@ -77,6 +77,29 @@ export const MONEY_FORMAT = {
  */
 export const CALL_FOR_PRICE_LABEL = 'מחיר בטלפון';
 
+/**
+ * חשבונות לקוחות — התחברות עם גוגל דרך Customer Account API של שופיפיי.
+ *
+ * גוגל לא מוגדר כאן בכלל: האפליקציה פותחת את מסך ההתחברות המתארח של שופיפיי,
+ * וכפתור גוגל מופיע שם מעצמו כי הוא מופעל בהגדרות החנות
+ * (Customer accounts → Authentication → Google = On, אומת באדמין).
+ *
+ * ⚠️ `redirectUri` אינו שרירותי. שופיפיי מחייבת לקליינט מובייל סכמה בפורמט
+ * `shop.{shop_id}.*` (ראו getting-started של Customer Account API), ולכן
+ * `anshilo://` *אינו* קביל כאן — הסכמה הזאת רשומה ב-app.json לצד `anshilo`.
+ *
+ * TODO: `clientId` נלקח מהאדמין כשה-Client type היה "Public (web app)".
+ * המעבר ל-Mobile client עשוי להנפיק מזהה חדש — לאמת באדמין לפני מימוש הזרימה.
+ */
+export const CUSTOMER_ACCOUNT = {
+  /** מזהה החנות — מופיע גם בכתובת ההתחברות shopify.com/58110246991/account */
+  shopId: '58110246991',
+  clientId: '784a0c66-6ed4-4aba-92a5-8705cbc0ff05',
+  redirectUri: 'shop.58110246991.app://callback',
+  /** מה שהאפליקציה מבקשת: זהות, אימייל, וגישה מלאה לחשבון הלקוח */
+  scopes: 'openid email customer-account-api:full',
+} as const;
+
 /** פרטי החנות — זהים להגדרות הת'ים באתר */
 export const STORE_INFO = {
   name: 'א.נ. שילו בע"מ',

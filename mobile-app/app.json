@@ -5,7 +5,10 @@
     "version": "1.0.1",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
-    "scheme": "anshilo",
+    "scheme": [
+      "anshilo",
+      "shop.58110246991.app"
+    ],
     "userInterfaceStyle": "light",
     "newArchEnabled": true,
     "ios": {
