@@ -13,7 +13,7 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Image } from 'expo-image';
 import { Icon, Rule, SectionHeader } from '@/components';
-import { STORE_INFO, STORE_LOGO } from '@/config';
+import { STORE_INFO, STORE_LOGO, isAssistantConfigured } from '@/config';
 import { useSettings } from '@/state/SettingsContext';
 import { useAuth } from '@/state/AuthContext';
 import { alignEnd, colors, radius, shadows, spacing, typography } from '@/theme';
@@ -152,6 +152,14 @@ export default function MoreScreen() {
           sublabel="המוצרים ששמרתם לפעם הבאה"
           onPress={() => router.push('/favorites')}
         />
+        {isAssistantConfigured() && (
+          <ActionRow
+            icon="sparkles-outline"
+            label="המומחה של שילו"
+            sublabel="יועץ AI שעונה על שאלות וממליץ מהקטלוג"
+            onPress={() => router.push('/assistant')}
+          />
+        )}
       </View>
 
       {/* יצירת קשר */}

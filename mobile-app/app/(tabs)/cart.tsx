@@ -26,7 +26,7 @@ import {
 } from '@/components';
 import { useCart } from '@/state/CartContext';
 import { useSettings } from '@/state/SettingsContext';
-import { alignEnd, colors, radius, rtlText, shadows, spacing, typography } from '@/theme';
+import { alignEnd, colors, inputAlign, radius, rtlText, shadows, spacing, typography } from '@/theme';
 
 function errorMessage(e: unknown, fallback: string): string {
   return e instanceof StorefrontError ? e.message : fallback;
@@ -677,7 +677,8 @@ const styles = StyleSheet.create({
     padding: spacing.md,
     fontSize: typography.small,
     color: colors.text,
-    textAlign: alignEnd,
+    /* inputAlign ולא alignEnd — ב-TextInput היישור פיזי, ראו theme.ts */
+    textAlign: inputAlign,
     writingDirection: 'rtl',
   },
   notesStatus: {

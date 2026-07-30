@@ -35,8 +35,15 @@ import {
   SectionHeader,
   Skeleton,
 } from '@/components';
-import { STORE_INFO, TEL_URL, WHATSAPP_URL, importerForVendor } from '@/config';
+import {
+  STORE_INFO,
+  TEL_URL,
+  importerForVendor,
+  isAssistantConfigured,
+  whatsappWithMessage,
+} from '@/config';
 import { useCart } from '@/state/CartContext';
+import { useSettings } from '@/state/SettingsContext';
 import { useFavorites } from '@/state/FavoritesContext';
 import { alignEnd, colors, radius, rtlText, shadows, spacing, typography } from '@/theme';
 
@@ -127,6 +134,11 @@ export default function ProductScreen() {
   const { width } = useWindowDimensions();
   const { addItem, busy } = useCart();
   const { isFavorite, toggleFavorite } = useFavorites();
+  /*
+   * הוואטסאפ מההגדרות החיות ולא מהקונפיג: כשמחליפים באדמין את קישור ה-wa.link
+   * במספר בינלאומי, ההודעה המוכנה נדלקת בלי עדכון אפליקציה.
+   */
+  const { whatsappUrl } = useSettings();
 
   const [product, setProduct] = useState<Product | null>(null);
   const [loading, setLoading] = useState(true);
@@ -383,12 +395,34 @@ export default function ProductScreen() {
   }, [product, selectedVariant?.sku]);
 
   const requestQuoteByWhatsapp = useCallback(() => {
-    if (WHATSAPP_URL === '') return;
-    const separator = WHATSAPP_URL.includes('?') ? '&' : '?';
-    Linking.openURL(`${WHATSAPP_URL}${separator}text=${encodeURIComponent(quoteMessage)}`).catch(
-      () => {}
+    /*
+     * whatsappWithMessage ולא הדבקת ?text= ידנית: קישור wa.link מתעלם
+     * מפרמטרים, וההדבקה הישנה שלחה טקסט לחלל. ראו config.ts.
+     */
+    const url = whatsappWithMessage(whatsappUrl, quoteMessage);
+    if (url === '') return;
+    Linking.openURL(url).catch(() => {});
+  }, [whatsappUrl, quoteMessage]);
+
+  /* פנייה בוואטסאפ על המוצר — מכל מוצר, עם הודעה מוכנה שמזהה את הפריט */
+  const askOnWhatsapp = useCallback(() => {
+    if (product == null) return;
+    const url = whatsappWithMessage(
+      whatsappUrl,
+      `היי, הגעתי דרך האפליקציה ואני מעוניין במוצר: ${product.title} — ${STORE_INFO.website}/products/${product.handle}`
     );
-  }, [quoteMessage]);
+    if (url === '') return;
+    Linking.openURL(url).catch(() => {});
+  }, [whatsappUrl, product]);
+
+  /* פתיחת המומחה עם שאלה מוכנה על המוצר הנוכחי */
+  const askExpert = useCallback(() => {
+    if (product == null) return;
+    router.push({
+      pathname: '/assistant',
+      params: { q: `אני מתלבט לגבי ${product.title} — למה הוא מתאים ומה כדאי לבדוק?` },
+    });
+  }, [product, router]);
 
   const requestQuoteByPhone = useCallback(() => {
     Linking.openURL(TEL_URL).catch(() => {});
@@ -576,6 +610,44 @@ export default function ProductScreen() {
             ))}
           </View>
 
+          {/* ----- שאלות על המוצר: וואטסאפ עם הודעה מוכנה + המומחה ----- */}
+          <View style={styles.askCard}>
+            <Text style={styles.askTitle}>יש שאלה על המוצר?</Text>
+            <View style={styles.askRow}>
+              {whatsappUrl !== '' && (
+                <Pressable
+                  accessibilityRole="button"
+                  accessibilityLabel="פנייה בוואטסאפ על המוצר"
+                  onPress={askOnWhatsapp}
+                  style={({ pressed }) => [styles.askButton, pressed && styles.askPressed]}
+                >
+                  <Icon name="logo-whatsapp" size={18} color={colors.success} />
+                  <Text style={styles.askButtonText}>וואטסאפ</Text>
+                </Pressable>
+              )}
+              {isAssistantConfigured() && (
+                <Pressable
+                  accessibilityRole="button"
+                  accessibilityLabel="שאלה למומחה של שילו"
+                  onPress={askExpert}
+                  style={({ pressed }) => [styles.askButton, pressed && styles.askPressed]}
+                >
+                  <Icon name="sparkles" size={18} color={colors.accent} />
+                  <Text style={styles.askButtonText}>המומחה של שילו</Text>
+                </Pressable>
+              )}
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel={`התקשרות לחנות ${STORE_INFO.phone}`}
+                onPress={requestQuoteByPhone}
+                style={({ pressed }) => [styles.askButton, pressed && styles.askPressed]}
+              >
+                <Icon name="call-outline" size={18} color={colors.ink} />
+                <Text style={styles.askButtonText}>טלפון</Text>
+              </Pressable>
+            </View>
+          </View>
+
           {/* ----- תיאור ----- */}
           {description !== '' && (
             <View style={styles.section}>
@@ -646,7 +718,7 @@ export default function ProductScreen() {
                   icon={<Icon name="call" size={18} color={colors.onAccent} />}
                   style={styles.addButton}
                 />
-                {WHATSAPP_URL !== '' && (
+                {whatsappUrl !== '' && (
                   <Button
                     title="וואטסאפ"
                     variant="secondary"
@@ -942,6 +1014,46 @@ const styles = StyleSheet.create({
     backgroundColor: colors.surfaceAlt,
     borderRadius: radius.lg,
     paddingHorizontal: spacing.md,
+  },
+  askCard: {
+    marginTop: spacing.md,
+    backgroundColor: colors.surface,
+    borderRadius: radius.md,
+    borderWidth: 1,
+    borderColor: colors.border,
+    padding: spacing.md,
+    gap: spacing.sm,
+  },
+  askTitle: {
+    fontSize: typography.small,
+    fontWeight: '800',
+    color: colors.ink,
+    textAlign: alignEnd,
+    writingDirection: 'rtl',
+  },
+  askRow: {
+    flexDirection: 'row',
+    gap: spacing.sm,
+  },
+  askButton: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: spacing.xs,
+    paddingVertical: spacing.sm + 2,
+    borderRadius: radius.md,
+    borderWidth: 1,
+    borderColor: colors.borderStrong,
+    backgroundColor: colors.surfaceAlt,
+  },
+  askPressed: {
+    opacity: 0.7,
+  },
+  askButtonText: {
+    fontSize: typography.tiny,
+    fontWeight: '700',
+    color: colors.ink,
   },
   trustRow: {
     flexDirection: 'row',

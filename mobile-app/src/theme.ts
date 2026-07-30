@@ -272,6 +272,23 @@ export const type = {
 const SWAPS_LEFT_RIGHT = I18nManager.isRTL && I18nManager.doLeftAndRightSwapInRTL;
 export const alignEnd: TextStyle['textAlign'] = SWAPS_LEFT_RIGHT ? 'left' : 'right';
 
+/**
+ * יישור לשדות קלט — `TextInput` בלבד, לא `Text`.
+ *
+ * ההחלפה של left/right תחת RTL, שבגללה קיים `alignEnd`, חלה על `Text` אבל
+ * **לא** על הטקסט המוקלד ב-`TextInput`:
+ *
+ * - iOS/Fabric: הטקסט החי של השדה עובר דרך `defaultTextAttributes`, ושם
+ *   ההחלפה מותנית ב-layoutDirection שלא מאוכלס במסלול הזה — הערך נשאר פיזי.
+ * - אנדרואיד: `ReactTextInputManager` ממפה `"right" -> Gravity.RIGHT` ישירות,
+ *   בלי בדיקת RTL — פיזי גם כן.
+ *
+ * נמדד על מכשיר בשדה ההערות בעגלה: עם `alignEnd` ('left' תחת ההחלפה)
+ * ה-placeholder נפל ימינה (הוא UILabel ביישור טבעי) אבל הטקסט שהוקלד נצמד
+ * לשמאל. לכן לשדות קלט מבקשים 'right' פיזי, ולטקסט רגיל ממשיכים עם `alignEnd`.
+ */
+export const inputAlign: TextStyle['textAlign'] = 'right';
+
 /** עברית מיושרת לימין — הצירוף הזה חוזר בכל מסך */
 export const rtl = {
   text: { textAlign: alignEnd, writingDirection: 'rtl' },

@@ -25,7 +25,7 @@ import {
   SkeletonProductCard,
   StoreLogo,
 } from '@/components';
-import { BRAND_NAMES, IMPORTERS, STORE_INFO } from '@/config';
+import { BRAND_NAMES, IMPORTERS, STORE_INFO, isAssistantConfigured } from '@/config';
 import { useSettings } from '@/state/SettingsContext';
 import { alignEnd, colors, radius, rtlText, shadows, spacing, typography } from '@/theme';
 
@@ -405,6 +405,27 @@ export default function HomeScreen() {
           </View>
         )}
 
+        {/* המומחה של שילו — כניסה בולטת לעוזר, בין המחלקות למותגים */}
+        {isAssistantConfigured() && (
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="המומחה של שילו — יועץ קנייה חכם"
+            onPress={() => router.push('/assistant')}
+            style={({ pressed }) => [styles.expertBanner, pressed && styles.expertPressed]}
+          >
+            <View style={styles.expertIconWrap}>
+              <Icon name="sparkles" size={22} color={colors.accent} />
+            </View>
+            <View style={styles.expertTextWrap}>
+              <Text style={styles.expertTitle}>חדש: המומחה של שילו</Text>
+              <Text style={styles.expertSub} numberOfLines={2}>
+                לא בטוחים מה מתאים לעבודה? שאלו את היועץ החכם — והוא ימליץ מתוך הקטלוג שלנו
+              </Text>
+            </View>
+            <Icon name="chevron-back" size={18} color={colors.textMuted} dir />
+          </Pressable>
+        )}
+
         {/* פס המותגים — מקביל ל"המותגים שאנחנו מייצגים" באתר */}
         {!hideBrands && (
           <View style={styles.section}>
@@ -543,6 +564,48 @@ export default function HomeScreen() {
 }
 
 const styles = StyleSheet.create({
+  expertBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.md,
+    marginHorizontal: spacing.lg,
+    marginTop: spacing.lg,
+    padding: spacing.md,
+    backgroundColor: colors.surface,
+    borderRadius: radius.card,
+    borderWidth: 1,
+    borderColor: colors.border,
+    ...shadows.sm,
+  },
+  expertPressed: {
+    borderColor: colors.accent,
+  },
+  expertIconWrap: {
+    width: 44,
+    height: 44,
+    borderRadius: radius.pill,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: colors.accentSoft,
+  },
+  expertTextWrap: {
+    flex: 1,
+    gap: 2,
+  },
+  expertTitle: {
+    fontSize: typography.small,
+    fontWeight: '800',
+    color: colors.ink,
+    textAlign: alignEnd,
+    writingDirection: 'rtl',
+  },
+  expertSub: {
+    fontSize: typography.tiny,
+    lineHeight: typography.tiny + 5,
+    color: colors.textMuted,
+    textAlign: alignEnd,
+    writingDirection: 'rtl',
+  },
   screen: {
     flex: 1,
     backgroundColor: colors.bg,

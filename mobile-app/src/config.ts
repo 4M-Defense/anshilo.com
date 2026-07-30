@@ -175,6 +175,36 @@ export function buildWhatsappUrl(value: string): string {
 export const WHATSAPP_URL = buildWhatsappUrl(STORE_INFO.whatsapp);
 
 /**
+ * קישור וואטסאפ שנפתח עם הודעה מוכנה — "היי, הגעתי דרך האפליקציה ואני
+ * מעוניין במוצר: …".
+ *
+ * טקסט מוכן נתמך רק בקישורי `wa.me/<מספר>`; קישור מקוצר (wa.link) מתעלם
+ * מפרמטרים, ולכן שם מוותרים על ההודעה ופותחים את הצ'אט הרגיל — עדיף כפתור
+ * שעובד בלי טקסט מאשר כפתור שבור. ברגע שמחליפים בהגדרות החנות את הקישור
+ * במספר בפורמט בינלאומי, ההודעה המוכנה נדלקת מעצמה, בלי שינוי קוד.
+ */
+export function whatsappWithMessage(baseUrl: string, message: string): string {
+  if (baseUrl === '') return '';
+  if (!/^https:\/\/wa\.me\//i.test(baseUrl)) return baseUrl;
+  return `${baseUrl.split('?')[0]}?text=${encodeURIComponent(message)}`;
+}
+
+/* ---------- המומחה של שילו — עוזר ה-AI ---------- */
+
+/**
+ * כתובת השרת של העוזר (פרויקט assistant-server, רץ על EAS Hosting).
+ * ריק = העוזר עדיין לא חובר; המסך מציג הסבר במקום צ'אט.
+ * אפשר לקבע כאן או להזריק דרך משתנה הסביבה בזמן build/update.
+ */
+export const ASSISTANT_URL = (
+  process.env.EXPO_PUBLIC_ASSISTANT_URL ?? ''
+).replace(/\/+$/, '');
+
+export function isAssistantConfigured(): boolean {
+  return ASSISTANT_URL !== '';
+}
+
+/**
  * ניווט אלינו — הכתובת באפליקציה לחיצה ופותחת את המיקום.
  *
  * מעדיף את כרטיס העסק בגוגל (אותו קישור שהאתר מפנה אליו מהפוטר), ואם הוא

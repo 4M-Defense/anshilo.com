@@ -25,7 +25,7 @@ import {
   StoreLogo,
 } from '@/components';
 import { useSettings } from '@/state/SettingsContext';
-import { alignEnd, colors, radius, rtlText, spacing, typography } from '@/theme';
+import { alignEnd, colors, inputAlign, radius, rtlText, spacing, typography } from '@/theme';
 
 const PAGE_SIZE = 24;
 const DEBOUNCE_MS = 350;
@@ -454,7 +454,8 @@ const styles = StyleSheet.create({
     height: '100%',
     fontSize: typography.body,
     color: colors.text,
-    textAlign: alignEnd,
+    /* inputAlign ולא alignEnd — ב-TextInput היישור פיזי, ראו theme.ts */
+    textAlign: inputAlign,
     writingDirection: 'rtl',
     paddingVertical: 0,
   },
