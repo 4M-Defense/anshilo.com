@@ -190,6 +190,7 @@ export const COLLECTION_PRODUCTS_QUERY = `#graphql
     $after: String
     $sortKey: ProductCollectionSortKeys!
     $reverse: Boolean!
+    $filters: [ProductFilter!]
   ) {
     collection(handle: $handle) {
       id
@@ -197,7 +198,26 @@ export const COLLECTION_PRODUCTS_QUERY = `#graphql
       title
       description
       image { ...ImageFields }
-      products(first: $first, after: $after, sortKey: $sortKey, reverse: $reverse) {
+      products(
+        first: $first
+        after: $after
+        sortKey: $sortKey
+        reverse: $reverse
+        filters: $filters
+      ) {
+        # הפאסטות שהחנות מציעה למחלקה הזאת — אותן שמוגדרות ב-Search & Discovery
+        # ומופיעות באתר. נבנות דינמית, כך שפילטר שיתווסף בחנות יופיע מעצמו.
+        filters {
+          id
+          label
+          type
+          values {
+            id
+            label
+            count
+            input
+          }
+        }
         nodes { ...ProductCardFields }
         pageInfo {
           hasNextPage

@@ -203,15 +203,53 @@ const COLLECTION_SORT_MAP: Record<string, { sortKey: string; reverse: boolean }>
 
 export type CollectionSort = keyof typeof COLLECTION_SORT_MAP;
 
+/**
+ * הופך את ה-`input` של הערכים הנבחרים למשתנה `filters` של שופיפיי.
+ *
+ * ה-`input` הוא מחרוזת JSON שהחנות נתנה לנו, ואנחנו מחזירים אותה כאובייקט
+ * בדיוק כפי שהתקבלה — לא בונים פילטרים בעצמנו. לכן פילטר חדש שיוגדר בחנות
+ * (מתח, קוטר, יצרן) יעבוד באפליקציה בלי שינוי קוד. `input` פגום מדולג בשקט
+ * במקום להפיל את הבקשה כולה.
+ */
+export function toProductFilters(inputs: readonly string[]): Record<string, unknown>[] {
+  const out: Record<string, unknown>[] = [];
+  for (const raw of inputs) {
+    try {
+      const parsed: unknown = JSON.parse(raw);
+      if (parsed != null && typeof parsed === 'object' && !Array.isArray(parsed)) {
+        out.push(parsed as Record<string, unknown>);
+      }
+    } catch {
+      /* מדולג */
+    }
+  }
+  return out;
+}
+
 export async function getCollectionProducts(
   handle: string,
-  options: { first?: number; after?: string; sort?: CollectionSort } = {}
+  options: {
+    first?: number;
+    after?: string;
+    sort?: CollectionSort;
+    /** ה-`input` הגולמי של כל ערך שנבחר */
+    filters?: readonly string[];
+  } = {}
 ): Promise<CollectionWithProducts | null> {
-  const { first = 24, after, sort = 'default' } = options;
+  const { first = 24, after, sort = 'default', filters } = options;
   const { sortKey, reverse } = COLLECTION_SORT_MAP[sort] ?? COLLECTION_SORT_MAP.default;
+  const applied = toProductFilters(filters ?? []);
   const data = await storefrontFetch<{ collection: CollectionWithProducts | null }>(
     COLLECTION_PRODUCTS_QUERY,
-    { handle, first, after: after ?? null, sortKey, reverse }
+    {
+      handle,
+      first,
+      after: after ?? null,
+      sortKey,
+      reverse,
+      /* null ולא [] — מערך ריק הוא פילטר תקף ששופיפיי מפרש כ"ללא תוצאות" */
+      filters: applied.length > 0 ? applied : null,
+    }
   );
   return data.collection;
 }

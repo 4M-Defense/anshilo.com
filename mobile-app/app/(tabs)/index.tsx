@@ -20,6 +20,7 @@ import {
   Icon,
   ProductCard,
   SectionHeader,
+  CollectionImage,
   Skeleton,
   SkeletonProductCard,
   StoreLogo,
@@ -152,15 +153,10 @@ function CollectionTile({
     >
       <View style={styles.collectionImageWrap}>
         {collection.image != null ? (
-          <Image
-            source={{ uri: collection.image.url }}
-            style={styles.collectionImage}
-            /* contain, לא cover: חלק מהמחלקות והמותגים מיוצגים בלוגו ולא
-               בצילום, ו-cover חותך אותם. ראו ProductCard וגם מערכת העיצוב
-               של האתר — תמונות קטלוג יושבות על לבן ב-contain. */
-            contentFit="contain"
-            transition={200}
-            accessibilityLabel={collection.image.altText ?? collection.title}
+          <CollectionImage
+            image={collection.image}
+            title={collection.title}
+            letterSize={COLLECTION_TILE_SIZE * 0.34}
           />
         ) : (
           <View style={styles.collectionLetterWrap}>

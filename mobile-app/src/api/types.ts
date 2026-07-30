@@ -80,7 +80,30 @@ export interface CollectionWithProducts extends Collection {
   products: {
     nodes: ProductCardData[];
     pageInfo: PageInfo;
+    filters?: StorefrontFilter[];
   };
+}
+
+/** סוגי הפאסטות של שופיפיי — זהים לאלה שהת'ים באתר מטפל בהם */
+export type FilterType = 'LIST' | 'PRICE_RANGE' | 'BOOLEAN';
+
+export interface FilterValue {
+  id: string;
+  label: string;
+  count: number;
+  /**
+   * מחרוזת JSON שמוחזרת לשופיפיי כדי להפעיל את הפילטר, למשל
+   * `{"variantOption":{"name":"מתח","value":"18V"}}`. לא בונים אותה בעצמנו —
+   * מעבירים בחזרה בדיוק את מה שהתקבל, ולכן פילטר חדש בחנות עובד בלי שינוי קוד.
+   */
+  input: string;
+}
+
+export interface StorefrontFilter {
+  id: string;
+  label: string;
+  type: FilterType;
+  values: FilterValue[];
 }
 
 export interface PageInfo {

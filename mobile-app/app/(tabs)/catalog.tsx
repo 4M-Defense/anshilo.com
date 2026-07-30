@@ -15,7 +15,7 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { getCollections } from '@/api/client';
 import type { Collection, PageInfo } from '@/api/types';
-import { EmptyState, ErrorView, Icon, Skeleton, StoreLogo } from '@/components';
+import { CollectionImage, EmptyState, ErrorView, Icon, Skeleton, StoreLogo } from '@/components';
 import { alignEnd, colors, radius, rtlText, shadows, spacing, typography } from '@/theme';
 
 const PAGE_SIZE = 24;
@@ -57,24 +57,11 @@ function CategoryTile({
       onPress={onPress}
       style={({ pressed }) => [styles.tile, { width, height }, pressed && styles.tilePressed]}
     >
-      <View style={styles.tileImageWrap}>
-        {collection.image != null ? (
-          <Image
-            source={{ uri: collection.image.url }}
-            style={StyleSheet.absoluteFill}
-            contentFit="contain"
-            transition={200}
-            accessibilityLabel={collection.image.altText ?? collection.title}
-          />
-        ) : (
-          <Text
-            style={[styles.letter, { fontSize: height * 0.34 }]}
-            allowFontScaling={false}
-          >
-            {collection.title.trim().charAt(0)}
-          </Text>
-        )}
-      </View>
+      <CollectionImage
+        image={collection.image}
+        title={collection.title}
+        letterSize={height * 0.34}
+      />
       <View style={styles.tileFooter}>
         <Text style={styles.tileTitle} numberOfLines={2}>
           {rtlText(collection.title)}

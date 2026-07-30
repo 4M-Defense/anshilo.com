@@ -13,8 +13,20 @@ import {
   type ListRenderItemInfo,
 } from 'react-native';
 import { getCollectionProducts, type CollectionSort } from '@/api/client';
-import type { Collection, PageInfo, ProductCardData } from '@/api/types';
-import { EmptyState, ErrorView, ProductCard, Skeleton, SkeletonProductCard } from '@/components';
+import type { Collection, PageInfo, ProductCardData, StorefrontFilter } from '@/api/types';
+import {
+  EmptyState,
+  ErrorView,
+  FilterSheet,
+  Icon,
+  NO_FILTERS,
+  ProductCard,
+  Skeleton,
+  SkeletonProductCard,
+  countApplied,
+  toFilterInputs,
+  type AppliedFilters,
+} from '@/components';
 import { alignEnd, colors, radius, rtlText, spacing, typography } from '@/theme';
 
 const PAGE_SIZE = 24;
@@ -58,11 +70,16 @@ export default function CollectionScreen() {
   const [footerError, setFooterError] = useState('');
   const [refreshing, setRefreshing] = useState(false);
   const [descExpanded, setDescExpanded] = useState(false);
+  /* הפאסטות שהחנות מציעה למחלקה, ומה שנבחר מהן */
+  const [filters, setFilters] = useState<StorefrontFilter[]>([]);
+  const [applied, setApplied] = useState<AppliedFilters>(NO_FILTERS);
+  const [sheetOpen, setSheetOpen] = useState(false);
+  const [totalShown, setTotalShown] = useState(0);
   const requestId = useRef(0);
   const listRef = useRef<FlatList<ProductCardData>>(null);
 
   const loadPage = useCallback(
-    async (sortKey: CollectionSort, mode: LoadMode) => {
+    async (sortKey: CollectionSort, mode: LoadMode, activeFilters: AppliedFilters = applied) => {
       const id = ++requestId.current;
       if (mode === 'initial') {
         setScreenState('loading');
@@ -77,6 +94,7 @@ export default function CollectionScreen() {
         const result = await getCollectionProducts(handle, {
           first: PAGE_SIZE,
           sort: sortKey,
+          filters: toFilterInputs(activeFilters),
         });
         if (id !== requestId.current) return;
         if (result == null) {
@@ -86,6 +104,15 @@ export default function CollectionScreen() {
         setMeta(result);
         setProducts(result.products.nodes);
         setPageInfo(result.products.pageInfo);
+        /*
+         * הפאסטות מוחלפות רק כשהחנות החזירה משהו. תשובה מסוננת שמצמצמת ל-0
+         * מוצרים מחזירה לפעמים רשימה ריקה, ואיפוס לפיה היה מרוקן את המגירה
+         * ומונע מהמשתמש לבטל את הסינון שהוא בעצמו בחר.
+         */
+        if (result.products.filters != null && result.products.filters.length > 0) {
+          setFilters(result.products.filters);
+        }
+        setTotalShown(result.products.nodes.length);
         setListLoading(false);
         setListError('');
         setScreenState('ready');
@@ -102,7 +129,7 @@ export default function CollectionScreen() {
         // mode === 'refresh': רענון כושל לא מוחק תוכן קיים
       }
     },
-    [handle]
+    [handle, applied]
   );
 
   useEffect(() => {
@@ -121,6 +148,22 @@ export default function CollectionScreen() {
       setSort(key);
       listRef.current?.scrollToOffset({ offset: 0, animated: false });
       loadPage(key, 'sort');
+    },
+    [sort, loadPage]
+  );
+
+  const appliedCount = countApplied(applied);
+
+  /**
+   * החלת סינון — מאפסת עימוד וגוללת למעלה, כמו החלפת מיון.
+   * הפילטרים מועברים במפורש ל-`loadPage` ולא נשענים על ה-state, כי `setApplied`
+   * אינו סינכרוני והבקשה הייתה יוצאת עם הבחירה הקודמת.
+   */
+  const changeFilters = useCallback(
+    (next: AppliedFilters) => {
+      setApplied(next);
+      listRef.current?.scrollToOffset({ offset: 0, animated: false });
+      loadPage(sort, 'sort', next);
     },
     [sort, loadPage]
   );
@@ -150,12 +193,16 @@ export default function CollectionScreen() {
         first: PAGE_SIZE,
         after: pageInfo.endCursor,
         sort,
+        /* בלי זה העמוד השני היה מתעלם מהסינון ומחזיר מוצרים שסוננו */
+        filters: toFilterInputs(applied),
       });
       if (id !== requestId.current) return;
       if (result == null) return;
       setProducts((prev) => {
         const seen = new Set(prev.map((p) => p.id));
-        return [...prev, ...result.products.nodes.filter((p) => !seen.has(p.id))];
+        const next = [...prev, ...result.products.nodes.filter((p) => !seen.has(p.id))];
+        setTotalShown(next.length);
+        return next;
       });
       setPageInfo(result.products.pageInfo);
     } catch (err) {
@@ -204,6 +251,40 @@ export default function CollectionScreen() {
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={styles.chipsRow}
       >
+        {/* הסינון ראשון בשורה — ב-RTL זה הפריט הימני, לפני אפשרויות המיון */}
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel={
+            appliedCount > 0 ? `סינון, ${appliedCount} פעילים` : 'סינון'
+          }
+          onPress={() => setSheetOpen(true)}
+          style={[styles.chip, styles.filterChip, appliedCount > 0 && styles.chipActive]}
+        >
+          <Icon
+            name="options-outline"
+            size={14}
+            color={appliedCount > 0 ? colors.onAccent : colors.ink}
+          />
+          <Text
+            style={[styles.chipLabel, appliedCount > 0 && styles.chipLabelActive]}
+            allowFontScaling={false}
+          >
+            {appliedCount > 0 ? `סינון · ${appliedCount}` : 'סינון'}
+          </Text>
+        </Pressable>
+        {appliedCount > 0 && (
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="ניקוי הסינון"
+            onPress={() => changeFilters(NO_FILTERS)}
+            style={[styles.chip, styles.clearChip]}
+          >
+            <Icon name="close" size={13} color={colors.danger} />
+            <Text style={[styles.chipLabel, styles.clearChipLabel]} allowFontScaling={false}>
+              נקה
+            </Text>
+          </Pressable>
+        )}
         {SORT_OPTIONS.map((opt) => {
           const active = opt.key === sort;
           return (
@@ -236,6 +317,19 @@ export default function CollectionScreen() {
     </View>
   ) : listError !== '' ? (
     <ErrorView message={listError} onRetry={() => loadPage(sort, 'sort')} />
+  ) : appliedCount > 0 ? (
+    /*
+     * ריק *בגלל הסינון* הוא מצב אחר לגמרי מ"המחלקה ריקה": ההודעה הכללית הייתה
+     * טוענת שאין מוצרים במחלקה, והכפתור היה שולח לכל המחלקות — בדיוק הפעולה
+     * הלא נכונה. כאן הפעולה היא לנקות את הסינון ולראות את המחלקה שוב.
+     */
+    <EmptyState
+      icon="options-outline"
+      title="אין מוצרים שעונים על הסינון"
+      text="נסו להסיר חלק מהתנאים, או להרחיב את טווח המחירים."
+      actionLabel="ניקוי הסינון"
+      onAction={() => changeFilters(NO_FILTERS)}
+    />
   ) : (
     <EmptyState
       icon="file-tray-outline"
@@ -332,6 +426,15 @@ export default function CollectionScreen() {
           }
         />
       )}
+
+      <FilterSheet
+        visible={sheetOpen}
+        filters={filters}
+        applied={applied}
+        resultCount={totalShown}
+        onClose={() => setSheetOpen(false)}
+        onApply={changeFilters}
+      />
     </View>
   );
 }
@@ -390,6 +493,21 @@ const styles = StyleSheet.create({
     fontSize: typography.small,
     fontWeight: '700',
     color: colors.accent,
+  },
+  filterChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs,
+  },
+  clearChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xxs,
+    borderColor: colors.danger,
+  },
+  clearChipLabel: {
+    color: colors.danger,
+    fontWeight: '700',
   },
   chipsRow: {
     paddingHorizontal: spacing.lg,
