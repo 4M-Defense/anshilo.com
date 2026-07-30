@@ -26,6 +26,14 @@
       "android": {
         "buildType": "app-bundle"
       }
+    },
+    "testflight": {
+      "extends": "production",
+      "channel": "testflight",
+      "env": {
+        "SHILO_IOS_BUNDLE_ID": "com.anshilo.shop.test",
+        "SHILO_ANDROID_PACKAGE": "com.anshilo.shop.test"
+      }
     }
   },
   "submit": {
@@ -36,6 +44,12 @@
       "android": {
         "track": "internal",
         "releaseStatus": "draft"
+      }
+    },
+    "testflight": {
+      "ios": {
+        "language": "he-IL",
+        "ascAppId": "6796238101"
       }
     }
   }
