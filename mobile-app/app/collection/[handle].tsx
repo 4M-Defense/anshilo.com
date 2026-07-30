@@ -79,7 +79,7 @@ export default function CollectionScreen() {
   const listRef = useRef<FlatList<ProductCardData>>(null);
 
   const loadPage = useCallback(
-    async (sortKey: CollectionSort, mode: LoadMode, activeFilters: AppliedFilters = applied) => {
+    async (sortKey: CollectionSort, mode: LoadMode, activeFilters: AppliedFilters) => {
       const id = ++requestId.current;
       if (mode === 'initial') {
         setScreenState('loading');
@@ -129,17 +129,29 @@ export default function CollectionScreen() {
         // mode === 'refresh': רענון כושל לא מוחק תוכן קיים
       }
     },
-    [handle, applied]
+    /*
+     * `applied` בכוונה *לא* כאן. הפילטרים מגיעים כפרמטר, ולכן זהות `loadPage`
+     * לא משתנה כשמסננים — אחרת האפקט שלמטה, שתלוי בה, היה נורה שוב בכל החלת
+     * סינון: מאפס את המיון ל"ברירת מחדל", מבזיק שלד על כל המסך ושולח בקשה
+     * שנייה מיותרת.
+     */
+    [handle]
   );
 
   useEffect(() => {
     setSort('default');
     setDescExpanded(false);
+    /*
+     * הפאסטות והבחירה מתאפסות עם המחלקה: הן מוגדרות פר-מחלקה, ומזהי הערכים
+     * של מחלקה אחת אינם קיימים באחרת.
+     */
+    setApplied(NO_FILTERS);
+    setFilters([]);
     if (handle === '') {
       setScreenState('notFound');
       return;
     }
-    loadPage('default', 'initial');
+    loadPage('default', 'initial', NO_FILTERS);
   }, [handle, loadPage]);
 
   const changeSort = useCallback(
@@ -147,9 +159,9 @@ export default function CollectionScreen() {
       if (key === sort) return;
       setSort(key);
       listRef.current?.scrollToOffset({ offset: 0, animated: false });
-      loadPage(key, 'sort');
+      loadPage(key, 'sort', applied);
     },
-    [sort, loadPage]
+    [sort, loadPage, applied]
   );
 
   const appliedCount = countApplied(applied);
@@ -170,9 +182,9 @@ export default function CollectionScreen() {
 
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
-    await loadPage(sort, 'refresh');
+    await loadPage(sort, 'refresh', applied);
     setRefreshing(false);
-  }, [sort, loadPage]);
+  }, [sort, loadPage, applied]);
 
   const loadMore = useCallback(async () => {
     if (
@@ -316,7 +328,7 @@ export default function CollectionScreen() {
       ))}
     </View>
   ) : listError !== '' ? (
-    <ErrorView message={listError} onRetry={() => loadPage(sort, 'sort')} />
+    <ErrorView message={listError} onRetry={() => loadPage(sort, 'sort', applied)} />
   ) : appliedCount > 0 ? (
     /*
      * ריק *בגלל הסינון* הוא מצב אחר לגמרי מ"המחלקה ריקה": ההודעה הכללית הייתה
@@ -386,7 +398,7 @@ export default function CollectionScreen() {
       )}
 
       {screenState === 'error' && (
-        <ErrorView message={screenError} onRetry={() => loadPage(sort, 'initial')} />
+        <ErrorView message={screenError} onRetry={() => loadPage(sort, 'initial', applied)} />
       )}
 
       {screenState === 'notFound' && (
