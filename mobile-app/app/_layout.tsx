@@ -1,6 +1,7 @@
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { I18nManager } from 'react-native';
+import { AuthProvider } from '@/state/AuthContext';
 import { CartProvider } from '@/state/CartContext';
 import { FavoritesProvider } from '@/state/FavoritesContext';
 import { colors, fontFamily, typography } from '@/theme';
@@ -26,8 +27,9 @@ if (!I18nManager.isRTL) {
 
 export default function RootLayout() {
   return (
-    <CartProvider>
-      <FavoritesProvider>
+    <AuthProvider>
+      <CartProvider>
+        <FavoritesProvider>
         <StatusBar style="dark" />
         <Stack
           screenOptions={{
@@ -52,8 +54,10 @@ export default function RootLayout() {
           {/* הכותרת נקבעת במסך עצמו לפי שם הקטגוריה */}
           <Stack.Screen name="collection/[handle]" options={{ title: '' }} />
           <Stack.Screen name="favorites" options={{ title: 'המועדפים שלי' }} />
+          <Stack.Screen name="account" options={{ title: 'החשבון שלי' }} />
         </Stack>
-      </FavoritesProvider>
-    </CartProvider>
+        </FavoritesProvider>
+      </CartProvider>
+    </AuthProvider>
   );
 }

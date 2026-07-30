@@ -13,6 +13,7 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Icon, Rule, SectionHeader } from '@/components';
 import { DIRECTIONS_URL, STORE_INFO, TEL_URL, WHATSAPP_URL } from '@/config';
+import { useAuth } from '@/state/AuthContext';
 import { colors, radius, shadows, spacing, typography } from '@/theme';
 
 const WEBSITE_LABEL = STORE_INFO.website.replace(/^https?:\/\//, '');
@@ -64,6 +65,7 @@ function ActionRow({
 export default function MoreScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
+  const { status, profile } = useAuth();
 
   const openLink = useCallback((url: string) => {
     Linking.openURL(url).catch(() => {
@@ -103,6 +105,16 @@ export default function MoreScreen() {
       <View style={styles.card}>
         <ActionRow
           first
+          icon={status === 'signedIn' ? 'person-circle' : 'person-circle-outline'}
+          label={status === 'signedIn' ? 'החשבון שלי' : 'התחברות'}
+          sublabel={
+            status === 'signedIn'
+              ? (profile?.displayName?.trim() ?? 'ההזמנות והפרטים שלי')
+              : 'התחברו עם גוגל וראו את ההזמנות שלכם'
+          }
+          onPress={() => router.push('/account')}
+        />
+        <ActionRow
           icon="heart-outline"
           label="המועדפים שלי"
           sublabel="המוצרים ששמרתם לפעם הבאה"
