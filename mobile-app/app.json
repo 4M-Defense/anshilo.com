@@ -16,7 +16,14 @@
       "bundleIdentifier": "com.anshilo.shop.test",
       "infoPlist": {
         "CFBundleDevelopmentRegion": "he",
-        "CFBundleAllowMixedLocalizations": true
+        "CFBundleAllowMixedLocalizations": true,
+        "ExpoLocalization_supportsRTL": true,
+        "ExpoLocalization_forcesRTL": true,
+        "CFBundleLocalizations": [
+          "he",
+          "he"
+        ],
+        "ITSAppUsesNonExemptEncryption": false
       }
     },
     "android": {
