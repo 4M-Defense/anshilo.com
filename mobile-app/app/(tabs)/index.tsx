@@ -22,17 +22,17 @@ import {
   SectionHeader,
   Skeleton,
   SkeletonProductCard,
+  StoreLogo,
 } from '@/components';
 import {
   BRAND_NAMES,
   HOME_FEED,
   IMPORTERS,
   STORE_INFO,
-  STORE_LOGO,
   TEL_URL,
   WHATSAPP_URL,
 } from '@/config';
-import { colors, radius, shadows, spacing, typography } from '@/theme';
+import { colors, radius, rtlText, shadows, spacing, typography } from '@/theme';
 
 /* ---------- קבועי פריסה ---------- */
 
@@ -125,7 +125,7 @@ function RegionError({ message, onRetry }: { message: string; onRetry: () => voi
     <View style={styles.regionError}>
       <Icon name="alert-circle-outline" size={20} color={colors.danger} />
       <Text style={styles.regionErrorText} numberOfLines={3}>
-        {message}
+        {rtlText(message)}
       </Text>
       <Pressable
         accessibilityRole="button"
@@ -177,7 +177,7 @@ function CollectionTile({
         )}
       </View>
       <Text style={styles.collectionTitle} numberOfLines={2}>
-        {collection.title}
+        {rtlText(collection.title)}
       </Text>
     </Pressable>
   );
@@ -218,12 +218,12 @@ function BrandTile({
           />
         ) : (
           <Text style={styles.brandFallback} numberOfLines={2}>
-            {label}
+            {rtlText(label)}
           </Text>
         )}
       </View>
       <Text style={styles.brandName} numberOfLines={2}>
-        {label}
+        {rtlText(label)}
       </Text>
       {importer != null && (
         <View style={styles.importerRow}>
@@ -306,14 +306,7 @@ export default function HomeScreen() {
       <View style={[styles.header, { paddingTop: insets.top + spacing.sm }]}>
         <View style={styles.headerText}>
           {/* הלוגו האמיתי של החנות, מה-CDN — אותו קובץ שההדר באתר מציג */}
-          <Image
-            source={{ uri: STORE_LOGO.horizontal }}
-            style={styles.headerLogo}
-            contentFit="contain"
-            contentPosition="right"
-            transition={200}
-            accessibilityLabel={STORE_INFO.name}
-          />
+          <StoreLogo height={34} />
           <Text style={styles.tagline} numberOfLines={1}>
             {STORE_INFO.tagline}
           </Text>

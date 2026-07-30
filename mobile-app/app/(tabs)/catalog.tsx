@@ -15,8 +15,8 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { getCollections } from '@/api/client';
 import type { Collection, PageInfo } from '@/api/types';
-import { EmptyState, ErrorView, Icon, Skeleton } from '@/components';
-import { colors, radius, shadows, spacing, typography } from '@/theme';
+import { EmptyState, ErrorView, Icon, Skeleton, StoreLogo } from '@/components';
+import { colors, radius, rtlText, shadows, spacing, typography } from '@/theme';
 
 const PAGE_SIZE = 24;
 /** יחס גובה-רוחב של אריח קטגוריה */
@@ -77,7 +77,7 @@ function CategoryTile({
       </View>
       <View style={styles.tileFooter}>
         <Text style={styles.tileTitle} numberOfLines={2}>
-          {collection.title}
+          {rtlText(collection.title)}
         </Text>
         {/* שברון "קדימה" — ‏dir דואג להיפוך תחת RTL */}
         <Icon name="chevron-forward" size={16} color={colors.textMuted} dir />
@@ -201,6 +201,7 @@ export default function CatalogScreen() {
     <View style={styles.screen}>
       {/* כותרת מסך — הטאבים ללא header מובנה */}
       <View style={[styles.header, { paddingTop: insets.top + spacing.md }]}>
+        <StoreLogo height={24} style={styles.headerLogo} />
         <View style={styles.eyebrow} />
         <Text style={styles.headerTitle}>מחלקות</Text>
         <Text style={styles.headerSub}>כל מחלקות החנות במקום אחד</Text>
@@ -262,6 +263,11 @@ const styles = StyleSheet.create({
     gap: spacing.xs + 2,
     alignItems: 'flex-start',
     backgroundColor: colors.bg,
+  },
+  /* הלוגו נמתח לרוחב הכותרת כדי ש-contentPosition="right" יצמיד אותו לימין */
+  headerLogo: {
+    alignSelf: 'stretch',
+    marginBottom: spacing.xxs,
   },
   eyebrow: {
     width: 22,

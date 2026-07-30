@@ -10,7 +10,7 @@ import {
 } from '@/api/customerAccount';
 import { Button, EmptyState, Icon, SectionHeader, Skeleton } from '@/components';
 import { useAuth } from '@/state/AuthContext';
-import { colors, radius, shadows, spacing, typography } from '@/theme';
+import { colors, radius, rtlText, shadows, spacing, typography } from '@/theme';
 
 /** תאריך בעברית, בלי תלות בנתוני Intl של המנוע (שונים בין iOS לאנדרואיד) */
 function formatDate(iso: string): string {
@@ -36,14 +36,14 @@ function OrderCard({ order }: { order: CustomerOrder }) {
   return (
     <View style={styles.orderCard}>
       <View style={styles.orderHead}>
-        <Text style={styles.orderName}>{order.name}</Text>
+        <Text style={styles.orderName}>{rtlText(order.name)}</Text>
         <Text style={styles.orderTotal} allowFontScaling={false}>
           {formatMoney(order.totalPrice)}
         </Text>
       </View>
       <View style={styles.orderMetaRow}>
         <Text style={styles.orderDate} allowFontScaling={false}>
-          {formatDate(order.processedAt)}
+          {rtlText(formatDate(order.processedAt))}
         </Text>
         {status != null && <Text style={styles.orderStatus}>{status}</Text>}
       </View>
@@ -51,7 +51,7 @@ function OrderCard({ order }: { order: CustomerOrder }) {
         <View style={styles.orderItems}>
           {order.lineItems.nodes.map((item, i) => (
             <Text key={`${order.id}-${i}`} style={styles.orderItem} numberOfLines={1}>
-              {`${item.quantity} × ${item.title}`}
+              {rtlText(`${item.quantity} × ${item.title}`)}
             </Text>
           ))}
         </View>
@@ -116,7 +116,7 @@ export default function AccountScreen() {
         {error != null && (
           <View style={styles.errorBanner}>
             <Icon name="alert-circle" size={18} color={colors.danger} />
-            <Text style={styles.errorText}>{error}</Text>
+            <Text style={styles.errorText}>{rtlText(error)}</Text>
           </View>
         )}
       </ScrollView>
@@ -146,16 +146,16 @@ export default function AccountScreen() {
         </View>
         <View style={styles.profileLabels}>
           <Text style={styles.profileName} numberOfLines={1}>
-            {name != null && name !== '' ? name : 'הלקוח שלנו'}
+            {name != null && name !== '' ? rtlText(name) : 'הלקוח שלנו'}
           </Text>
           {email != null && (
             <Text style={styles.profileMeta} numberOfLines={1}>
-              {email}
+              {rtlText(email)}
             </Text>
           )}
           {phone != null && (
             <Text style={styles.profileMeta} numberOfLines={1}>
-              {phone}
+              {rtlText(phone)}
             </Text>
           )}
         </View>
@@ -165,7 +165,7 @@ export default function AccountScreen() {
         <>
           <SectionHeader title="כתובת המשלוח שלי" />
           <View style={styles.plainCard}>
-            <Text style={styles.addressText}>{address}</Text>
+            <Text style={styles.addressText}>{rtlText(address)}</Text>
           </View>
         </>
       )}
@@ -180,7 +180,7 @@ export default function AccountScreen() {
       ) : ordersError !== '' ? (
         <View style={styles.errorBanner}>
           <Icon name="alert-circle" size={18} color={colors.danger} />
-          <Text style={styles.errorText}>{ordersError}</Text>
+          <Text style={styles.errorText}>{rtlText(ordersError)}</Text>
           <Pressable accessibilityRole="button" onPress={loadOrders} hitSlop={spacing.sm}>
             <Text style={styles.retry}>נסו שוב</Text>
           </Pressable>

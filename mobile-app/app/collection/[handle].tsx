@@ -15,7 +15,7 @@ import {
 import { getCollectionProducts, type CollectionSort } from '@/api/client';
 import type { Collection, PageInfo, ProductCardData } from '@/api/types';
 import { EmptyState, ErrorView, ProductCard, Skeleton, SkeletonProductCard } from '@/components';
-import { colors, radius, spacing, typography } from '@/theme';
+import { colors, radius, rtlText, spacing, typography } from '@/theme';
 
 const PAGE_SIZE = 24;
 /** תיאור ארוך מזה מקבל "קרא עוד" */
@@ -185,7 +185,7 @@ export default function CollectionScreen() {
             style={styles.description}
             numberOfLines={descExpanded || !isLongDesc ? undefined : 3}
           >
-            {description}
+            {rtlText(description)}
           </Text>
           {isLongDesc && (
             <Pressable
@@ -253,7 +253,7 @@ export default function CollectionScreen() {
   ) : footerError !== '' ? (
     <View style={styles.footerError}>
       <Text style={styles.footerErrorText} numberOfLines={2}>
-        {footerError}
+        {rtlText(footerError)}
       </Text>
       <Pressable
         accessibilityRole="button"
@@ -272,7 +272,7 @@ export default function CollectionScreen() {
   return (
     <View style={styles.screen}>
       {/* הכותרת המובנית מקבלת את שם הקטגוריה ברגע שנטענה */}
-      <Stack.Screen options={{ title: meta?.title ?? '' }} />
+      <Stack.Screen options={{ title: rtlText(meta?.title) }} />
 
       {screenState === 'loading' && (
         <View style={styles.loadingBody}>

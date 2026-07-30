@@ -16,8 +16,15 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { searchProducts } from '@/api/client';
 import type { PageInfo, ProductCardData } from '@/api/types';
-import { EmptyState, ErrorView, Icon, ProductCard, SkeletonProductCard } from '@/components';
-import { colors, radius, spacing, typography } from '@/theme';
+import {
+  EmptyState,
+  ErrorView,
+  Icon,
+  ProductCard,
+  SkeletonProductCard,
+  StoreLogo,
+} from '@/components';
+import { colors, radius, rtlText, spacing, typography } from '@/theme';
 
 const PAGE_SIZE = 24;
 const DEBOUNCE_MS = 350;
@@ -66,7 +73,7 @@ function SearchChip({
         numberOfLines={1}
         allowFontScaling={false}
       >
-        {label}
+        {rtlText(label)}
       </Text>
     </Pressable>
   );
@@ -233,10 +240,12 @@ export default function SearchScreen() {
 
   /* ---------- תצוגות ---------- */
 
-  const countLine =
+  /* ‏rtlText: השורה השנייה מתחילה בספרה, ובלי סימן RTL היא נדחפת שמאלה */
+  const countLine = rtlText(
     totalCount === 1
       ? `תוצאה אחת עבור „${executedQuery}"`
-      : `${totalCount} תוצאות עבור „${executedQuery}"`;
+      : `${totalCount} תוצאות עבור „${executedQuery}"`
+  );
 
   const listFooter = loadingMore ? (
     <View style={styles.footer}>
@@ -245,7 +254,7 @@ export default function SearchScreen() {
   ) : footerError !== '' ? (
     <View style={styles.footerError}>
       <Text style={styles.footerErrorText} numberOfLines={2}>
-        {footerError}
+        {rtlText(footerError)}
       </Text>
       <Pressable
         accessibilityRole="button"
@@ -263,6 +272,7 @@ export default function SearchScreen() {
     <View style={styles.screen}>
       {/* כותרת המסך — לטאבים אין header מובנה */}
       <View style={[styles.header, { paddingTop: insets.top + spacing.md }]}>
+        <StoreLogo height={24} style={styles.headerLogo} />
         <View style={styles.eyebrow} />
         <Text style={styles.headerTitle}>חיפוש</Text>
         <View style={styles.searchField}>
@@ -400,6 +410,11 @@ const styles = StyleSheet.create({
     gap: spacing.xs + 2,
     alignItems: 'flex-start',
     backgroundColor: colors.bg,
+  },
+  /* הלוגו נמתח לרוחב הכותרת כדי ש-contentPosition="right" יצמיד אותו לימין */
+  headerLogo: {
+    alignSelf: 'stretch',
+    marginBottom: spacing.xxs,
   },
   eyebrow: {
     width: 22,

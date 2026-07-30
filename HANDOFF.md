@@ -703,3 +703,97 @@ by Shopify's **Headless** app (`gid://shopify/App/12875497473`, publication
 1,867.** So the channel is stocked and the data side is ready; the public access
 token simply was never copied into the repo. It is in the admin under
 Sales channels → Headless → Shilo Mobile App → Storefront API.
+
+---
+
+## 13. Round 7 — the "everything is left-to-right" report
+
+The owner installed build 8 and reported: *"לא מותאמת לעברית בכלל, יש מלא כיתוב
+הפוך שהוא משמאל לימין במקום מימין לשמאל."* Seven screenshots came with it.
+
+**The screenshots disproved the headline.** RTL *is* on: the tab bar runs
+right-to-left, the screen headers are right-aligned, the catalog tiles show the
+Round 6 redesign, the Ionicons set is live. The bug is much narrower, and the
+screenshots pinned it exactly.
+
+### The actual defect
+
+In the departments grid, `אבטחה` and `סיקה` sit flush right, while
+`CLICK SWITCH`, `ANAIS`, `SHOVAL`, `NOA` and `YARDEN` sit flush **left** — same
+component, same style object, same render path. Nothing in the style differs, so
+the style is not the cause.
+
+The cause is the alignment iOS ends up resolving. `textAlign: 'right'` is
+swapped to `'left'` under RTL by `doLeftAndRightSwapInRTL`, and the effective
+alignment resolves to **natural** — that is, per the first strong directional
+character of the line. Hebrew-initial strings align right; anything starting
+with a Latin letter or a digit is pushed left. Every symptom the owner saw is
+that one rule:
+
+| String | First strong char | Was |
+|---|---|---|
+| `CLICK SWITCH` | Latin | left |
+| `3 תוצאות עבור „מקדחה"` | digit | left |
+| `2 × מברגה נטענת` (order line) | digit | left |
+| `#1043` (order name) | digit | left |
+| `dvir@4-mine.com` | Latin | left |
+| product descriptions opening with a model number | digit | left |
+
+`writingDirection: 'rtl'` was already set on these styles and did not help,
+which is the tell that the fix has to be in the *content*, not the style.
+
+### The fix — `rtlText()` in `src/theme.ts`
+
+```ts
+export function rtlText(value: string | null | undefined): string {
+  if (value == null) return '';
+  const trimmed = value.trim();
+  if (trimmed === '') return '';
+  return `‏${trimmed}`;
+}
+```
+
+U+200F RIGHT-TO-LEFT MARK is invisible, costs one character, and gives the line
+a strong RTL character up front — so the paragraph's base direction is RTL and
+the alignment resolves right, every time, regardless of what the shop happens to
+have typed. It does **not** reverse the Latin run: `CLICK SWITCH` still reads
+left-to-right inside the line, because the bidi algorithm handles the run. Same
+behaviour on both platforms, and it ships over EAS Update — no rebuild.
+
+Applied to text **that comes from the shop or from an error**: product and
+department and brand titles, vendor names, descriptions, option names, cart line
+titles and option labels, order names and dates and line items, customer name /
+email / phone / address, search result counts and chips, and every error banner.
+
+**Deliberately not applied to money.** `formatMoney` returns `₪1,234.00`; an RTL
+base direction would move the `₪` to the wrong end. Prices keep their own
+direction and are positioned by flexbox, not by `textAlign`.
+
+Static Hebrew literals in the source need nothing — their first character is
+already Hebrew.
+
+### Two more things from the same screenshots
+
+**The version footer lied.** It read `Constants.nativeApplicationVersion ?? '1.0.0'`,
+and the hardcoded fallback is what displayed once the app moved to 1.0.1. It now
+falls back to `Constants.expoConfig?.version` — which tracks `app.json` and
+updates with the code — and appends the native build number, so the owner can
+read which TestFlight build is actually installed instead of guessing. That
+question came up three separate times in Round 6.
+
+**The logo was only on two screens.** The owner asked for it to appear more.
+`src/components/StoreLogo.tsx` is now the single definition (`contentPosition:
+'right'` is what pins it to the right edge under RTL — `contentFit: 'contain'`
+alone centres it), and it sits in the header of home, departments, search and
+cart. The `more` screen keeps its own square-mark-on-ink treatment; that one is
+deliberate, not a duplicate to collapse.
+
+### Verified, not assumed
+
+- `npx tsc --noEmit` — clean
+- `npx expo export --platform ios` — 1,200 modules bundled
+- The compiled Hermes bundle was searched for the marks: U+200F present 18×,
+  U+200E (the LTR mark that keeps `-25%` from becoming `25%-`) present 36×, both
+  as UTF-16LE. The escape survives Metro and Hermes.
+- `npx expo lint` could not run — no ESLint config in the project, and the proxy
+  blocked the automatic install. Not a regression; it has never been configured.

@@ -247,6 +247,29 @@ export const rtl = {
   center: { textAlign: 'center', writingDirection: 'rtl' },
 } as const satisfies Record<string, TextStyle>;
 
+/**
+ * עוטף טקסט שמגיע מהחנות כך שיתיישר לימין גם אם הוא מתחיל בלטינית או במספר.
+ *
+ * הבעיה שזה פותר, כפי שנראתה על מכשיר: באותו רכיב בדיוק, "אבטחה" יושב מימין
+ * ו-"CLICK SWITCH" יושב משמאל. הסיבה איננה באג בסטייל — היא ש-React Native
+ * מהפך `textAlign: 'right'` ל-`'left'` תחת RTL (doLeftAndRightSwapInRTL),
+ * ו-iOS מפרש `left` כיישור **טבעי**: לפי התו החזק הראשון. עברית מיושרת לימין,
+ * ומחרוזת שמתחילה ב-Latin או בספרה נדחפת שמאלה.
+ *
+ * הפתרון הוא לתת לשורה תו RTL חזק בהתחלה — U+200F, RIGHT-TO-LEFT MARK. הוא
+ * בלתי נראה, אינו משנה את סדר הקריאה בתוך המילה הלטינית ("CLICK SWITCH"
+ * נקרא כרגיל), אבל הוא קובע את כיוון הבסיס של הפסקה ולכן היישור יוצא ימין.
+ *
+ * להשתמש בזה על **טקסט שמגיע מהחנות** — שמות מוצרים, מחלקות, מותגים, יצרן,
+ * תיאורים. לא צריך על מחרוזות שכתובות בקוד בעברית, שם התו הראשון עברי ממילא.
+ */
+export function rtlText(value: string | null | undefined): string {
+  if (value == null) return '';
+  const trimmed = value.trim();
+  if (trimmed === '') return '';
+  return `\u200F${trimmed}`;
+}
+
 /** מספרים בעמודות (מחירים, שעות) — ספרות ברוחב אחיד */
 export const numeric = {
   fontVariant: ['tabular-nums'],

@@ -1,5 +1,5 @@
 import { StyleSheet, Text, View } from 'react-native';
-import { colors, layout, radius, rtl, spacing, type } from '@/theme';
+import { colors, layout, radius, rtl, rtlText, spacing, type } from '@/theme';
 import { Button } from './Button';
 import { Icon } from './Icon';
 
@@ -22,8 +22,8 @@ export function EmptyState({ icon, title, text, actionLabel, onAction }: EmptySt
       <View style={styles.iconWrap}>
         <Icon name={icon} size={30} color={colors.ink} knockout={colors.surfaceSunken} />
       </View>
-      <Text style={styles.title}>{title}</Text>
-      {text != null && <Text style={styles.text}>{text}</Text>}
+      <Text style={styles.title}>{rtlText(title)}</Text>
+      {text != null && <Text style={styles.text}>{rtlText(text)}</Text>}
       {actionLabel != null && onAction != null && (
         <Button title={actionLabel} onPress={onAction} style={styles.button} />
       )}

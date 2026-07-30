@@ -19,6 +19,24 @@ import { colors, radius, shadows, spacing, typography } from '@/theme';
 
 const WEBSITE_LABEL = STORE_INFO.website.replace(/^https?:\/\//, '');
 
+/**
+ * גרסת האפליקציה לפוטר.
+ *
+ * `nativeApplicationVersion` הוא ה-CFBundleShortVersionString של הבינארי, וזה
+ * המספר הנכון להציג — אבל הוא null בהרצת פיתוח. הגיבוי הקודם היה `'1.0.0'`
+ * מקובע, ולכן הפוטר הציג 1.0.0 גם אחרי שעברנו ל-1.0.1. במקום מספר קבוע
+ * נופלים ל-`expoConfig.version`, שנקרא מ-app.json ומתעדכן יחד עם הקוד.
+ *
+ * מספר הבנייה מוצג בסוגריים כשהוא קיים: כך אפשר לדעת מהטלפון איזו בנייה
+ * מ-TestFlight מותקנת בפועל, בלי לנחש.
+ */
+const APP_VERSION = (() => {
+  const version = Constants.nativeApplicationVersion ?? Constants.expoConfig?.version ?? '';
+  const build = Constants.nativeBuildVersion;
+  if (version === '') return '—';
+  return build != null && build !== '' ? `${version} (${build})` : version;
+})();
+
 /** שורת פעולה בכרטיס — אייקון בבועה, תווית, ושברון "קדימה" (מוטה שמאלה ב-RTL) */
 function ActionRow({
   icon,
@@ -203,7 +221,7 @@ export default function MoreScreen() {
 
       {/* פוטר גרסה */}
       <Text style={styles.version} allowFontScaling={false}>
-        {`${STORE_INFO.name} · גרסה ${Constants.nativeApplicationVersion ?? '1.0.0'}`}
+        {`${STORE_INFO.name} · גרסה ${APP_VERSION}`}
       </Text>
     </ScrollView>
   );

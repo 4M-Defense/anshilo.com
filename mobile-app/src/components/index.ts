@@ -12,3 +12,4 @@ export { SectionHeader, type SectionHeaderProps } from './SectionHeader';
 export { Skeleton, useSkeletonPulse, type SkeletonProps } from './Skeleton';
 export { SkeletonProductCard, type SkeletonProductCardProps } from './SkeletonProductCard';
 export { StockDot, type StockDotProps, type StockLevel } from './StockDot';
+export { StoreLogo, type StoreLogoProps } from './StoreLogo';

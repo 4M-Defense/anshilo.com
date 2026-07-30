@@ -15,10 +15,18 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { StorefrontError, formatMoney } from '@/api/client';
 import type { CartLine, MoneyV2 } from '@/api/types';
-import { Button, EmptyState, Icon, PriceText, QuantityStepper, Skeleton } from '@/components';
+import {
+  Button,
+  EmptyState,
+  Icon,
+  PriceText,
+  QuantityStepper,
+  Skeleton,
+  StoreLogo,
+} from '@/components';
 import { FREE_SHIPPING_THRESHOLD } from '@/config';
 import { useCart } from '@/state/CartContext';
-import { colors, radius, shadows, spacing, typography } from '@/theme';
+import { colors, radius, rtlText, shadows, spacing, typography } from '@/theme';
 
 function errorMessage(e: unknown, fallback: string): string {
   return e instanceof StorefrontError ? e.message : fallback;
@@ -93,7 +101,7 @@ function CartLineRow({
             style={styles.lineTitlePress}
           >
             <Text style={styles.lineTitle} numberOfLines={2}>
-              {merchandise.product.title}
+              {rtlText(merchandise.product.title)}
             </Text>
           </Pressable>
           <Pressable
@@ -114,7 +122,7 @@ function CartLineRow({
 
         {optionsLabel !== '' && (
           <Text style={styles.lineOptions} numberOfLines={1}>
-            {optionsLabel}
+            {rtlText(optionsLabel)}
           </Text>
         )}
         {!merchandise.availableForSale && (
@@ -130,7 +138,9 @@ function CartLineRow({
           <View style={styles.linePriceWrap}>
             <PriceText price={line.cost.totalAmount} compareAt={compareTotal} size="md" />
             {line.quantity > 1 && (
-              <Text style={styles.lineUnitPrice}>{formatMoney(merchandise.price)} ליחידה</Text>
+              <Text style={styles.lineUnitPrice}>
+                {rtlText(`${formatMoney(merchandise.price)} ליחידה`)}
+              </Text>
             )}
           </View>
         </View>
@@ -285,12 +295,13 @@ export default function CartScreen() {
 
   const header = (
     <View style={[styles.header, { paddingTop: insets.top + spacing.md }]}>
+      <StoreLogo height={24} />
       <View style={styles.eyebrow} />
       <View style={styles.headerRow}>
         <Text style={styles.headerTitle}>עגלת הקניות</Text>
         {itemCount > 0 && (
           <Text style={styles.headerCount}>
-            {itemCount === 1 ? 'פריט אחד' : `${itemCount} פריטים`}
+            {rtlText(itemCount === 1 ? 'פריט אחד' : `${itemCount} פריטים`)}
           </Text>
         )}
       </View>

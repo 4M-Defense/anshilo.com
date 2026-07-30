@@ -3,7 +3,7 @@ import { useRouter } from 'expo-router';
 import { useRef } from 'react';
 import { Animated, Pressable, StyleSheet, Text, View } from 'react-native';
 import type { ProductCardData } from '@/api/types';
-import { colors, layout, radius, rtl, shadows, spacing, type } from '@/theme';
+import { colors, layout, radius, rtl, rtlText, shadows, spacing, type } from '@/theme';
 import { Badge } from './Badge';
 import { Icon } from './Icon';
 import { PriceText } from './PriceText';
@@ -100,11 +100,11 @@ export function ProductCard({ product, width, showStock = true }: ProductCardPro
         <View style={styles.info}>
           {product.vendor !== '' && (
             <Text style={styles.vendor} numberOfLines={1}>
-              {product.vendor}
+              {rtlText(product.vendor)}
             </Text>
           )}
           <Text style={styles.title} numberOfLines={2}>
-            {product.title}
+            {rtlText(product.title)}
           </Text>
           <View style={styles.priceRow}>
             {hasRange && <Text style={styles.fromLabel}>החל מ־</Text>}

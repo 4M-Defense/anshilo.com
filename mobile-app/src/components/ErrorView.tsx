@@ -1,5 +1,5 @@
 import { StyleSheet, Text, View } from 'react-native';
-import { colors, layout, radius, rtl, spacing, type } from '@/theme';
+import { colors, layout, radius, rtl, rtlText, spacing, type } from '@/theme';
 import { Button } from './Button';
 import { Icon } from './Icon';
 
@@ -21,7 +21,7 @@ export function ErrorView({ message, onRetry }: ErrorViewProps) {
         />
       </View>
       <Text style={styles.title}>משהו לא עבד כמצופה</Text>
-      <Text style={styles.message}>{message}</Text>
+      <Text style={styles.message}>{rtlText(message)}</Text>
       <Button title="נסו שוב" onPress={onRetry} style={styles.button} />
     </View>
   );

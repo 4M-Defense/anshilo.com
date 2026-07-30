@@ -38,7 +38,7 @@ import {
 import { STORE_INFO, TEL_URL, WHATSAPP_URL } from '@/config';
 import { useCart } from '@/state/CartContext';
 import { useFavorites } from '@/state/FavoritesContext';
-import { colors, radius, shadows, spacing, typography } from '@/theme';
+import { colors, radius, rtlText, shadows, spacing, typography } from '@/theme';
 
 /* ---------- המרת descriptionHtml לטקסט קריא ---------- */
 
@@ -476,7 +476,7 @@ export default function ProductScreen() {
             {product.vendor !== '' && (
               <View style={styles.vendorChip}>
                 <Text style={styles.vendorChipText} numberOfLines={1}>
-                  {product.vendor}
+                  {rtlText(product.vendor)}
                 </Text>
               </View>
             )}
@@ -486,7 +486,7 @@ export default function ProductScreen() {
             </View>
           </View>
 
-          <Text style={styles.title}>{product.title}</Text>
+          <Text style={styles.title}>{rtlText(product.title)}</Text>
 
           {price != null && (
             <View style={styles.priceRow}>
@@ -507,7 +507,7 @@ export default function ProductScreen() {
             product.options.map((option) => (
               <View key={option.name} style={styles.optionGroup}>
                 <Text style={styles.optionName}>
-                  {option.name}
+                  {rtlText(option.name)}
                   {selected[option.name] != null && (
                     <Text style={styles.optionValue}>  ·  {selected[option.name]}</Text>
                   )}
@@ -565,7 +565,7 @@ export default function ProductScreen() {
           {description !== '' && (
             <View style={styles.section}>
               <SectionHeader title="תיאור המוצר" />
-              <Text style={styles.description}>{description}</Text>
+              <Text style={styles.description}>{rtlText(description)}</Text>
             </View>
           )}
         </View>
@@ -614,7 +614,7 @@ export default function ProductScreen() {
           {addError != null && (
             <View style={styles.errorBanner}>
               <Icon name="alert-circle" size={18} color={colors.danger} knockout={colors.dangerSoft} />
-              <Text style={styles.errorBannerText}>{addError}</Text>
+              <Text style={styles.errorBannerText}>{rtlText(addError)}</Text>
             </View>
           )}
           {unpriced ? (
