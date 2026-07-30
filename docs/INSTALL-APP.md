@@ -164,14 +164,52 @@ eas build --platform android --profile preview      # הפרופיל כבר מו
 ```bash
 npm install -g eas-cli
 eas login
+eas init                                             # מקשר את הפרויקט ל-EAS
 # eas.json כבר קיים בריפוזיטורי - אין צורך ב-build:configure
 eas build --platform ios --profile production        # בונה בענן
 eas build --platform android --profile production
-eas submit --platform ios --profile production       # שולח לבדיקה
-eas submit --platform android --profile production
+eas submit --platform ios --latest                   # מעלה ל-TestFlight
+eas submit --platform android --latest
 ```
 
-הבדיקה באפל לוקחת בדרך כלל 1-3 ימים, בגוגל בין כמה שעות ליום.
+`eas init` **כותב `extra.eas.projectId` לתוך `app.json`** - זה שינוי בקובץ שצריך
+לעשות לו commit. בלעדיו כל מחשב אחר ייצור פרויקט EAS חדש ונפרד.
+
+### מה EAS ישאל בבנייה הראשונה ל-iOS
+
+הבנייה הראשונה היא אינטראקטיבית, ולכן **חייבת לרוץ ממחשב** - וזו גם הסיבה
+שהתיעוד של Expo דורש בנייה מוצלחת אחת ממחשב לפני שאפשר להפעיל בניות מגיטהאב.
+
+| השאלה | התשובה |
+|---|---|
+| התחברות ל-Apple ID | החשבון עם הרשאות על החברה. יגיע קוד 2FA |
+| ליצור Bundle ID `com.anshilo.shop`? | כן |
+| שEAS ינהל Distribution Certificate ו-Provisioning Profile? | **כן.** זה מונע התעסקות ידנית בחתימות |
+| ליצור רשומת אפליקציה ב-App Store Connect? | כן, אם עוד לא נוצרה |
+
+**מספרי הבנייה מנוהלים אוטומטית:** `appVersionSource: "remote"` עם
+`autoIncrement: true` ב-`eas.json`. אין מה לעדכן ידנית בין בניות.
+
+### שני דברים שנפתרו מראש
+
+**1. שאלת הצפנה בכל העלאה.** TestFlight שואל בכל העלאה על שימוש בהצפנה. האפליקציה
+משתמשת רק ב-HTTPS של המערכת ובלי הצפנה עצמית, ולכן היא בפטור הסטנדרטי. הוגדר
+`ITSAppUsesNonExemptEncryption: false` ב-`app.json`, **וזה מבטל את השאלה לתמיד**.
+
+**2. האייקון תקין.** אפל דוחה אייקון עם שקיפות. ל-`assets/icon.png` יש ערוץ אלפא,
+אבל נמדד: **0 מתוך 1,048,576 פיקסלים שקופים** - הוא אטום לחלוטין והכלל מתקיים.
+אין מה לתקן. (ל-`splash-icon.png` יש שקיפות אמיתית ב-62% מהשטח, וזה נכון - הוא
+יושב על רקע הנייבי.)
+
+### ⚠️ החלטה שממתינה לפרסום בחנות
+
+ב-`app.json` מוגדר **`supportsTablet: true`**. ל-TestFlight זה לא משנה, אבל
+**בהגשה ל-App Store אפל תדרוש גם צילומי מסך לאייפד** ותבדוק את האפליקציה עליו.
+אם לא מתכננים לתמוך באייפד - לכבות את זה לפני ההגשה.
+
+**TestFlight פנימי לא עובר בדיקה של אפל.** אחרי עיבוד של דקות אפשר להתקין.
+בדיקה חיצונית כן עוברת בדיקה. ההגשה לחנות עצמה לוקחת בדרך כלל 1-3 ימים באפל,
+ובגוגל בין כמה שעות ליום.
 
 > **טיפ:** אפל דוחה לפעמים אפליקציות חנות שהן "רק אתר בתוך מסגרת". האפליקציה
 > הזאת אינה כזו - היא native ומשתמשת ב-API - אבל שווה להדגיש בתיאור את מה
