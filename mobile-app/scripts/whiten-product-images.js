@@ -21,6 +21,7 @@
  * ה-Storefront יכולה להנפיק גם אותו (Settings → Apps → Develop apps).
  */
 
+const crypto = require('crypto');
 const fs = require('fs');
 const path = require('path');
 const { PNG } = require('pngjs');
@@ -37,7 +38,7 @@ const WHITE_RATIO = 0.9;
 /** מרחק צבע מותר מגוון הרקע (סכום ההפרשים בשלושת הערוצים) */
 const FILL_TOLERANCE = 62;
 /** כמה דוגמאות לפני/אחרי לשמור בהרצה יבשה */
-const SAMPLE_COUNT = 8;
+const SAMPLE_COUNT = 12;
 const CONCURRENCY = 6;
 
 const args = process.argv.slice(2);
@@ -391,6 +392,17 @@ async function main() {
   const fixed = [];
   const unsafe = [];
   const risky = [];
+  /*
+   * טביעות אצבע של תמונות שכבר נדגמו.
+   *
+   * הרבה מוצרים בקטלוג חולקים צילום אחד — סדרת סולמות שלמה על אותה תמונה —
+   * ובלי הסינון הזה שמונה ה"דוגמאות" יצאו שישה עותקים של תמונה אחת ועוד
+   * שניים של אחרת. מי שמאשר את האיכות חשב שבדק שמונה מוצרים וראה שניים.
+   *
+   * הסינון הוא לפי תוכן ולא לפי כתובת: אותו צילום הועלה לחנות כמה פעמים
+   * תחת שמות שונים, כך שכתובות שונות מחזירות בתים זהים.
+   */
+  const sampledHashes = new Set();
 
   await mapLimit(products, CONCURRENCY, async (product) => {
     const probe = await loadPng(product.featuredImage.url, PROBE_WIDTH);
@@ -409,6 +421,25 @@ async function main() {
       skipped++;
       return;
     }
+
+    /*
+     * בדיקה שלאחר מעשה: אחרי ההלבנה המסגרת חייבת להיות לבנה.
+     *
+     * whitenBackground מחליט מהו גוון הרקע לפי ממוצע המסגרת, ומחליף כל מה
+     * שקרוב אליו. כשהתמונה אינה צילום מוצר על רקע אחיד — למשל טבלת מפרט
+     * עם קווים דקים וטקסט — הממוצע חסר משמעות, ההחלפה מפספסת, והמסגרת
+     * נשארת צבועה. זה בדיוק מה שקרה ל"סולם עץ רב מקצועי 105606", שיצא עם
+     * פינה בגוון 195,207,221 ועם 886 פיקסלים צבועים על הקצה.
+     *
+     * הבדיקה הזאת עולה כלום ותופסת את כל המשפחה הזאת של כשלים לפני
+     * שהתמונה נכתבת לחנות, במקום לקוות שמישהו יבחין בזה בדוגמאות.
+     */
+    if (!borderIsWhite(full).ok) {
+      unsafe.push(`${product.title} — המסגרת נשארה צבועה אחרי ההלבנה`);
+      skipped++;
+      return;
+    }
+
     const buffer = PNG.sync.write(full);
 
     /* רקע נעול נרחב — התמונה שווה בחינה בעין לפני שמחליפים בחנות */
@@ -424,10 +455,15 @@ async function main() {
       }
     } else {
       fixed.push(product.title);
-      if (samples < SAMPLE_COUNT) {
+      /* בדיקה והוספה באותה פעימה סינכרונית — mapLimit רץ במקביל */
+      const imageHash = crypto.createHash('md5').update(before).digest('hex');
+      if (samples < SAMPLE_COUNT && !sampledHashes.has(imageHash)) {
+        sampledHashes.add(imageHash);
         const n = ++samples;
-        fs.writeFileSync(path.join(sampleDir, `${n}-before.png`), before);
-        fs.writeFileSync(path.join(sampleDir, `${n}-after.png`), buffer);
+        /* השם נושא את המוצר, אחרת אי אפשר לדעת על מה מסתכלים */
+        const label = product.title.replace(/[\\/:*?"<>|]/g, '').trim().slice(0, 45);
+        fs.writeFileSync(path.join(sampleDir, `${n}-${label}-before.png`), before);
+        fs.writeFileSync(path.join(sampleDir, `${n}-${label}-after.png`), buffer);
       }
     }
   });
