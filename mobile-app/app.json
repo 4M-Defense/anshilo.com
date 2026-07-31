@@ -13,7 +13,7 @@
     "newArchEnabled": true,
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.anshilo.shop",
+      "bundleIdentifier": "com.anshilo.shop.test",
       "infoPlist": {
         "CFBundleDevelopmentRegion": "he",
         "CFBundleAllowMixedLocalizations": true,
