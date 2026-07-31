@@ -1,5 +1,14 @@
 import { useCallback, useEffect, useState } from 'react';
-import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import {
+  ActivityIndicator,
+  Alert,
+  Linking,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
+} from 'react-native';
 import { formatMoney } from '@/api/client';
 import {
   CUSTOMER_ORDERS_QUERY,
@@ -9,6 +18,7 @@ import {
   type CustomerOrders,
 } from '@/api/customerAccount';
 import { Button, EmptyState, Icon, SectionHeader, Skeleton } from '@/components';
+import { STORE_INFO, WHATSAPP_URL, whatsappWithMessage } from '@/config';
 import { useAuth } from '@/state/AuthContext';
 import { alignEnd, colors, radius, rtlText, shadows, spacing, typography } from '@/theme';
 
@@ -88,6 +98,60 @@ export default function AccountScreen() {
   useEffect(() => {
     if (status === 'signedIn') loadOrders();
   }, [status, loadOrders]);
+
+  /* ---------- מחיקת חשבון ---------- */
+
+  /**
+   * מסלול מחיקת החשבון — דרישה מחייבת של אפל (App Review 5.1.1(v)):
+   * אפליקציה שמאפשרת יצירת חשבון חייבת לאפשר גם למחוק אותו, ומתוך
+   * האפליקציה. זו אחת מסיבות הדחייה הנפוצות ביותר.
+   *
+   * המחיקה אינה מתבצעת כאן אלא נשלחת כבקשה לצוות החנות, כי אין ברירה:
+   * שופיפיי לא חושפת מחיקת לקוח לא ב-Storefront API ולא ב-Customer
+   * Account API — מחיקת לקוח אפשרית רק מצד האדמין. הדפוס הזה (בקשה
+   * שנפתחת מתוך האפליקציה, עם זהות הלקוח ממולאת מראש) הוא מה שאפל
+   * מקבלת כשהפלטפורמה לא מאפשרת מחיקה תכנותית.
+   *
+   * שני ערוצים, כי אימייל לבדו נכשל בשקט על מכשיר בלי חשבון דואר מוגדר.
+   */
+  const requestAccountDeletion = useCallback(() => {
+    const who = profile?.emailAddress?.emailAddress ?? profile?.displayName ?? '';
+    const subject = 'בקשה למחיקת חשבון';
+    const body =
+      'שלום,\n\nאני מבקש/ת למחוק את חשבון הלקוח שלי ואת הפרטים האישיים ' +
+      'המשויכים אליו.\n\n' +
+      (who !== '' ? `החשבון: ${who}\n` : '') +
+      '\nנשלח מאפליקציית א.נ. שילו.';
+
+    const openMail = () => {
+      const url =
+        `mailto:${STORE_INFO.email}` +
+        `?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+      Linking.openURL(url).catch(() => {
+        Alert.alert(
+          'לא הצלחנו לפתוח את הדואר',
+          `אפשר לשלוח בקשה לכתובת ${STORE_INFO.email} או להתקשר ל-${STORE_INFO.phone}.`
+        );
+      });
+    };
+
+    const openWhatsapp = () => {
+      const url = whatsappWithMessage(WHATSAPP_URL, body);
+      if (url === '') return openMail();
+      Linking.openURL(url).catch(openMail);
+    };
+
+    Alert.alert(
+      'מחיקת החשבון שלי',
+      'הבקשה תישלח לצוות החנות, והחשבון והפרטים האישיים יימחקו תוך 14 ימי ' +
+        'עסקים. פרטי הזמנות שכבר בוצעו נשמרים כנדרש בחוק. הפעולה אינה הפיכה.',
+      [
+        { text: 'ביטול', style: 'cancel' },
+        { text: 'וואטסאפ', onPress: openWhatsapp },
+        { text: 'אימייל', style: 'destructive', onPress: openMail },
+      ]
+    );
+  }, [profile]);
 
   /* ---------- לא מחוברים ---------- */
 
@@ -204,6 +268,21 @@ export default function AccountScreen() {
         loading={busy}
         style={styles.signOutButton}
       />
+
+      {/*
+        מחיקת חשבון — חובה של אפל, ולכן חייבת להיות נגישה ולא קבורה.
+        מופרדת חזותית מהתנתקות: שתיהן "יציאה", אבל רק אחת בלתי הפיכה.
+      */}
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLabel="מחיקת החשבון שלי"
+        onPress={requestAccountDeletion}
+        hitSlop={spacing.sm}
+        style={({ pressed }) => [styles.deleteRow, pressed && styles.deletePressed]}
+      >
+        <Icon name="trash-outline" size={16} color={colors.danger} />
+        <Text style={styles.deleteText}>מחיקת החשבון שלי</Text>
+      </Pressable>
     </ScrollView>
   );
 }
@@ -371,4 +450,19 @@ const styles = StyleSheet.create({
   retry: { fontSize: typography.small, fontWeight: '800', color: colors.danger },
 
   signOutButton: { marginTop: spacing.sm },
+  deleteRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: spacing.xs,
+    paddingVertical: spacing.sm,
+  },
+  deletePressed: { opacity: 0.6 },
+  deleteText: {
+    fontSize: typography.small,
+    fontWeight: '600',
+    color: colors.danger,
+    textAlign: 'center',
+    writingDirection: 'rtl',
+  },
 });
