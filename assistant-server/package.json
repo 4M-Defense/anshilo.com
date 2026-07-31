@@ -7,10 +7,13 @@
     "deploy": "npx expo export -p web && eas deploy --environment production"
   },
   "dependencies": {
+    "@expo/metro-runtime": "~6.1.2",
     "expo": "~57.0.9",
     "expo-router": "~57.0.9",
     "react": "19.2.3",
-    "react-native": "0.86.2"
+    "react-dom": "19.2.3",
+    "react-native": "0.86.2",
+    "react-native-web": "~0.21.0"
   },
   "devDependencies": {
     "typescript": "~6.0.3"
