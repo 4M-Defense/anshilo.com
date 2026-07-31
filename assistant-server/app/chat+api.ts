@@ -585,6 +585,142 @@ async function callAnthropic(
 }
 
 // ---------------------------------------------------------------------------
+// OpenAI — ספק חלופי
+// ---------------------------------------------------------------------------
+
+/*
+ * אותו עוזר בדיוק, על Chat Completions של OpenAI. הספק נבחר לפי משתני
+ * הסביבה: OPENAI_API_KEY מפעיל את המסלול הזה, ANTHROPIC_API_KEY את המקורי.
+ * הכלים, הנחיות המערכת, סימוני [[handle]] והגנות הקצב — משותפים לשניהם;
+ * ההבדל היחיד הוא פרוטוקול השיחה מול הספק.
+ */
+const OPENAI_ENDPOINT = 'https://api.openai.com/v1/chat/completions';
+const OPENAI_DEFAULT_MODEL = 'gpt-5-mini';
+
+const OPENAI_TOOLS = TOOLS.map((tool) => ({
+  type: 'function' as const,
+  function: {
+    name: tool.name,
+    description: tool.description,
+    parameters: tool.input_schema,
+  },
+}));
+
+interface OpenAiToolCall {
+  id: string;
+  type: 'function';
+  function: { name: string; arguments: string };
+}
+
+interface OpenAiChatMessage {
+  role: 'system' | 'user' | 'assistant' | 'tool';
+  content: string | null;
+  tool_calls?: OpenAiToolCall[];
+  tool_call_id?: string;
+}
+
+interface OpenAiResponse {
+  choices: {
+    message: { content: string | null; tool_calls?: OpenAiToolCall[] };
+    finish_reason: string;
+  }[];
+}
+
+async function callOpenAi(
+  apiKey: string,
+  model: string,
+  messages: OpenAiChatMessage[],
+  forceText: boolean
+): Promise<OpenAiResponse> {
+  const response = await fetch(OPENAI_ENDPOINT, {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${apiKey}`,
+      'content-type': 'application/json',
+    },
+    body: JSON.stringify({
+      model,
+      max_completion_tokens: MAX_TOKENS,
+      messages,
+      tools: OPENAI_TOOLS,
+      ...(forceText ? { tool_choice: 'none' } : {}),
+    }),
+  });
+
+  if (!response.ok) {
+    const errorBody = await response.text().catch(() => '');
+    console.error('chat: openai error', response.status, errorBody.slice(0, 2000));
+    throw new UpstreamError(response.status);
+  }
+
+  return (await response.json()) as OpenAiResponse;
+}
+
+/** מריץ את לולאת הכלים מול OpenAI ומחזיר את הטקסט הסופי. */
+async function runOpenAiLoop(
+  apiKey: string,
+  model: string,
+  system: string,
+  transcript: ChatMessage[],
+  storefrontToken: string,
+  seenProducts: Map<string, ProductNode>
+): Promise<string> {
+  const conversation: OpenAiChatMessage[] = [
+    { role: 'system', content: system },
+    ...transcript.map((m) => ({ role: m.role, content: m.content }) as OpenAiChatMessage),
+  ];
+
+  for (let iteration = 1; iteration <= MAX_ITERATIONS; iteration++) {
+    const forceText = iteration === MAX_ITERATIONS;
+    const response = await callOpenAi(apiKey, model, conversation, forceText);
+    const choice = response.choices?.[0];
+    if (choice == null) throw new UpstreamError(502);
+
+    const toolCalls = choice.message.tool_calls ?? [];
+    if (choice.finish_reason !== 'tool_calls' || toolCalls.length === 0) {
+      return choice.message.content ?? '';
+    }
+
+    conversation.push({
+      role: 'assistant',
+      content: choice.message.content,
+      tool_calls: toolCalls,
+    });
+
+    /* אותה תקרת קריאות-כלי לתור כמו במסלול Anthropic, מאותם נימוקים */
+    for (const call of toolCalls.slice(0, MAX_TOOL_CALLS_PER_TURN)) {
+      let resultText: string;
+      try {
+        const parsedArgs: unknown = JSON.parse(call.function.arguments || '{}');
+        const input =
+          parsedArgs != null && typeof parsedArgs === 'object' && !Array.isArray(parsedArgs)
+            ? (parsedArgs as Record<string, unknown>)
+            : {};
+        if (call.function.name === 'search_catalog') {
+          resultText = await runSearchCatalog(storefrontToken, input, seenProducts);
+        } else if (call.function.name === 'get_product') {
+          resultText = await runGetProduct(storefrontToken, input, seenProducts);
+        } else {
+          throw new Error(`כלי לא מוכר: ${call.function.name}`);
+        }
+      } catch (toolError) {
+        console.error('chat: tool failed', call.function.name, toolError);
+        resultText = 'הבדיקה מול הקטלוג נכשלה זמנית. אל תמציא נתונים — הצע לנסות שוב.';
+      }
+      conversation.push({ role: 'tool', tool_call_id: call.id, content: resultText });
+    }
+    for (const call of toolCalls.slice(MAX_TOOL_CALLS_PER_TURN)) {
+      conversation.push({
+        role: 'tool',
+        tool_call_id: call.id,
+        content: 'חרגת ממכסת הבדיקות לתור הזה. ענה לפי מה שכבר נאסף.',
+      });
+    }
+  }
+  return '';
+}
+
+// ---------------------------------------------------------------------------
 // נקודת הקצה
 // ---------------------------------------------------------------------------
 
@@ -631,16 +767,23 @@ export async function POST(request: Request): Promise<Response> {
     return jsonResponse(429, { error: 'יותר מדי בקשות. המתינו רגע ונסו שוב.' }, cors);
   }
 
-  const apiKey = process.env.ANTHROPIC_API_KEY;
+  /*
+   * הספק נקבע לפי המפתח שקיים: OpenAI או Anthropic. כשקיימים שניהם —
+   * OpenAI מנצח, כי אם הוגדר במפורש כנראה שזה מה שמשלמים עליו.
+   */
+  const openAiKey = process.env.OPENAI_API_KEY;
+  const anthropicKey = process.env.ANTHROPIC_API_KEY;
   const storefrontToken = process.env.SHOPIFY_STOREFRONT_TOKEN;
-  if (!apiKey || !storefrontToken) {
+  if ((!openAiKey && !anthropicKey) || !storefrontToken) {
     console.error('chat: missing env vars', {
-      hasAnthropicKey: Boolean(apiKey),
+      hasOpenAiKey: Boolean(openAiKey),
+      hasAnthropicKey: Boolean(anthropicKey),
       hasStorefrontToken: Boolean(storefrontToken),
     });
     return jsonResponse(503, { error: 'העוזר עדיין לא הוגדר בשרת. פנו לצוות החנות.' }, cors);
   }
-  const model = process.env.ASSISTANT_MODEL || DEFAULT_MODEL;
+  const model =
+    process.env.ASSISTANT_MODEL || (openAiKey ? OPENAI_DEFAULT_MODEL : DEFAULT_MODEL);
 
   let rawBody: unknown;
   try {
@@ -670,9 +813,19 @@ export async function POST(request: Request): Promise<Response> {
   try {
     let finalText = '';
 
+    if (openAiKey) {
+      finalText = await runOpenAiLoop(
+        openAiKey,
+        model,
+        system,
+        parsed.messages,
+        storefrontToken,
+        seenProducts
+      );
+    } else {
     for (let iteration = 1; iteration <= MAX_ITERATIONS; iteration++) {
       const forceText = iteration === MAX_ITERATIONS;
-      const message = await callAnthropic(apiKey, model, system, conversation, forceText);
+      const message = await callAnthropic(anthropicKey as string, model, system, conversation, forceText);
 
       const toolUses = message.content.filter(isToolUseBlock);
       if (message.stop_reason !== 'tool_use' || toolUses.length === 0) {
@@ -724,6 +877,7 @@ export async function POST(request: Request): Promise<Response> {
         });
       }
       conversation.push({ role: 'user', content: results });
+    }
     }
 
     const { reply, products } = extractReply(finalText, seenProducts);

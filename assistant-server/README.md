@@ -32,7 +32,7 @@ npm run deploy
 יוצרים את המשתנים בסביבת production של EAS:
 
 ```bash
-eas env:create --environment production --name ANTHROPIC_API_KEY --value sk-ant-...
+eas env:create --environment production --name OPENAI_API_KEY --value <המפתח>
 eas env:create --environment production --name SHOPIFY_STOREFRONT_TOKEN --value <טוקן>
 ```
 
@@ -85,3 +85,17 @@ curl -X POST https://<הכתובת-שלכם>.expo.app/chat \
   (האפליקציה, curl) עוברות תמיד.
 - העוזר ממליץ אך ורק על מוצרים שנמצאו בקטלוג דרך ה-Storefront API — הוא לא
   ממציא מוצרים, מחירים או מלאי.
+
+
+## הספק והעלות
+
+השרת תומך בשני ספקים ובוחר לפי המפתח שהוגדר:
+
+- `OPENAI_API_KEY` — מודל ברירת מחדל `gpt-5-mini` (זול מאוד; אגורות בודדות לשיחה שלמה)
+- `ANTHROPIC_API_KEY` — מודל ברירת מחדל `claude-sonnet-5`
+- `ASSISTANT_MODEL` — עוקף את ברירת המחדל של הספק הפעיל
+
+**חובה להגדיר תקרת הוצאה חודשית קשיחה בחשבון הספק** (ב-OpenAI:
+Settings → Limits → Budget למיזם — בהגעה לתקרה הקריאות פשוט נעצרות
+והעוזר מציג שגיאה זמנית; החנות ממשיכה לעבוד כרגיל). זו ההגנה האמיתית
+מפני ניצול לרעה — הגבלת הקצב בשרת רק מאטה, התקרה חוסמת.
