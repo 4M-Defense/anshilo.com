@@ -29,6 +29,7 @@ import {
   EmptyState,
   ErrorView,
   Icon,
+  ImageZoomModal,
   PriceText,
   ProductCard,
   QuantityStepper,
@@ -66,11 +67,40 @@ function htmlToText(html: string): string {
     .replace(/<li[^>]*>/gi, '\n• ')
     .replace(/<(br|\/p|\/div|\/li|\/tr|\/h[1-6]|\/ul|\/ol)[^>]*>/gi, '\n')
     .replace(/<[^>]+>/g, '');
-  return decodeEntities(stripped)
+  const flat = decodeEntities(stripped)
     .replace(/[ \t]+\n/g, '\n')
-    .replace(/\n[ \t]+/g, '\n')
-    .replace(/\n{3,}/g, '\n\n')
-    .trim();
+    .replace(/\n[ \t]+/g, '\n');
+
+  /*
+   * חלק מהתיאורים הם ייבוא מוורדפרס/Elementor: <ul> שעטוף ב-<li> חיצוני משלו,
+   * ובתוכו עטיפות <div> ריקות. ההמרה הנאיבית הפכה את זה לנקודה בודדת בשורה
+   * ריקה ("• " בלי כלום) ולפערי ענק בין השורות. שלושה תיקונים על השורות:
+   * נקודה שנשארה לבד נמחקת; נקודה שהתוכן שלה גלש לשורה הבאה (כי בין ה-<li>
+   * לטקסט היה <div>) מתאחה איתו; ורצף שורות ריקות מצטמצם לאחת.
+   */
+  const lines = flat.split('\n').map((l) => l.trim());
+  const out: string[] = [];
+  for (let i = 0; i < lines.length; i++) {
+    let line = lines[i];
+    if (line === '•') {
+      let j = i + 1;
+      while (j < lines.length && lines[j] === '') j++;
+      /* אין תוכן להצמיד — הנקודה מיותרת */
+      if (j >= lines.length || lines[j] === '•' || lines[j].startsWith('• ')) continue;
+      line = `• ${lines[j]}`;
+      i = j;
+    }
+    if (line === '' && (out.length === 0 || out[out.length - 1] === '')) continue;
+    out.push(line);
+  }
+  while (out.length > 0 && out[out.length - 1] === '') out.pop();
+  /* שורה ריקה בין שני פריטי רשימה רק מנפחת — הרשימה נקראת טוב יותר צפופה */
+  const tight = out.filter(
+    (l, i) =>
+      l !== '' ||
+      !(out[i - 1]?.startsWith('• ') === true && out[i + 1]?.startsWith('• ') === true)
+  );
+  return tight.join('\n').replace(/\n{3,}/g, '\n\n').trim();
 }
 
 /* ---------- כפתור עגול צף (חזרה / שיתוף / מועדפים) ---------- */
@@ -146,6 +176,8 @@ export default function ProductScreen() {
   const [recommendations, setRecommendations] = useState<ProductCardData[]>([]);
   const [selected, setSelected] = useState<Record<string, string>>({});
   const [galleryIndex, setGalleryIndex] = useState(0);
+  /* התמונה שנפתחה במסך מלא להגדלה; null = סגור */
+  const [zoomIndex, setZoomIndex] = useState<number | null>(null);
   const [qty, setQty] = useState(1);
   const [adding, setAdding] = useState(false);
   const [added, setAdded] = useState(false);
@@ -476,8 +508,13 @@ export default function ProductScreen() {
               keyExtractor={(im, i) => `${im.url}-${i}`}
               onMomentumScrollEnd={onGalleryScrollEnd}
               getItemLayout={(_, index) => ({ length: width, offset: width * index, index })}
-              renderItem={({ item }) => (
-                <View style={[styles.galleryPage, { width, height: galleryHeight }]}>
+              renderItem={({ item, index }) => (
+                <Pressable
+                  accessibilityRole="imagebutton"
+                  accessibilityLabel={`${item.altText ?? product.title} — הקישו להגדלה`}
+                  onPress={() => setZoomIndex(index)}
+                  style={[styles.galleryPage, { width, height: galleryHeight }]}
+                >
                   <Image
                     source={{ uri: item.url }}
                     style={styles.galleryImage}
@@ -485,7 +522,10 @@ export default function ProductScreen() {
                     transition={200}
                     accessibilityLabel={item.altText ?? product.title}
                   />
-                </View>
+                  <View style={styles.zoomHint} pointerEvents="none">
+                    <Icon name="expand-outline" size={16} color={colors.ink} />
+                  </View>
+                </Pressable>
               )}
             />
           ) : (
@@ -753,6 +793,16 @@ export default function ProductScreen() {
         </View>
       )}
 
+      {/* מציג התמונות המוגדל — צביטה, הקשה כפולה ודפדוף */}
+      {product != null && (
+        <ImageZoomModal
+          images={images}
+          initialIndex={zoomIndex}
+          fallbackAlt={product.title}
+          onClose={() => setZoomIndex(null)}
+        />
+      )}
+
       {/*
         רצועת שורת המצב — התוכן גולל מתחת לכותרת הצפה, ובלי הרצועה הזאת שורות
         התוכן מתנגשות בשעה וב-5G בראש המסך. הרצועה בצבע הקנבס ומכסה בדיוק את
@@ -1014,6 +1064,19 @@ const styles = StyleSheet.create({
     backgroundColor: colors.surfaceAlt,
     borderRadius: radius.lg,
     paddingHorizontal: spacing.md,
+  },
+  zoomHint: {
+    position: 'absolute',
+    bottom: spacing.sm,
+    insetInlineEnd: spacing.sm,
+    width: 30,
+    height: 30,
+    borderRadius: radius.pill,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'rgba(255,255,255,0.85)',
+    borderWidth: 1,
+    borderColor: colors.border,
   },
   askCard: {
     marginTop: spacing.md,

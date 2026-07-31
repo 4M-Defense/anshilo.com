@@ -13,6 +13,7 @@ export {
   type FilterSheetProps,
 } from './FilterSheet';
 export { Icon, type IconProps } from './Icon';
+export { ImageZoomModal, type ImageZoomModalProps } from './ImageZoomModal';
 export { PriceText, type PriceSize, type PriceTextProps } from './PriceText';
 export { ProductCard, type ProductCardProps } from './ProductCard';
 export { QuantityStepper, type QuantityStepperProps } from './QuantityStepper';
