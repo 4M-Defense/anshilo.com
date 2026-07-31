@@ -20,7 +20,6 @@
         "ExpoLocalization_supportsRTL": true,
         "ExpoLocalization_forcesRTL": true,
         "CFBundleLocalizations": [
-          "he",
           "he"
         ],
         "ITSAppUsesNonExemptEncryption": false

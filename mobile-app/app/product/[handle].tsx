@@ -1117,6 +1117,14 @@ const styles = StyleSheet.create({
     fontSize: typography.tiny,
     fontWeight: '700',
     color: colors.ink,
+    /*
+     * flexShrink מפורש, כי React Native מאתחל אותו ל-0 ולא ל-1 כמו הדפדפן.
+     * בלעדיו הטקסט נמדד ברוחב השורה המלא שלו ופשוט גולש מעבר לגבול הכפתור:
+     * שלושת הכפתורים חולקים את הרוחב ב-flex: 1, ו"המומחה של שילו" ארוך מדי
+     * לשליש. עם flexShrink הוא מקבל את רוחב הכפתור ומתקפל לשתי שורות.
+     */
+    flexShrink: 1,
+    textAlign: 'center',
   },
   trustRow: {
     flexDirection: 'row',

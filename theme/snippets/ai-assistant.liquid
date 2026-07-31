@@ -165,7 +165,8 @@
     font-size: 0.8rem;
     opacity: 0.75;
   }
-  .shilo-ai__close {
+  .shilo-ai__close,
+  .shilo-ai__reset {
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -179,8 +180,12 @@
     cursor: pointer;
     transition: background var(--duration-fast) ease;
   }
-  .shilo-ai__close:hover { background: rgba(255, 255, 255, 0.24); }
-  .shilo-ai__close:focus-visible { outline: 2px solid var(--color-on-ink); outline-offset: 2px; }
+  /* [hidden] מפסיד ל-display של הכלל שמעליו בלי הדגשה מפורשת */
+  .shilo-ai__reset[hidden] { display: none; }
+  .shilo-ai__close:hover,
+  .shilo-ai__reset:hover { background: rgba(255, 255, 255, 0.24); }
+  .shilo-ai__close:focus-visible,
+  .shilo-ai__reset:focus-visible { outline: 2px solid var(--color-on-ink); outline-offset: 2px; }
 
   /* ---------- Messages ---------- */
   .shilo-ai__messages {
@@ -454,6 +459,17 @@
         <h2 class="shilo-ai__title">המומחה של שילו</h2>
         <p class="shilo-ai__subtitle">יועץ הקנייה החכם</p>
       </div>
+      {%- comment -%}
+        השיחה נשמרת ב-localStorage ולכן היא שורדת סגירת דפדפן. זה הכפתור
+        שמאפשר להיפטר ממנה במכוון — בלעדיו אין דרך להתחיל נקי, והשיחה
+        הישנה נפתחת שוב ושוב. מוסתר כשאין שיחה.
+      {%- endcomment -%}
+      <button type="button" class="shilo-ai__reset" data-ai-reset aria-label="התחלת שיחה חדשה" title="שיחה חדשה" hidden>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
+          <path d="M3 2v6h6"/>
+          <path d="M3.51 15a9 9 0 1 0 2.13-9.36L3 8"/>
+        </svg>
+      </button>
       <button type="button" class="shilo-ai__close" data-ai-close aria-label="סגירת חלון העוזר">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true" focusable="false">
           <path d="M18 6 6 18M6 6l12 12"/>
@@ -497,6 +513,7 @@
     var launcher = root.querySelector('[data-ai-launcher]');
     var panel = root.querySelector('[data-ai-panel]');
     var closeBtn = root.querySelector('[data-ai-close]');
+    var resetBtn = root.querySelector('[data-ai-reset]');
     var messagesEl = root.querySelector('[data-ai-messages]');
     var form = root.querySelector('[data-ai-form]');
     var input = root.querySelector('[data-ai-input]');
@@ -518,9 +535,24 @@
 
     /* ---------- storage ---------- */
 
+    /*
+     * localStorage ולא sessionStorage.
+     *
+     * sessionStorage מת עם הלשונית. בפועל זה אומר שלקוח שסגר את הדפדפן,
+     * או שפתח את החנות מלשונית חדשה, חוזר לשיחה ריקה — ומאבד את ההמלצות
+     * שקיבל. אצל קונה שמשווה מוצרים לאורך כמה ימים זה בדיוק המקרה השכיח.
+     *
+     * localStorage שורד סגירת דפדפן ומשותף ללשוניות של אותו מקור, ולכן
+     * השיחה ממשיכה מאיפה שהיא נקטעה. אין כאן מידע אישי מעבר למה שהלקוח
+     * הקליד בעצמו, והכול נשאר במכשיר שלו — לא נשלח ולא נשמר אצלנו.
+     *
+     * הגישה עטופה ב-try: בגלישה פרטית בספארי ובחסימת אחסון של צד שלישי
+     * עצם הקריאה ל-localStorage זורקת, והווידג'ט חייב להמשיך לעבוד
+     * מהזיכרון בלבד.
+     */
     function loadHistory() {
       try {
-        var parsed = JSON.parse(sessionStorage.getItem(STORAGE_KEY));
+        var parsed = JSON.parse(localStorage.getItem(STORAGE_KEY));
         if (!Array.isArray(parsed)) return [];
         return parsed.filter(function (m) {
           return m && (m.role === 'user' || m.role === 'assistant') && typeof m.content === 'string';
@@ -530,11 +562,27 @@
       }
     }
 
+    /* כפתור "שיחה חדשה" רלוונטי רק כשיש שיחה למחוק */
+    function syncResetButton() {
+      if (resetBtn) resetBtn.hidden = !history.length;
+    }
+
     function saveHistory() {
       history = history.slice(-MAX_MESSAGES);
       try {
-        sessionStorage.setItem(STORAGE_KEY, JSON.stringify(history));
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(history));
       } catch (err) { /* storage full / blocked — keep going in memory */ }
+      /* כאן ולא ב-renderTranscript בלבד: הודעה בודדת נוספת לתמליל בלי
+         ציור מחדש, ובלי זה הכפתור היה מופיע רק בפתיחה הבאה של החלון */
+      syncResetButton();
+    }
+
+    function clearHistory() {
+      history = [];
+      try {
+        localStorage.removeItem(STORAGE_KEY);
+      } catch (err) { /* חסימת אחסון — הניקוי בזיכרון כבר קרה */ }
+      renderTranscript();
     }
 
     /* ---------- rendering (textContent only — never innerHTML with API data) ---------- */
@@ -713,6 +761,7 @@
     function renderTranscript() {
       messagesEl.textContent = '';
       emptyStateEl = null;
+      syncResetButton();
       if (!history.length) {
         renderEmptyState();
         return;
@@ -840,6 +889,20 @@
 
     launcher.addEventListener('click', openPanel);
     closeBtn.addEventListener('click', closePanel);
+
+    /*
+     * מאשרים לפני מחיקה. השיחה נשמרת בדיוק כדי שלא תלך לאיבוד, ולחיצה
+     * בטעות על כפתור בכותרת לא אמורה למחוק אותה. אחרי הניקוי המיקוד חוזר
+     * לשדה הקלט — המשתמש כבר שם, מתחיל לכתוב.
+     */
+    if (resetBtn) {
+      resetBtn.addEventListener('click', function () {
+        if (busy || !history.length) return;
+        if (!window.confirm('למחוק את השיחה הנוכחית ולהתחיל מחדש?')) return;
+        clearHistory();
+        input.focus();
+      });
+    }
 
     /*
      * הניקוי של השדה קורה רק אחרי ש-send קיבל את ההודעה: אם העוזר עדיין עונה

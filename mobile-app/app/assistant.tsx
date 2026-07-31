@@ -1,7 +1,9 @@
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Haptics from 'expo-haptics';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
+  Alert,
   Animated,
   FlatList,
   KeyboardAvoidingView,
@@ -53,6 +55,37 @@ interface Bubble {
 /** מזהי הודעות — רצים ברמת המודול, אין צורך ביותר מזה */
 let bubbleSeq = 0;
 const nextId = () => `msg-${++bubbleSeq}`;
+
+/* ---------- שמירת השיחה ---------- */
+
+/**
+ * השיחה נשמרת מקומית, באותו מרחב שמות של העגלה והמועדפים. הצורך ישיר:
+ * המסך נבנה מחדש בכל כניסה, ובלי השמירה כל יציאה מהמסך — או סגירת
+ * האפליקציה — מוחקת את השיחה, כולל ההמלצות שהלקוח ביקש.
+ */
+const CHAT_KEY = 'shilo.assistant.chat';
+
+/**
+ * תקרת הבועות שנשמרות. זו המשכיות, לא ארכיון: 40 בועות הן עשרות שאלות,
+ * והתקרה מונעת מהמפתח לתפוח בלי גבול — AsyncStorage הוא קובץ אחד שנקרא
+ * בשלמותו, לא בסיס נתונים.
+ */
+const MAX_STORED = 40;
+
+/** האם ערך שנקרא מהאחסון הוא בועה תקינה — קובץ שנפגם לא יפיל את המסך */
+function isStoredBubble(value: unknown): value is Bubble {
+  if (typeof value !== 'object' || value === null) return false;
+  const { id, role, content, products } = value as Partial<Bubble>;
+  if (typeof id !== 'string' || typeof content !== 'string') return false;
+  if (role !== 'user' && role !== 'assistant') return false;
+  return products === undefined || Array.isArray(products);
+}
+
+/** המספר הרץ שבתוך מזהה בועה, לצורך המשך המונה אחרי שחזור */
+function seqOf(bubble: Bubble): number {
+  const parsed = Number.parseInt(bubble.id.replace(/^msg-/, ''), 10);
+  return Number.isFinite(parsed) ? parsed : 0;
+}
 
 /* ---------- מחוון הקלדה — שלוש נקודות בגל ---------- */
 
@@ -111,6 +144,11 @@ export default function AssistantScreen() {
   const [text, setText] = useState('');
   const [sending, setSending] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  /**
+   * האם השיחה השמורה נקראה. מגדר גם את השמירה וגם את שליחת פרמטר q —
+   * שניהם היו מתנגשים עם קריאה אסינכרונית שעדיין באוויר.
+   */
+  const [hydrated, setHydrated] = useState(false);
 
   /**
    * מקור האמת של התמליל — ref ולא state, כי `send` נקרא גם מאפקט ההרצה
@@ -124,6 +162,57 @@ export default function AssistantScreen() {
     messagesRef.current = [...messagesRef.current, bubble];
     setMessages(messagesRef.current);
   }, []);
+
+  /**
+   * שחזור השיחה מהאחסון — פעם אחת, בעלייה של המסך.
+   *
+   * הכרטיסים נשמרים יחד עם הטקסט כדי שהשיחה המשוחזרת תיראה כמו שהייתה.
+   * המחיר והמלאי שבהם הם צילום מהרגע שבו העוזר ענה, וזה בסדר: גילוי הנאות
+   * בראש המסך אומר במפורש שהקובע הוא עמוד המוצר.
+   */
+  useEffect(() => {
+    let cancelled = false;
+    AsyncStorage.getItem(CHAT_KEY)
+      .then((raw) => {
+        if (cancelled || raw == null) return;
+        const parsed: unknown = JSON.parse(raw);
+        if (!Array.isArray(parsed)) return;
+        const restored = parsed.filter(isStoredBubble);
+        if (restored.length === 0) return;
+        /*
+         * המונה חי ברמת המודול ומתאפס בכל הרצה, ולכן ההודעה הבאה הייתה
+         * מקבלת msg-1 — מזהה שכבר קיים בשיחה המשוחזרת. FlatList עם מפתחות
+         * כפולים מצייר בועות במקום הלא נכון, ולכן המונה מקודם מעל המשוחזר.
+         */
+        bubbleSeq = Math.max(bubbleSeq, ...restored.map(seqOf));
+        messagesRef.current = restored;
+        setMessages(restored);
+      })
+      .catch(() => {
+        /* קובץ פגום או JSON לא תקין — פותחים שיחה חדשה, בלי להפיל את המסך */
+      })
+      .finally(() => {
+        if (!cancelled) setHydrated(true);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  /**
+   * שמירה על כל שינוי בשיחה. מגודר ב-hydrated: לפני שהקריאה חזרה המערך
+   * עדיין ריק, ושמירה שלו הייתה מוחקת בדיוק את השיחה שאנחנו טוענים.
+   */
+  useEffect(() => {
+    if (!hydrated) return;
+    const toStore = messages.slice(-MAX_STORED);
+    /* שיחה שרוקנה (כפתור "שיחה חדשה") מוחקת את המפתח ולא שומרת מערך ריק */
+    const write =
+      toStore.length === 0
+        ? AsyncStorage.removeItem(CHAT_KEY)
+        : AsyncStorage.setItem(CHAT_KEY, JSON.stringify(toStore));
+    write.catch(() => {});
+  }, [messages, hydrated]);
 
   /**
    * שולח את התמליל הנוכחי לשרת. התמליל חייב להסתיים בהודעת משתמש —
@@ -184,15 +273,42 @@ export default function AssistantScreen() {
   }, [deliver]);
 
   /**
-   * פרמטר q — שאלה שהגיעה מבחוץ (למשל ממסך החיפוש) נשלחת אוטומטית
-   * כהודעה הראשונה. פעם אחת בלבד: רענון פרמטרים לא ישלח אותה שוב.
+   * פרמטר q — שאלה שהגיעה מבחוץ (למשל מכפתור "שאלו את המומחה" בעמוד מוצר)
+   * נשלחת אוטומטית. פעם אחת בלבד: רענון פרמטרים לא ישלח אותה שוב.
+   *
+   * ממתין ל-hydrated בכוונה. אחרת השאלה הייתה נשלחת בזמן שהשחזור עדיין
+   * באוויר, והשחזור היה דורס אותה כשהוא חוזר — השאלה נעלמת מהמסך אבל
+   * התשובה עליה מגיעה, וזה נראה כמו תשובה משום מקום. עכשיו היא פשוט
+   * נוספת בסוף השיחה הקיימת.
    */
   useEffect(() => {
-    if (autoSent.current) return;
+    if (!hydrated || autoSent.current) return;
     autoSent.current = true;
     const initial = typeof params.q === 'string' ? params.q.trim() : '';
     if (initial !== '' && configured) send(initial);
     // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [hydrated]);
+
+  /**
+   * שיחה חדשה — מנקה את המסך ואת האחסון (דרך אפקט השמירה).
+   * מאושר תחילה: השיחה נשמרת דווקא כדי שלא תיעלם, ולחיצה בטעות על
+   * כפתור בכותרת לא אמורה לאבד אותה.
+   */
+  const startNewChat = useCallback(() => {
+    if (sendingRef.current || messagesRef.current.length === 0) return;
+    Alert.alert('שיחה חדשה', 'למחוק את השיחה הנוכחית ולהתחיל מחדש?', [
+      { text: 'ביטול', style: 'cancel' },
+      {
+        text: 'שיחה חדשה',
+        style: 'destructive',
+        onPress: () => {
+          messagesRef.current = [];
+          setMessages([]);
+          setError(null);
+          setText('');
+        },
+      },
+    ]);
   }, []);
 
   const goBack = useCallback(() => {
@@ -289,6 +405,18 @@ export default function AssistantScreen() {
             יועץ הקנייה החכם של החנות
           </Text>
         </View>
+        {/* מוצג רק כשיש מה לנקות — בשיחה ריקה הכפתור חסר משמעות */}
+        {messages.length > 0 && (
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="התחלת שיחה חדשה"
+            onPress={startNewChat}
+            hitSlop={spacing.xs}
+            style={({ pressed }) => [styles.backButton, pressed && styles.backPressed]}
+          >
+            <Icon name="create-outline" size={20} color={colors.ink} />
+          </Pressable>
+        )}
       </View>
 
       {/* גילוי נאות — העוזר ממליץ, עמוד המוצר קובע */}
@@ -316,7 +444,14 @@ export default function AssistantScreen() {
           behavior={Platform.OS === 'ios' ? 'padding' : undefined}
           keyboardVerticalOffset={0}
         >
-          {messages.length === 0 ? (
+          {!hydrated ? (
+            /*
+             * ריק עד שהשחזור חוזר. בלי זה כרטיס הפתיחה מהבהב לפריים אחד
+             * לפני שהשיחה השמורה נכנסת במקומו — מה שנראה בדיוק כמו
+             * "השיחה שלי נמחקה", ההפך הגמור מהמטרה של השמירה.
+             */
+            <View style={styles.flex} />
+          ) : messages.length === 0 ? (
             /* מצב פתיחה — כרטיס ברוכים הבאים ושאלות מוכנות */
             <ScrollView
               contentContainerStyle={styles.welcomeContent}
