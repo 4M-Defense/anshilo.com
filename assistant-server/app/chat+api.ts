@@ -175,13 +175,25 @@ interface ParsedChatRequest {
  * null = מקור אסור (403). אובייקט ריק = בקשה בלי Origin (האפליקציה) —
  * מותרת אך לא זקוקה לכותרות CORS.
  */
-function corsHeadersFor(origin: string | null): Record<string, string> | null {
-  if (origin === null) return {};
-  if (!ALLOWED_ORIGINS.has(origin)) return null;
-  return {
-    'Access-Control-Allow-Origin': origin,
-    Vary: 'Origin',
-  };
+/**
+ * כותרות ה-CORS לתשובה. **לעולם לא חוסם** — ולכן אינו מחזיר null.
+ *
+ * הגרסה הקודמת החזירה 403 ל-Origin שאינו ברשימה, וזו הייתה טעות בהבנת המודל:
+ * CORS נאכף בדפדפן ולא בשרת. חסימה בצד השרת לא מוסיפה אבטחה — מי שרוצה לעקוף
+ * פשוט לא שולח Origin — אבל היא כן שוברת כל לקוח שאינו דפדפן, וזה בדיוק המצב
+ * של האפליקציה, שאינה שולחת Origin בכלל. בפועל היא גם דחתה בקשות תקינות
+ * לגמרי, וזה מה שנתפס בבדיקת העשן הראשונה מול השרת החי.
+ *
+ * מה שכן מגן על ההוצאה: הגבלת הקצב למטה ותקרת התקציב אצל הספק.
+ *
+ * `Vary: Origin` נשלח תמיד, גם כשאין ACAO. בלעדיו שכבת מטמון (כאן Cloudflare)
+ * עלולה להגיש לדפדפן תשובה שנשמרה עבור מקור אחר.
+ */
+function corsHeadersFor(origin: string | null): Record<string, string> {
+  if (origin !== null && ALLOWED_ORIGINS.has(origin)) {
+    return { 'Access-Control-Allow-Origin': origin, Vary: 'Origin' };
+  }
+  return { Vary: 'Origin' };
 }
 
 /** כל תשובה — כולל שגיאות — עוברת דרך כאן, כדי שכותרות ה-CORS לא יישכחו. */
@@ -194,9 +206,6 @@ function jsonResponse(status: number, body: unknown, cors: Record<string, string
 
 export function OPTIONS(request: Request): Response {
   const cors = corsHeadersFor(request.headers.get('Origin'));
-  if (cors === null) {
-    return jsonResponse(403, { error: 'המקור אינו מורשה לפנות לעוזר.' }, {});
-  }
   return new Response(null, {
     status: 204,
     headers: {
@@ -757,9 +766,6 @@ function isRateLimited(ip: string): boolean {
 
 export async function POST(request: Request): Promise<Response> {
   const cors = corsHeadersFor(request.headers.get('Origin'));
-  if (cors === null) {
-    return jsonResponse(403, { error: 'המקור אינו מורשה לפנות לעוזר.' }, {});
-  }
 
   const clientIp =
     request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 'unknown';
