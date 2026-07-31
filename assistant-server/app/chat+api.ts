@@ -606,6 +606,19 @@ async function callAnthropic(
 const OPENAI_ENDPOINT = 'https://api.openai.com/v1/chat/completions';
 const OPENAI_DEFAULT_MODEL = 'gpt-5-mini';
 
+/**
+ * תקרת טוקנים נפרדת למסלול OpenAI, ולא MAX_TOKENS המשותף.
+ *
+ * במודלי הסקה (gpt-5 ומעלה) טוקני החשיבה הפנימית נספרים בתוך
+ * max_completion_tokens. עם 1200 המודל שרף את כל המכסה על חשיבה, החזיר
+ * content ריק עם finish_reason 'length', ולכן /chat ענה 502 על כל בקשה.
+ * ב-Anthropic max_tokens סופר רק פלט גלוי, שם 1200 סביר — ולכן קבוע נפרד.
+ *
+ * זו תקרת בטיחות ולא יעד: משלמים רק על מה שנוצר בפועל, ותשובת עוזר רגילה
+ * צורכת הרבה פחות מזה.
+ */
+const OPENAI_MAX_TOKENS = 4000;
+
 const OPENAI_TOOLS = TOOLS.map((tool) => ({
   type: 'function' as const,
   function: {
@@ -649,9 +662,16 @@ async function callOpenAi(
     },
     body: JSON.stringify({
       model,
-      max_completion_tokens: MAX_TOKENS,
+      max_completion_tokens: OPENAI_MAX_TOKENS,
       messages,
       tools: OPENAI_TOOLS,
+      /*
+       * מודל הסקה חושב כמה שיידרש לו, ובברירת המחדל זה גם איטי וגם יקר.
+       * לעוזר קניות שכל תפקידו להפעיל חיפוש בקטלוג ולנסח תשובה קצרה 'low'
+       * מספיק בהחלט. הפרמטר תקף רק במשפחת gpt-5, ולכן מותנה במודל — מודל
+       * אחר ידחה אותו כפרמטר לא מוכר.
+       */
+      ...(model.startsWith('gpt-5') ? { reasoning_effort: 'low' } : {}),
       ...(forceText ? { tool_choice: 'none' } : {}),
     }),
   });
@@ -687,7 +707,21 @@ async function runOpenAiLoop(
 
     const toolCalls = choice.message.tool_calls ?? [];
     if (choice.finish_reason !== 'tool_calls' || toolCalls.length === 0) {
-      return choice.message.content ?? '';
+      const content = choice.message.content ?? '';
+      /*
+       * תור שנגמר בלי כלים וגם בלי טקסט הוא תקלה, לא מצב תקין: הקורא יקבל
+       * מחרוזת ריקה ויענה 502 בלי שום רמז למה. הסיבה הנפוצה היא
+       * finish_reason 'length' — המכסה נגמרה, ובמודל הסקה גם על חשיבה
+       * פנימית בלבד. רושמים את הסיבה ואת אורך התוכן כדי שזה ייראה בלוג.
+       */
+      if (content.trim() === '') {
+        console.error('chat: openai turn produced neither tool calls nor text', {
+          iteration,
+          finishReason: choice.finish_reason,
+          contentLength: choice.message.content === null ? null : content.length,
+        });
+      }
+      return content;
     }
 
     conversation.push({
@@ -726,6 +760,15 @@ async function runOpenAiLoop(
       });
     }
   }
+  /*
+   * מיצינו את כל האיטרציות בלי תשובה סופית. זה לא אמור לקרות: האיטרציה
+   * האחרונה רצה עם tool_choice 'none', כלומר חייבת לחזור בלי כלים ולצאת
+   * למעלה. אם בכל זאת הגענו לכאן — יש באג בלולאה, וזה צריך להיראות בלוג
+   * ולא להתחפש ל"המודל החזיר טקסט ריק".
+   */
+  console.error('chat: openai loop exhausted without a final answer', {
+    maxIterations: MAX_ITERATIONS,
+  });
   return '';
 }
 
