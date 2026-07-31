@@ -1,8 +1,8 @@
 /**
  * "המומחה של שילו" — נקודת הקצה של עוזר הקניות של anshilo.com.
  *
- * הזרימה: הלקוח שולח היסטוריית שיחה → המודל (Anthropic Messages API) רץ בלולאה
- * אג'נטית עם כלי חיפוש מול Shopify Storefront → התשובה הסופית חוזרת יחד עם
+ * הזרימה: הלקוח שולח היסטוריית שיחה → המודל (OpenAI או Anthropic, לפי המפתח
+ * שהוגדר) רץ בלולאה אג'נטית עם כלי חיפוש מול Shopify Storefront → התשובה הסופית חוזרת יחד עם
  * כרטיסי מוצר שהמודל סימן ב-[[handle]]. אין כאן SDK — הכול fetch גולמי, כדי
  * שהפרויקט יישאר בלי תלות מעבר ל-Expo עצמו.
  */
@@ -171,10 +171,6 @@ interface ParsedChatRequest {
 // CORS
 // ---------------------------------------------------------------------------
 
-/**
- * null = מקור אסור (403). אובייקט ריק = בקשה בלי Origin (האפליקציה) —
- * מותרת אך לא זקוקה לכותרות CORS.
- */
 /**
  * כותרות ה-CORS לתשובה. **לעולם לא חוסם** — ולכן אינו מחזיר null.
  *
@@ -552,8 +548,12 @@ function extractReply(
 // ---------------------------------------------------------------------------
 
 class UpstreamError extends Error {
-  constructor(public readonly status: number) {
-    super(`Anthropic HTTP ${status}`);
+  constructor(
+    public readonly status: number,
+    /** גוף השגיאה של הספק, מקוצר. נחשף ללקוח רק כש-ASSISTANT_DEBUG דולק. */
+    public readonly detail = ''
+  ) {
+    super(`upstream HTTP ${status}`);
     this.name = 'UpstreamError';
   }
 }
@@ -587,7 +587,7 @@ async function callAnthropic(
     // גוף השגיאה נרשם ללוג בלבד — לעולם לא מוחזר ללקוח.
     const errorBody = await response.text().catch(() => '');
     console.error('chat: anthropic error', response.status, errorBody.slice(0, 2000));
-    throw new UpstreamError(response.status);
+    throw new UpstreamError(response.status, errorBody.slice(0, 600));
   }
 
   return (await response.json()) as AnthropicResponse;
@@ -659,7 +659,7 @@ async function callOpenAi(
   if (!response.ok) {
     const errorBody = await response.text().catch(() => '');
     console.error('chat: openai error', response.status, errorBody.slice(0, 2000));
-    throw new UpstreamError(response.status);
+    throw new UpstreamError(response.status, errorBody.slice(0, 600));
   }
 
   return (await response.json()) as OpenAiResponse;
@@ -906,6 +906,24 @@ export async function POST(request: Request): Promise<Response> {
       return jsonResponse(429, { error: 'העומס גבוה כרגע, נסו שוב בעוד רגע.' }, cors);
     }
     console.error('chat: request failed', error);
+    /*
+     * ASSISTANT_DEBUG=1 מצרף לתשובה את מה שהספק החזיר. כבוי כברירת מחדל: הגוף
+     * אינו מכיל ערכי סוד, רק את התלונה של הספק על הבקשה — אבל עדיין לא משהו
+     * שרוצים לתת ללקוחות. מדליקים לאבחון ומכבים אחריו.
+     */
+    if (process.env.ASSISTANT_DEBUG === '1') {
+      return jsonResponse(
+        502,
+        {
+          error: 'שגיאה זמנית אצל העוזר. נסו שוב.',
+          upstream:
+            error instanceof UpstreamError
+              ? { status: error.status, detail: error.detail }
+              : { message: error instanceof Error ? error.message : String(error) },
+        },
+        cors
+      );
+    }
     return jsonResponse(502, { error: 'שגיאה זמנית אצל העוזר. נסו שוב.' }, cors);
   }
 }
