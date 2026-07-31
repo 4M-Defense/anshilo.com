@@ -316,5 +316,11 @@
       <li id="a11y-refresh-page-message">{{ 'general.accessibility.refresh_page' | t }}</li>
       <li id="a11y-new-window-message">{{ 'general.accessibility.link_opens_new_tab' | t }}</li>
     </ul>
+
+    {%- comment -%}
+      המומחה של שילו — AI shopping assistant widget (snippets/ai-assistant.liquid).
+      Only rendered when the assistant server URL is configured in theme settings.
+    {%- endcomment -%}
+    {% if settings.assistant_enabled and settings.assistant_url != blank %}{% render 'ai-assistant' %}{% endif %}
   </body>
 </html>

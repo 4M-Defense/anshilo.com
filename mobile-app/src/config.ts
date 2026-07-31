@@ -131,8 +131,12 @@ export const STORE_INFO = {
   /** אותו מספר בלי מקפים — ל-tel: */
   phoneDial: '025343422',
   email: 'info@anshilo.com',
-  /** קישור וואטסאפ קצר של החנות */
-  whatsapp: 'https://wa.link/sp55tw',
+  /**
+   * וואטסאפ העסקי בפורמט בינלאומי. מספר (ולא קישור wa.link) בכוונה:
+   * רק על wa.me אפשר להרכיב הודעה מוכנה. הערך החי מגיע מה-metaobject
+   * בחנות; זה רק ברירת המחדל אם ההגדרות לא נטענו.
+   */
+  whatsapp: '972545070202',
   address: 'קיבוץ קרית ענבים',
   /** כרטיס העסק בגוגל — זהה להגדרת `store_google` בת'ים */
   google: 'https://share.google/RZnNkj7nDmReGLfy1',

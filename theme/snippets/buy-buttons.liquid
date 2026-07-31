@@ -86,6 +86,45 @@
       {{ form | payment_button }}
     </div>
   {%- endform -%}
+
+  {%- comment -%}
+    WhatsApp consult button: settings.store_whatsapp is either a full link
+    (e.g. wa.link — prefill impossible, used as-is) or a phone number, which
+    becomes a wa.me link with the product title + URL already in the message.
+    Hidden entirely when the setting is blank.
+  {%- endcomment -%}
+  {%- liquid
+    assign wa_consult_raw = settings.store_whatsapp | strip
+    assign wa_consult_href = ''
+    if wa_consult_raw != blank
+      assign wa_consult_scheme = wa_consult_raw | slice: 0, 4
+      if wa_consult_scheme == 'http'
+        assign wa_consult_href = wa_consult_raw
+      else
+        assign wa_consult_digits = wa_consult_raw | remove: '+' | remove: '-' | remove: ' ' | remove: '(' | remove: ')'
+        assign wa_consult_message = 'היי, הגעתי דרך האתר ואני מעוניין במוצר: ' | append: product.title | append: ' — ' | append: shop.url | append: product.url
+        assign wa_consult_query = wa_consult_message | url_encode
+        assign wa_consult_href = 'https://wa.me/' | append: wa_consult_digits | append: '?text=' | append: wa_consult_query
+      endif
+    endif
+  -%}
+  {%- if wa_consult_href != blank -%}
+    <a
+      class="btn btn--outline btn--full product-buy__whatsapp"
+      href="{{ wa_consult_href | escape }}"
+      target="_blank"
+      rel="noopener"
+      aria-label="התייעצות בוואטסאפ על המוצר {{ product.title | escape }}"
+    >
+      {% render 'icon', name: 'whatsapp', size: 18 %}
+      <span>התייעצות בוואטסאפ על המוצר</span>
+    </a>
+    {% style %}
+      .product-buy__whatsapp { margin-block-start: 0.75rem; }
+      /* WhatsApp brand green — a third party's colour, icon only. */
+      .product-buy__whatsapp .icon-whatsapp { color: #25D366; }
+    {% endstyle %}
+  {%- endif -%}
 </product-form>
 
 {%- if show_sticky -%}

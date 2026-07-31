@@ -1,0 +1,19 @@
+{
+  "name": "anshilo-assistant",
+  "version": "1.0.0",
+  "main": "expo-router/entry",
+  "scripts": {
+    "start": "expo start",
+    "deploy": "npx expo export -p web && eas deploy --environment production"
+  },
+  "dependencies": {
+    "expo": "~57.0.9",
+    "expo-router": "~57.0.9",
+    "react": "19.2.3",
+    "react-native": "0.86.2"
+  },
+  "devDependencies": {
+    "typescript": "~6.0.3"
+  },
+  "private": true
+}

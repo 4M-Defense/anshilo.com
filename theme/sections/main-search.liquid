@@ -409,7 +409,20 @@
                   </a>
                 {%- endif -%}
                 {%- if settings.store_whatsapp != blank -%}
-                  <a href="{{ settings.store_whatsapp }}" class="btn btn--ghost" target="_blank" rel="noopener" aria-describedby="a11y-new-window-message">
+{%- liquid
+  # settings.store_whatsapp יכול להיות קישור מלא או מספר בינלאומי — אותה
+  # נורמליזציה כמו ב-contact-dock, כדי שמספר חשוף לא ייפלט כ-href שבור
+  assign wa_raw = settings.store_whatsapp | strip
+  assign wa_scheme = wa_raw | slice: 0, 4
+  if wa_scheme == 'http'
+    assign wa_href = wa_raw
+  else
+    assign wa_digits = wa_raw | remove: '+' | remove: '-' | remove: ' ' | remove: '(' | remove: ')'
+    assign wa_href = 'https://wa.me/' | append: wa_digits
+  endif
+-%}
+
+                  <a href="{{ wa_href | escape }}" class="btn btn--ghost" target="_blank" rel="noopener" aria-describedby="a11y-new-window-message">
                     {% render 'icon', name: 'whatsapp', size: 17 %}
                     {{ 'general.contact.whatsapp_cta' | t }}
                   </a>

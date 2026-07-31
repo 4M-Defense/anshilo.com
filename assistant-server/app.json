@@ -1,0 +1,12 @@
+{
+  "expo": {
+    "name": "anshilo-assistant",
+    "slug": "anshilo-assistant",
+    "scheme": "anshilo-assistant",
+    "web": {
+      "output": "server",
+      "bundler": "metro"
+    },
+    "plugins": ["expo-router"]
+  }
+}

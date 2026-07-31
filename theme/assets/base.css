@@ -1313,6 +1313,26 @@ summary::-webkit-details-marker { display: none; }
 .rte > * + * { margin-block-start: 1em; }
 .rte h2, .rte h3, .rte h4 { margin-block-start: 1.6em; }
 .rte ul, .rte ol { padding-inline-start: 1.4rem; }
+/*
+ * ניקוי ייבוא מוורדפרס/Elementor — **בתיאורי מוצרים בלבד** (rte--product,
+ * מוצמד ב-main-product.liquid). תיאורים שיובאו מהאתר הישן מגיעים עם <li>
+ * חיצוני שכל תפקידו לעטוף רשימה פנימית, פריטים ריקים ו-div ריק של כפתור
+ * ("jet-woo-builder-single-ajax-add-to-cart"). בלי הכללים האלה העמוד מציג
+ * נקודת רשימה יתומה ופערים ריקים. אותו ניקוי עושה האפליקציה בקוד
+ * (htmlToText שב-app/product/[handle].tsx).
+ *
+ * שני גבולות שנקבעו אחרי בדיקה מול החנות ואסור לחצות:
+ * 1. לא ​`[class*="jet-woo-builder"]`​ — ברוב הקטלוג **כל התיאור** יושב בתוך
+ *    עטיפה עם הקלאס הזה, והסתרה גורפת מוחקת את התיאור כולו. מסתירים רק את
+ *    ה-div הריק הספציפי של הכפתור.
+ * 2. לא ​`.rte`​ גלובלי — בלוג, עמודים ו-FAQ משתמשים באותו קלאס, ושם רשימה
+ *    מקוננת היא תוכן לגיטימי שאסור לשטח.
+ */
+.rte--product li:empty, .rte--product p:empty { display: none; }
+.rte--product li:has(> div > div > div > ul), .rte--product li:has(> ul) { list-style: none; }
+.rte--product li > div, .rte--product li > div > div { margin: 0; }
+.rte--product .jet-woo-builder-single-ajax-add-to-cart { display: none; }
+.rte--product ul ul { padding-inline-start: 0; }
 .rte img { border-radius: var(--radius-card); margin-block: 1.5em; }
 .rte a { color: var(--color-accent); text-underline-offset: 3px; font-weight: 600; }
 .rte blockquote {
