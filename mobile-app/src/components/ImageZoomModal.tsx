@@ -43,17 +43,17 @@ function ZoomPage({
   alt,
   width,
   height,
-  onZoomChange,
 }: {
   image: ShopifyImage;
   alt: string;
   width: number;
   height: number;
-  onZoomChange: (zoomed: boolean) => void;
 }) {
   const scrollRef = useRef<ScrollView>(null);
   const lastTap = useRef(0);
   const zoomed = useRef(false);
+  /* האם המגע הנוכחי הזיז משהו (גלילה או צביטה) — כדי לא לספור אותו כהקשה */
+  const moved = useRef(false);
 
   const onTap = useCallback(
     (x: number, y: number) => {
@@ -80,22 +80,20 @@ function ZoomPage({
     [width, height]
   );
 
-  const onScroll = useCallback(
-    (e: NativeSyntheticEvent<NativeScrollEvent>) => {
-      const scale = e.nativeEvent.zoomScale ?? 1;
-      const isZoomed = scale > 1.02;
-      if (isZoomed !== zoomed.current) {
-        zoomed.current = isZoomed;
-        onZoomChange(isZoomed);
-      }
-    },
-    [onZoomChange]
-  );
+  const onScroll = useCallback((e: NativeSyntheticEvent<NativeScrollEvent>) => {
+    moved.current = true;
+    zoomed.current = (e.nativeEvent.zoomScale ?? 1) > 1.02;
+  }, []);
 
   return (
     <ScrollView
       ref={scrollRef}
       style={{ width, height }}
+      /*
+       * גודל מפורש לתוכן. בלעדיו הגודל נגזר מהילדים, ובזמן זום החישוב של
+       * contentOffset מול centerContent יוצא שגוי והתמונה נסחפת.
+       */
+      contentContainerStyle={{ width, height }}
       minimumZoomScale={1}
       maximumZoomScale={MAX_ZOOM}
       bouncesZoom
@@ -104,19 +102,29 @@ function ZoomPage({
       centerContent
       onScroll={onScroll}
       scrollEventThrottle={64}
+      /*
+       * ההקשה־הכפולה יושבת על ה-ScrollView עצמו ולא על עטיפה סביב התמונה.
+       * זה מכוון: UIScrollView מגדיל את תצוגת התוכן שלו, וכל View נוסף
+       * שנדחף בין התוכן לתמונה מקבל את הסקיילינג בזמן שהתמונה שבתוכו,
+       * עם width/height קבועים, לא זורמת מחדש — ואז התמונה בורחת מהמסך
+       * בצביטה עמוקה. מאזין למגע אינו View ולכן אינו משנה את ההיררכיה.
+       */
+      onTouchStart={() => {
+        moved.current = false;
+      }}
+      onTouchEnd={(e) => {
+        /* סוף צביטה או גרירה אינו הקשה */
+        if (moved.current) return;
+        onTap(e.nativeEvent.locationX, e.nativeEvent.locationY);
+      }}
     >
-      <Pressable
-        onPress={(e) => onTap(e.nativeEvent.locationX, e.nativeEvent.locationY)}
+      <Image
+        source={{ uri: image.url }}
         style={{ width, height }}
-      >
-        <Image
-          source={{ uri: image.url }}
-          style={{ width, height }}
-          contentFit="contain"
-          transition={150}
-          accessibilityLabel={image.altText ?? alt}
-        />
-      </Pressable>
+        contentFit="contain"
+        transition={150}
+        accessibilityLabel={image.altText ?? alt}
+      />
     </ScrollView>
   );
 }
@@ -129,8 +137,6 @@ export function ImageZoomModal({ images, initialIndex, fallbackAlt, onClose }: I
   const { width, height } = useWindowDimensions();
   const insets = useSafeAreaInsets();
   const [page, setPage] = useState(0);
-  /* בזמן זום נועלים את הדפדוף האופקי — אחרת גרירת התמונה מחליפה עמוד */
-  const [pagingLocked, setPagingLocked] = useState(false);
 
   const open = initialIndex != null;
 
@@ -150,20 +156,24 @@ export function ImageZoomModal({ images, initialIndex, fallbackAlt, onClose }: I
           data={images as ShopifyImage[]}
           horizontal
           pagingEnabled
-          scrollEnabled={!pagingLocked}
+          /*
+           * scrollEnabled קבוע ולא נגזרת של מצב הזום.
+           *
+           * קודם הוא כובה ברגע שהצביטה עברה סקייל 1, כלומר *באמצע* הג'סטורה.
+           * החלפת scrollEnabled על האב תוך כדי מגע מקנפגת מחדש את מזהה
+           * הג'סטורה שלו ועלולה לקטוע את המגע שכבר רץ בילד — קפיצה.
+           *
+           * זה גם מיותר: כשהתמונה מוגדלת התוכן של ה-ScrollView הפנימי רחב
+           * מהמסך, ולכן הוא בולע את הגרירה האופקית בעצמו. רק כשהוא מגיע
+           * לקצה שלו האב מדפדף — בדיוק ההתנהגות של אפליקציית התמונות.
+           */
           initialScrollIndex={Math.min(initialIndex ?? 0, images.length - 1)}
           getItemLayout={(_, index) => ({ length: width, offset: width * index, index })}
           keyExtractor={(im, i) => `${im.url}-${i}`}
           showsHorizontalScrollIndicator={false}
           onMomentumScrollEnd={onScrollEnd}
           renderItem={({ item }) => (
-            <ZoomPage
-              image={item}
-              alt={fallbackAlt}
-              width={width}
-              height={height}
-              onZoomChange={setPagingLocked}
-            />
+            <ZoomPage image={item} alt={fallbackAlt} width={width} height={height} />
           )}
         />
 
