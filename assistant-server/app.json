@@ -7,6 +7,14 @@
       "output": "server",
       "bundler": "metro"
     },
-    "plugins": ["expo-router"]
+    "plugins": [
+      "expo-router"
+    ],
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "908ede74-f172-425d-95ef-5827c2ca3d4b"
+      }
+    }
   }
 }
