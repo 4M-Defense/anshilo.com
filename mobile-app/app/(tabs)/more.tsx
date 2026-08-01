@@ -230,6 +230,36 @@ export default function MoreScreen() {
         </Text>
       </View>
 
+      {/*
+        מידע משפטי — חובה, לא נוחות.
+        אפל וגוגל שתיהן דורשות שאפליקציה שמאפשרת פתיחת חשבון תיתן גישה
+        למדיניות הפרטיות מתוך האפליקציה עצמה. עד הסבב הזה לא היה באפליקציה
+        אף קישור לשום מדיניות, וזו בדיקה שנעשית מוקדם בסקירה.
+      */}
+      <SectionHeader title="מידע משפטי" />
+      <View style={styles.card}>
+        <ActionRow
+          icon="lock-closed-outline"
+          label="מדיניות פרטיות"
+          onPress={() => openLink(STORE_INFO.policies.privacy)}
+        />
+        <ActionRow
+          icon="document-text-outline"
+          label="תנאי שימוש"
+          onPress={() => openLink(STORE_INFO.policies.terms)}
+        />
+        <ActionRow
+          icon="refresh-outline"
+          label="מדיניות החזרות וביטולים"
+          onPress={() => openLink(STORE_INFO.policies.refund)}
+        />
+        <ActionRow
+          icon="cube-outline"
+          label="מדיניות משלוחים"
+          onPress={() => openLink(STORE_INFO.policies.shipping)}
+        />
+      </View>
+
       {/* פוטר גרסה */}
       <Text style={styles.version} allowFontScaling={false}>
         {`${STORE_INFO.name} · גרסה ${APP_VERSION}`}

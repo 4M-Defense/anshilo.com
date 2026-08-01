@@ -152,6 +152,24 @@ export const STORE_INFO = {
       'https://www.facebook.com/people/%D7%90%D7%A0-%D7%A9%D7%99%D7%9C%D7%95/100065385913315/',
     instagram: 'https://www.instagram.com/a.nshilo',
   },
+  /*
+   * המדיניות של החנות, מתוך שופיפיי ובדומיין של החנות.
+   *
+   * חייבות להיות נגישות **מתוך** האפליקציה ולא רק בדף החנות: שתי החנויות
+   * דורשות קישור למדיניות פרטיות מאפליקציה שמאפשרת פתיחת חשבון, וזו אחת
+   * הבדיקות הראשונות שנעשות בסקירה. עד עכשיו לא היה באפליקציה אף קישור
+   * לשום מדיניות.
+   *
+   * הכתובות נבדקו חיות ומחזירות 200. הן על `anshilo.com` ולא על
+   * `checkout.shopify.com` — שופיפיי מגישה את שתיהן, וזו שבדומיין של
+   * החנות היא זו שאפשר לתת לחנויות האפליקציות.
+   */
+  policies: {
+    privacy: 'https://anshilo.com/policies/privacy-policy',
+    terms: 'https://anshilo.com/policies/terms-of-service',
+    refund: 'https://anshilo.com/policies/refund-policy',
+    shipping: 'https://anshilo.com/policies/shipping-policy',
+  },
 } as const;
 
 /**
