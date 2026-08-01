@@ -1483,3 +1483,37 @@ in `docs/store-assets/`.
 Still unverified anywhere: **pinch-zoom and multi-image paging on a real
 device.** `adb` cannot inject a second finger, so those rest on the fuzz and
 on construction. Check them on build 12 before submitting.
+
+### Round 16 addendum — pinch is device-verified, and build 12 is on TestFlight
+
+**The owner confirmed pinch-zoom works on a physical iPhone.** That closes the
+last item the zoom rewrite could not prove from here: `adb` cannot inject a
+second finger, so pinch and multi-image paging rested on the 288,000-state
+fuzz and on construction. They now rest on a device. Nothing in
+`ImageZoomModal.tsx` is unverified any more.
+
+Note which build proved it: **build 11**, over the air. It had received the
+zoom fix, the legal links and the gallery fix before the fingerprint moved.
+Build 11 keeps working with the last update it got; it simply will not
+receive new ones.
+
+**Build 12 was uploaded to App Store Connect** (submission `fa29b60a`). It
+worked non-interactively because an App Store Connect API key (`8RF5KF62GY`)
+is stored on EAS servers — so `eas submit --platform ios --non-interactive`
+needs no Apple password from the operator. Worth knowing: that is an
+**upload**, not a submission for review. After Apple's 5–10 minute
+processing the build appears in TestFlight, and the **internal** group
+installs with no review. The external group `Shilo` does require review,
+which is why §12 saw "No Builds Available" there.
+
+A production-profile build is `distribution: STORE` and never installs
+itself on a phone. To put a build on a device: upload it and use TestFlight,
+or build the `preview` profile, which is internal distribution and installs
+directly.
+
+`docs/PROMPTS-FOR-BROWSER-AGENT.md` now carries three ready prompts for the
+work that needs a logged-in browser and therefore cannot happen from here:
+the Play Console listing with every Data Safety answer spelled out, the
+Google Cloud service account for `eas submit`, and the Shopify Admin API
+token for the whitener. All three warn against pasting the secret back into
+a chat.
