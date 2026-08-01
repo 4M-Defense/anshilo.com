@@ -1251,3 +1251,33 @@ leaves the shell, and the model then replies "נראה שההודעה נחתכה
 reads exactly like a server bug and is not one. Put the JSON in a file
 and use `--data-binary @file`. Rule out the harness before blaming the
 service.
+
+### The owner's own network blocks the assistant as malware
+
+Worth separating from the DNS workaround above, because it is not an
+environment quirk — it affects real use. The emulator inherits the host
+resolver and resolves `anshilo-assistant.expo.app` to
+**`hit-malware.opendns.com`**. OpenDNS has the assistant's host
+classified as malware. Shopify resolves normally, so everything else in
+the app works and only the assistant looks broken, presenting in the UI
+as "אין חיבור לאינטרנט".
+
+Restarting the emulator with `-dns-server 8.8.8.8` fixed it completely,
+and the assistant then returned a full Hebrew answer with a real product
+carousel in the app (`docs/store-assets/05-assistant.png`). Apple and
+Google reviewers are not on that network, so this is not a review risk —
+but anyone on the shop's Wi-Fi, including the owner testing on a phone,
+sees a broken feature. The fix is an allow-list entry in the
+OpenDNS/Umbrella dashboard, not a code change.
+
+### The logo has now actually been looked at
+
+§7 item 3 said `cdn.shopify.com` was blocked so no agent had ever seen
+the header logo's pixels, and the identification rested on the live
+theme's configuration. It has now been fetched from
+`anshilo.com/cdn/shop/files/final-logo-for-the-website.png` and viewed:
+500×100, exactly 5:1, navy and red wordmark with the roof mark, on an
+**opaque white plate** — no transparency. The §7 identification was
+correct. The white plate is why `docs/store-assets/feature-graphic-1024x500.png`
+is built on white rather than on the ink colour; on navy the logo would
+sit inside a visible white box.
