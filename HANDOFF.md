@@ -34,7 +34,7 @@ Branch: `claude/shopify-app-hebrew-compat-i1wcji` · PR: [#4](https://github.com
 
 | Fact | Consequence |
 |---|---|
-| ⚠️ **Network reachability depends on where you are running — measure it, don't assume.** *Under the agent proxy:* `anshilo.com`, `3007b3-4.myshopify.com` and `cdn.shopify.com` are all blocked (`CONNECT tunnel failed, 403` / `000`); `storage.googleapis.com` and `fonts.gstatic.com` are open. *Running locally on the owner's Windows machine (round 12, measured):* all three return `200`/`301` and the whitener pulled 1,838 product images straight from `cdn.shopify.com`. What **is** blocked locally is `anshilo-assistant.expo.app` — it resolves to `146.112.61.110`, an OpenDNS block page, so the assistant cannot be tested from that machine. | Run one `curl -o /dev/null -w "%{http_code}"` before concluding anything is unreachable. Where the store *is* reachable, `theme/tools/shoot.mjs` works and the visual pass in §7 stops being blocked. Never disable TLS or unset `HTTPS_PROXY` to force it. |
+| ⚠️ **Network reachability depends on where you are running — measure it, don't assume.** *Under the agent proxy:* `anshilo.com`, `3007b3-4.myshopify.com` and `cdn.shopify.com` are all blocked (`CONNECT tunnel failed, 403` / `000`); `storage.googleapis.com` and `fonts.gstatic.com` are open. *Running locally on the owner's Windows machine (round 12, measured):* all three return `200`/`301` and the whitener pulled 1,838 product images straight from `cdn.shopify.com`. What **is** blocked locally is `anshilo-assistant.expo.app` — it resolves to `146.112.61.110`, an OpenDNS block page. That filter poisons DNS only and does not block the host, so `nslookup … 8.8.8.8` plus `curl --resolve` reaches it; see §21. | Run one `curl -o /dev/null -w "%{http_code}"` before concluding anything is unreachable. Where the store *is* reachable, `theme/tools/shoot.mjs` works and the visual pass in §7 stops being blocked. Never disable TLS or unset `HTTPS_PROXY` to force it. |
 | **The org hit its monthly spend limit** during the build. | Subagents/Workflows may fail with `You've hit your org's monthly spend limit`. Assume you are working alone unless a call proves otherwise. |
 | `fonts.googleapis.com` / `fonts.gstatic.com` **are** reachable. | Font subsets were downloaded from there. |
 | `registry.npmjs.org` is reachable. | `npm install` works. |
@@ -1219,3 +1219,35 @@ the app; no such page exists.
 **Guideline 2.1 checked:** with the network off the app does not crash —
 each section shows a Hebrew error with a retry and navigation stays
 usable.
+
+### The assistant is verified end to end — the block was DNS only
+
+Rounds 10 to 13 all carried "nobody has ever seen `/chat` return 200" as
+the top open risk. It is now closed, and the thing that unblocked it is
+worth keeping: **the OpenDNS filter on the owner's machine only poisons
+DNS.** The host itself is reachable, so resolve it elsewhere and pin the
+address:
+
+```bash
+nslookup anshilo-assistant.expo.app 8.8.8.8     # -> 104.18.21.213 (Cloudflare)
+curl --resolve anshilo-assistant.expo.app:443:104.18.21.213 \
+     https://anshilo-assistant.expo.app/health
+```
+
+Measured results:
+
+| call | result |
+|---|---|
+| `/health` | 200 — `openai: true`, `anthropic: false`, `storefront: true` |
+| `/chat`, English | 200 in ~4s, searched the catalogue, two real Makita drills with prices |
+| `/chat`, Hebrew | 200 in ~10s, two real products with prices and stock, answered in Hebrew |
+
+The round-10 fix works. The app's `TIMEOUT_MS` is 30s against a 10s worst
+case, so the margin is fine.
+
+**A warning about testing it, which cost a wrong diagnosis here.** Hebrew
+passed to `curl -d '…'` from Git Bash on Windows is mangled before it
+leaves the shell, and the model then replies "נראה שההודעה נחתכה" — which
+reads exactly like a server bug and is not one. Put the JSON in a file
+and use `--data-binary @file`. Rule out the harness before blaming the
+service.
