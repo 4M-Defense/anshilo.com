@@ -34,3 +34,7 @@ Thumbs.db
 __pycache__/
 *.pyc
 /tmp-shots/
+
+# Whitener dry-run output. Regenerated on every run and judged by eye, never
+# committed: it is 15 before/after PNGs that change whenever the catalogue does.
+mobile-app/whiten-samples/
