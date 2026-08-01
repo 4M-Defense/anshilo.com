@@ -1,7 +1,7 @@
 # HANDOFF — א.נ. שילו · Shilo Pro v2
 
-**Current state: round 13 shipped. Start at §20 for what just changed, then §2.**
-Rounds 9–13 are the app, the AI assistant and its server — the theme is untouched
+**Current state: round 14 shipped. Start at §21 for what just changed, then §2.**
+Rounds 9–14 are the app, the AI assistant and its server — the theme is untouched
 since round 5 (§11).
 
 **Written by the previous agent. Read this before touching anything.**
@@ -1133,3 +1133,89 @@ not a defect, and they are the only part still waiting on the owner.
   `e042003`. It is the current code and installable.
 - The production Android AAB is **orphaned** — runtime `0645f78d`, built from
   older source. A new production build is required before uploading to Play.
+
+## 21. Round 14 — the zoom, measured; and what review will actually catch
+
+### The zoom bug was three bugs
+
+The owner reported the same defect after round 12: enlarge the product
+image, touch it, it leaves the screen. Round 12's fix could not have
+worked, and two more faults were sitting beside it.
+
+1. **There was no zoom at all on Android.** `maximumZoomScale`,
+   `minimumZoomScale`, `centerContent` and `pinchGestureEnabled` are
+   marked `@platform ios` in react-native's own `ScrollView.js`. The
+   whole feature was iOS-only, on an app about to ship to Play.
+2. **The parent `FlatList` swallowed the gesture.** Measured, not
+   guessed: an on-screen counter in the modal showed the child's
+   `onMoveShouldSetPanResponder` was **never called once**, because the
+   native ScrollView intercepts moves before a JS child can negotiate.
+   (`console.log` is useless here — release builds do not forward it to
+   logcat. Render the diagnostic into the view and screenshot it.)
+   Toggling `scrollEnabled` to dodge this is what caused round 12's
+   jumps.
+3. **Nothing constrained the translation.** UIScrollView moves
+   `contentOffset` and has no concept of an image boundary.
+
+### The fix
+
+No ScrollView in the component at all. One `PanResponder` decides
+between paging, panning and pinching, and the translation is clamped to
+the rendered `contain` box on every tick, which makes escaping
+unrepresentable. Pinch anchoring uses `t₁ = f₁ − (s₁/s₀)·(f₀ − t₀)`.
+
+Verified: 288,000 randomised pinch/pan/double-tap states over six aspect
+ratios, zero escapes, anchor drift 3e-13 px. On a Pixel 8 emulator
+against the live catalogue: double tap zooms anchored, dragging a zoomed
+image pans it and it stays flush to both edges, dragging an unzoomed one
+snaps back with no drift. **Pinch and multi-image paging are not device
+verified** — `adb` cannot inject a second touch.
+
+Fingerprint measured unchanged, so it shipped over the air to build 11.
+
+### Testing on the local emulator — it works, use it
+
+`Pixel_8` AVD exists on the owner's machine. The EAS preview APK is
+universal (`x86_64` included), so `adb install` works, and the `preview`
+channel is the way to get a JS change onto it:
+
+```bash
+"$ANDROID_HOME/emulator/emulator.exe" -avd Pixel_8 &
+adb install -r <preview apk>
+eas update --branch preview --environment preview
+# force-stop and relaunch twice: first fetches, second runs
+```
+
+Two traps when driving it with `adb`: swipes that start within ~50px of
+the left or right edge trigger the system back gesture and close the
+screen, and `input tap` pairs are too slow to reliably register as a
+double tap.
+
+### Submission — what was fixed and what review will still catch
+
+**Fixed:** the app linked to no privacy policy anywhere, from an app that
+offers account creation. Four policies now sit under "מידע משפטי" on the
+More screen (`anshilo.com/policies/*`, verified live).
+
+**Checked against the built APK's manifest rather than app.json:**
+`targetSdk` 36, no camera/location/contacts. But `SYSTEM_ALERT_WINDOW`
+is present, merged from react-native's *debug* manifest, unused, and
+sensitive to Google.
+
+**The batching rule — this is the important one.** `supportsTablet:
+false` was measured and moves **both** fingerprints at once
+(`ios 7b46ea78 → bbb8a1c2`, `android 0015047 → 3c10e085`). So does any
+other native config change. Applying one and waiting orphans the
+installed build from its updates, which is precisely what `6975f47` did
+with the bundle id. The bundle id, `supportsTablet` and the permission
+removal must be applied **together**, immediately before the submission
+build, rebuilding both platforms. `docs/SUBMISSION.md` §2א carries this.
+
+`supportsTablet` is `true` today, so Apple reviews on iPad and wants
+12.9" screenshots of an app nobody has opened on one. Google separately
+requires a web URL for account deletion that works without installing
+the app; no such page exists.
+
+**Guideline 2.1 checked:** with the network off the app does not crash —
+each section shows a Hebrew error with a retry and navigation stays
+usable.
