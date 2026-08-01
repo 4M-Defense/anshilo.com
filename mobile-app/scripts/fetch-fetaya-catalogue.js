@@ -38,6 +38,8 @@ const BASE_DELAY_MS = 400;
 const args = process.argv.slice(2);
 const limIdx = args.indexOf('--limit');
 const LIMIT = limIdx >= 0 ? Number(args[limIdx + 1]) : null;
+/* משלים רק את מה שחסר בקובץ הקיים, כדי לא לשלוף שוב 800 עמודים שכבר יש */
+const ONLY_MISSING = args.includes('--only-missing');
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
@@ -115,12 +117,28 @@ function extract(html, url) {
 
   const offers = Array.isArray(product.offers) ? product.offers[0] : product.offers;
   const image = html.match(/<meta property="og:image" content="([^"]+)"/);
+
+  /*
+   * המקט — וזה החלק שהופך את כל השליפה לשימושית.
+   *
+   * התאמה לפי שם בין הקטלוג של פתיה לחנות **אינה עובדת**, ולא במעט:
+   * נמדד שציון דמיון 0.89 מצביע על "אותה סדרה, דגם אחר" ולא על אותו מוצר.
+   * DARYA 36W בחנות התאים ל-DARYA 28W אצל הספק, ושבילית 4.4W התאימה
+   * לשבילית 44W — פי עשרה בהספק. ההבדל בין שני דגמים הוא ספרה אחת, והיא
+   * בדיוק מה שקובע את המחיר, ולכן שם הוא מפתח גרוע.
+   *
+   * המקט אינו ב-JSON-LD אלא בגוף העמוד, בתוך div.cataloge_number.
+   * למוצרי פתיה בחנות יש מקט מספרי, כך שזה מפתח מדויק לשני הכיוונים.
+   */
+  const skuBlock = html.match(/class="cataloge_number"[\s\S]{0,400}?<span>([^<]{1,20})<\/span>/);
+  const sku = skuBlock ? skuBlock[1].trim() : null;
   /* השם ב-JSON-LD מגיע עם " | FETAYA" בסוף ובלי סימני פיסוק — מנקים */
   const name = String(product.name || '').replace(/\s*\|\s*FETAYA\s*$/i, '').trim();
 
   return {
     url,
     itemId: (url.match(/\/items\/(\d+)/) || [])[1] ?? null,
+    sku,
     name,
     price: offers?.price != null ? Number(offers.price) : null,
     currency: offers?.priceCurrency ?? null,
@@ -149,7 +167,7 @@ function toCsv(rows) {
     const s = v == null ? '' : String(v);
     return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
   };
-  const cols = ['itemId', 'name', 'price', 'currency', 'availability', 'image', 'url'];
+  const cols = ['itemId', 'sku', 'name', 'price', 'currency', 'availability', 'image', 'url'];
   /* BOM כדי שאקסל בעברית לא יציג ג'יבריש */
   return '﻿' + [cols.join(','), ...rows.map((r) => cols.map((c) => cell(r[c])).join(','))].join('\n');
 }
