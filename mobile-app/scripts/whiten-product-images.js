@@ -45,6 +45,12 @@ const args = process.argv.slice(2);
 const APPLY = args.includes('--apply');
 const vendorIdx = args.indexOf('--vendor');
 const VENDOR = vendorIdx >= 0 ? args[vendorIdx + 1] : null;
+/*
+ * --collections "handle1,handle2" — מלבין תמונות **מחלקה** ולא מוצרים.
+ * ה-handles מפורשים בכוונה; ראו את ההערה על runCollections.
+ */
+const colIdx = args.indexOf('--collections');
+const COLLECTIONS = colIdx >= 0 ? (args[colIdx + 1] || '').split(',').map((s) => s.trim()).filter(Boolean) : null;
 
 /* ---------- טוקנים ---------- */
 
@@ -183,6 +189,39 @@ function pixel(png, x, y) {
   const i = (png.width * y + x) << 2;
   return { r: png.data[i], g: png.data[i + 1], b: png.data[i + 2], a: png.data[i + 3], i };
 }
+
+/**
+ * שיעור השטח שיושב ב"אזור העיוור" — רחוק מגוון הרקע מספיק שהעין רואה אותו,
+ * וקרוב מספיק ש-FILL_TOLERANCE ימחק אותו.
+ *
+ * זו הבדיקה **המקדימה** שתופסת את מחלקת הכשל שהבדיקה שלאחר מעשה מפספסת:
+ * מוצר לבן על רקע כמעט-לבן. סולם KRAUSS הלבן, בקבוקי BONA הלבנים ואריח
+ * "גלאים ושעונים" — שעון לבן על קרם — כולם עברו את בדיקת המסגרת ואת בדיקת
+ * הגוש, ובכל זאת יצאו אכולים, כי גוף המוצר עצמו נמצא בתוך הסבילות.
+ *
+ * למה בדיקת הגוש לא תפסה: בשעון נשארו החוגה הכהה והכפתור האדום, ולכן הגוש
+ * הגדול שרד — בזמן שהגוף הלבן נמחק. גוש חי אינו מוצר שלם.
+ *
+ * למה גם מדידת "פיקסלי מוצר שנהרסו" לא תפסה: היא מגדירה מוצר כרחוק מעל
+ * הסבילות מהרקע, וגוף לבן על קרם אינו כזה. המדד היה עיוור לאותו דבר שהוא
+ * אמור למצוא. נמדד: השעון 14.7% מול 1.7%–4.9% בשלושת האריחים ששרדו.
+ */
+function blindZoneRatio(png, tone) {
+  let blind = 0;
+  const total = png.width * png.height;
+  for (let y = 0; y < png.height; y++) {
+    for (let x = 0; x < png.width; x++) {
+      const p = pixel(png, x, y);
+      if (p.a < 16) continue;
+      const d = Math.abs(p.r - tone.r) + Math.abs(p.g - tone.g) + Math.abs(p.b - tone.b);
+      if (d > 8 && d <= FILL_TOLERANCE) blind++;
+    }
+  }
+  return blind / total;
+}
+
+/** מעליו התמונה נדחית: יותר מדי ממנה בלתי ניתן להבחנה מהרקע */
+const BLIND_ZONE_LIMIT = 0.08;
 
 /** האם הרקע (טבעת המסגרת) לבן או שקוף */
 function borderIsWhite(png) {
@@ -344,8 +383,12 @@ function whitenBackground(png) {
 
 /* ---------- העלאה ---------- */
 
-async function uploadAndAttach(product, buffer) {
-  const filename = `${product.handle.slice(0, 60)}-white.png`;
+/**
+ * מעלה קובץ ל-staged upload ומחזיר את ה-resourceUrl.
+ *
+ * מופרד מ-uploadAndAttach כי גם תמונות מחלקה צריכות אותו — ראו runCollections.
+ */
+async function stageUpload(filename, buffer) {
   const staged = await admin(
     `mutation Stage($input: [StagedUploadInput!]!) {
       stagedUploadsCreate(input: $input) {
@@ -367,6 +410,12 @@ async function uploadAndAttach(product, buffer) {
   form.append('file', new Blob([buffer], { type: 'image/png' }), filename);
   const up = await fetch(target.url, { method: 'POST', body: form });
   if (!up.ok) throw new Error(`העלאה נכשלה: ${up.status}`);
+  return target.resourceUrl;
+}
+
+async function uploadAndAttach(product, buffer) {
+  const filename = `${product.handle.slice(0, 60)}-white.png`;
+  const resourceUrl = await stageUpload(filename, buffer);
 
   const created = await admin(
     `mutation AddMedia($productId: ID!, $media: [CreateMediaInput!]!) {
@@ -378,7 +427,7 @@ async function uploadAndAttach(product, buffer) {
     {
       productId: product.id,
       media: [
-        { originalSource: target.resourceUrl, alt: product.featuredImage.altText || product.title, mediaContentType: 'IMAGE' },
+        { originalSource: resourceUrl, alt: product.featuredImage.altText || product.title, mediaContentType: 'IMAGE' },
       ],
     }
   );
@@ -398,6 +447,76 @@ async function uploadAndAttach(product, buffer) {
     }`,
     { id: product.id, moves: [{ id: newId, newPosition: '0' }] }
   );
+}
+
+/* ---------- מחלקות ---------- */
+
+/**
+ * מלבין את **תמונת המחלקה** עצמה, ולא תמונת מוצר.
+ *
+ * למה זה נדרש בנפרד: האפליקציה מציגה אריח מחלקה על ריבוע לבן מדויק, ואם
+ * תמונת המחלקה צולמה על קרם היא מציירת מלבן בגוון אחר בתוך הלבן. ל-
+ * `check-collection-tiles.js` יש פתרון לרוב המקרים — להצביע את תמונת המחלקה
+ * על תמונת מוצר שכן צולמה על לבן — אבל הוא לא עובד כשהמחלקה **ריקה**, ואז
+ * אין מוצר לקחת ממנו. שם הדרך היחידה היא להלבין את התמונה הקיימת.
+ *
+ * מקבל handles במפורש ולא סורק את כל החנות, בכוונה: אריחים רבים הם **לוגו על
+ * צבע מותג** — נירלט על שחור, קראוס על אדום — והלבנה שלהם מוחקת את הלוגו.
+ * בדיקת גוש-המוצר-הגדול תדחה את הגרועים שבהם, אבל אין סיבה להסתמך עליה
+ * כשאפשר פשוט לבחור.
+ */
+async function runCollections(handles) {
+  console.log(APPLY ? '⚠  מצב כתיבה — תמונות המחלקות ישונו\n' : 'הרצה יבשה — לא נוגעים בחנות\n');
+  const sampleDir = path.join(__dirname, '..', 'whiten-samples');
+  if (!APPLY) fs.mkdirSync(sampleDir, { recursive: true });
+
+  for (const handle of handles) {
+    const data = await admin(
+      `query($h: String!) { collectionByHandle(handle: $h) { id title handle image { url } } }`,
+      { h: handle }
+    );
+    const col = data.collectionByHandle;
+    if (col == null) { console.log(`  ✗ ${handle} — לא נמצאה`); continue; }
+    if (col.image == null) { console.log(`  ✗ ${col.title} — אין תמונת מחלקה`); continue; }
+
+    const full = await loadPng(col.image.url, WORK_WIDTH);
+    if (full == null) { console.log(`  ✗ ${col.title} — התמונה לא נטענה`); continue; }
+
+    const before = borderIsWhite(full);
+    if (before.ok) { console.log(`  · ${col.title} — כבר על לבן, מדלג`); continue; }
+    const tone = [before.tone.r, before.tone.g, before.tone.b].map(Math.round).join(',');
+
+    const blind = blindZoneRatio(full, before.tone);
+    if (blind > BLIND_ZONE_LIMIT) {
+      console.log(`  ✗ ${col.title} — נדחתה: ${(blind * 100).toFixed(1)}% מהתמונה בלתי ניתן להבחנה מהרקע`);
+      continue;
+    }
+
+    const original = PNG.sync.write(full);
+    const result = whitenBackground(full);
+    if (result == null) { console.log(`  ✗ ${col.title} — נדחתה: המוצר בגוון הרקע`); continue; }
+    if (!borderIsWhite(full).ok) { console.log(`  ✗ ${col.title} — נדחתה: המסגרת נשארה צבועה`); continue; }
+
+    const buffer = PNG.sync.write(full);
+    if (!APPLY) {
+      const label = col.title.replace(/[\\/:*?"<>|]/g, '').trim().slice(0, 40);
+      fs.writeFileSync(path.join(sampleDir, `col-${label}-before.png`), original);
+      fs.writeFileSync(path.join(sampleDir, `col-${label}-after.png`), buffer);
+      console.log(`  ✓ ${col.title} — ${tone} → לבן  (דוגמה נשמרה)`);
+      continue;
+    }
+
+    const resourceUrl = await stageUpload(`${handle.slice(0, 50)}-white.png`, buffer);
+    const upd = await admin(
+      `mutation($input: CollectionInput!) {
+        collectionUpdate(input: $input) { collection { id } userErrors { field message } }
+      }`,
+      { input: { id: col.id, image: { src: resourceUrl, altText: col.title } } }
+    );
+    const errs = upd.collectionUpdate.userErrors;
+    if (errs?.length) { console.log(`  ✗ ${col.title} — ${errs[0].message}`); continue; }
+    console.log(`  ✓ ${col.title} — ${tone} → לבן`);
+  }
 }
 
 /* ---------- ראשי ---------- */
@@ -432,6 +551,12 @@ async function main() {
     }
     /* לפני שנוגעים בחנות, לא באמצע — כישלון הרשאות ייפול כאן ולא אחרי 90 תמונות */
     ADMIN_TOKEN = await mintAdminToken();
+  }
+
+  /* מצב מחלקות עוצר כאן — הוא לא נוגע במוצרים בכלל */
+  if (COLLECTIONS != null) {
+    if (!APPLY && !ADMIN_TOKEN) ADMIN_TOKEN = await mintAdminToken();
+    return runCollections(COLLECTIONS);
   }
 
   console.log(APPLY ? '⚠  מצב כתיבה — התמונות בחנות ישונו\n' : 'הרצה יבשה — לא נוגעים בחנות\n');
