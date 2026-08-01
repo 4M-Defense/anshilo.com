@@ -1517,3 +1517,61 @@ the Play Console listing with every Data Safety answer spelled out, the
 Google Cloud service account for `eas submit`, and the Shopify Admin API
 token for the whitener. All three warn against pasting the secret back into
 a chat.
+
+## 25. Round 17 — the whitener ran for real, on Hagit's 32
+
+First `--apply` this tool has ever done. Scoped to vendor חגית, the case it
+was written for.
+
+| | |
+|---|---|
+| whitened | **32** |
+| already white, skipped | 72 |
+| rejected, non-uniform background | 4 |
+| upload errors | 0 |
+
+The four rejections include `סולם עץ רב מקצועי 105606` — the
+specification-table image that the post-whitening border check was added to
+catch. It did its job in production.
+
+**Verified against the store, not the report.** Six of the whitened ladders
+were re-fetched through the Storefront API and their border tone measured:
+`255,255,255` on all six. The navy is gone from the live storefront and from
+the app.
+
+### Two properties of this change worth knowing
+
+**Nothing was deleted.** `productCreateMedia` adds the whitened image and
+`productReorderMedia` moves it to position 0, so the original navy shot is
+still attached to every one of the 32, demoted. Undoing this is a reorder,
+not a restore.
+
+**The gaps between the rungs came out white**, which is the entire reason
+the fill is global rather than a flood from the border. A flood never
+reaches a gap that the frame encloses and would have left a blue rectangle
+in each one. §17 predicted this; production confirms it.
+
+### Honest caveat on quality
+
+Where pale aluminium met dark navy the edge softening thins the metal
+slightly — visible around the feet at the bottom of the frame. At catalogue
+size it reads clean, and it is a fair trade against a blue halo, but it is
+real and someone should decide it is acceptable rather than discover it.
+
+### The credential route, now proven end to end
+
+`SHOPIFY_CLIENT_ID` + `SHOPIFY_CLIENT_SECRET` in `mobile-app/.env`, and the
+script mints a 24-hour token per run. Confirmed what the store actually
+granted rather than what was configured:
+
+```
+app           : Shilo Image Tools
+actual scopes : read_files, read_products, write_files, write_products
+```
+
+Shopify implies the matching `read_*` for every `write_*`. **No customer, no
+order, no Storefront scope** — the separation from §23 holds in fact and not
+just in intent.
+
+Untouched and waiting on the owner's eye: the other 18 coloured backgrounds
+(Kärcher, BLUNDSTONE, BONA) and the 9 shadow-only images.
