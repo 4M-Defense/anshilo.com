@@ -168,6 +168,19 @@ palette colour, run the validator — it will tell you if you broke AA.
 > reconciled them back into `theme/`; assume more files differ than the one
 > that has been checked. The repo is the source of truth in intent, not
 > currently in fact.
+>
+> **`layout/theme.liquid` has diverged in BOTH directions — neither copy is a
+> superset.** Measured in round 15:
+>
+> | | repo `theme/` | v8 `148378648655` |
+> |---|---|---|
+> | bytes (LF) | 14,710 | 19,794 |
+> | assistant render (`{% render 'ai-assistant' %}`) | **yes** | **no** |
+> | `/policies/*` page handling — Hebrew heading by handle, breadcrumbs, reading measure, legal-nav | **no** | **yes** (~5KB) |
+>
+> Pushing either file over the other destroys real work. This one needs a
+> deliberate merge, not an upsert. **It is also why the site assistant has
+> never once appeared** — see §23.
 
 ### The original claim, kept for the v6 history
 
@@ -1372,3 +1385,41 @@ Two lessons, and the second is the expensive one:
 
 v6 did receive the earlier version of that file. It is superseded and slated
 for deletion along with v5 and v7, so it was not synced back.
+
+## 23. Round 15 — the site assistant has never been live
+
+The owner asked what state the assistant is in **on the website**, as opposed
+to in the app. The answer is that it has never rendered, for two independent
+reasons, and both had to be found before either was visible.
+
+**1. The server URL was never configured.** `layout/theme.liquid` gates the
+widget on `settings.assistant_enabled and settings.assistant_url != blank`.
+`config/settings_schema.json` declares both under "העוזר החכם (AI)":
+`assistant_enabled` defaults to `true`, `assistant_url` has **no default**.
+Neither key existed in `config/settings_data.json` — not on v8, not in the
+repo — so enabled resolved true and the URL resolved blank, and the guard was
+always false. Fixed on v8: `assistant_url` is now
+`https://anshilo-assistant.expo.app`.
+
+**2. v8's layout does not render it at all.** That is the real blocker, and it
+is the divergence in §5. v8's `layout/theme.liquid` is 5KB *larger* than the
+repo's because it carries the `/policies/*` handling, but it does **not**
+contain the `{% render 'ai-assistant' %}` line that the repo's copy has. The
+snippet is deployed to v8 (`snippets/ai-assistant.liquid`, 33,014 bytes,
+byte-matching the repo once CRLF is discounted) and nothing calls it.
+
+Verified with Playwright against v8: `.shilo-ai__launcher` absent before and
+after the settings fix. **Do not "fix" this by pushing the repo's
+`theme.liquid` over v8's** — that reverts the policy-page work. The two files
+have to be merged by hand, once, and the result written to both.
+
+While checking, two adjacent facts worth recording:
+
+- **The accessibility widget IS live** and has a statement link
+  (`a11y_enabled` defaults true, so absence from `settings_data.json` is
+  harmless). The paid `sense-rtl` app block is present but `"disabled": true`,
+  which is correct — the in-theme widget replaced it.
+- **Store hours disagree between site and app.** The theme says
+  `ו' 07:00-14:00`; `mobile-app/src/config.ts` and the theme's own schema
+  default say `ו' 07:00-13:00`. One of them is wrong on a customer-facing
+  detail; only the owner can say which.
