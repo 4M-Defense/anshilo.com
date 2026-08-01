@@ -62,7 +62,62 @@ function readEnvValue(key) {
 const STOREFRONT_TOKEN =
   process.env.EXPO_PUBLIC_SHOPIFY_STOREFRONT_TOKEN ||
   readEnvValue('EXPO_PUBLIC_SHOPIFY_STOREFRONT_TOKEN');
-const ADMIN_TOKEN = process.env.SHOPIFY_ADMIN_TOKEN || readEnvValue('SHOPIFY_ADMIN_TOKEN');
+
+/*
+ * שני מסלולים לטוקן האדמין, והשני הוא זה שרלוונטי מ-2026.
+ *
+ * המסלול הישן: טוקן קבוע בסטייל `shpat_` שמעתיקים פעם אחת ממסך
+ * "Reveal token once" של legacy custom app. **אי אפשר ליצור יותר כאלה** —
+ * שופיפיי סגרה יצירת legacy custom apps ב-1.1.2026, והמסך ההוא לא קיים
+ * באפליקציות שנוצרות ב-Dev Dashboard. אם יש בסביבה טוקן כזה הוא עדיין
+ * יעבוד, ולכן הוא נשאר נתמך.
+ *
+ * המסלול החי: client credentials grant. מחליפים client id + secret בטוקן
+ * שתקף ל-24 שעות. אין שום טעם להדביק טוקן כזה ל-.env — הוא יפוג לפני
+ * ההרצה הבאה — ולכן הסקריפט מנפיק אותו בעצמו בכל הרצה.
+ */
+const ADMIN_TOKEN_STATIC =
+  process.env.SHOPIFY_ADMIN_TOKEN || readEnvValue('SHOPIFY_ADMIN_TOKEN');
+const CLIENT_ID = process.env.SHOPIFY_CLIENT_ID || readEnvValue('SHOPIFY_CLIENT_ID');
+const CLIENT_SECRET =
+  process.env.SHOPIFY_CLIENT_SECRET || readEnvValue('SHOPIFY_CLIENT_SECRET');
+
+/** נקבע פעם אחת ב-main, לפני שנוגעים בחנות */
+let ADMIN_TOKEN = ADMIN_TOKEN_STATIC;
+
+/**
+ * מנפיק טוקן אדמין מ-client id + secret.
+ *
+ * שימו לב לדומיין: נקודת ה-OAuth עובדת מול `*.myshopify.com` ולא מול
+ * הדומיין הפומבי של החנות.
+ */
+async function mintAdminToken() {
+  const res = await fetch(`https://${STORE_DOMAIN}/admin/oauth/access_token`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: new URLSearchParams({
+      grant_type: 'client_credentials',
+      client_id: CLIENT_ID,
+      client_secret: CLIENT_SECRET,
+    }),
+  });
+  const body = await res.text();
+  if (!res.ok) {
+    throw new Error(`הנפקת טוקן נכשלה (${res.status}): ${body.slice(0, 200)}`);
+  }
+  let json;
+  try {
+    json = JSON.parse(body);
+  } catch {
+    throw new Error(`הנפקת טוקן החזירה תשובה שאינה JSON: ${body.slice(0, 200)}`);
+  }
+  if (!json.access_token) {
+    throw new Error(`הנפקת טוקן לא החזירה access_token: ${body.slice(0, 200)}`);
+  }
+  const hours = json.expires_in ? Math.round(json.expires_in / 3600) : null;
+  console.log(`  טוקן אדמין הונפק${hours ? ` — תקף ${hours} שעות` : ''}`);
+  return json.access_token;
+}
 
 /* ---------- API ---------- */
 
@@ -365,9 +420,18 @@ async function mapLimit(items, limit, fn) {
 async function main() {
   if (!STOREFRONT_TOKEN) throw new Error('חסר EXPO_PUBLIC_SHOPIFY_STOREFRONT_TOKEN');
   if (APPLY && !ADMIN_TOKEN) {
-    throw new Error(
-      'ל---apply דרוש SHOPIFY_ADMIN_TOKEN (הרשאות write_products ו-write_files).'
-    );
+    if (!CLIENT_ID || !CLIENT_SECRET) {
+      throw new Error(
+        'ל---apply דרושות הרשאות כתיבה. שימו ב-.env:\n' +
+          '  SHOPIFY_CLIENT_ID=…\n' +
+          '  SHOPIFY_CLIENT_SECRET=…\n' +
+          'מ-Dev Dashboard → Shilo Image Tools → Settings → Credentials.\n' +
+          '(טוקן `shpat_` קבוע ב-SHOPIFY_ADMIN_TOKEN עדיין נתמך, אבל אי אפשר ' +
+          'ליצור אפליקציות שמנפיקות אותו מאז 1.1.2026.)'
+      );
+    }
+    /* לפני שנוגעים בחנות, לא באמצע — כישלון הרשאות ייפול כאן ולא אחרי 90 תמונות */
+    ADMIN_TOKEN = await mintAdminToken();
   }
 
   console.log(APPLY ? '⚠  מצב כתיבה — התמונות בחנות ישונו\n' : 'הרצה יבשה — לא נוגעים בחנות\n');
