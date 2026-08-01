@@ -1423,3 +1423,63 @@ While checking, two adjacent facts worth recording:
   `ו' 07:00-14:00`; `mobile-app/src/config.ts` and the theme's own schema
   default say `ו' 07:00-13:00`. One of them is wrong on a customer-facing
   detail; only the owner can say which.
+
+## 24. Round 16 — submission-ready, and the site assistant is live
+
+### The app
+
+Both native config changes went in as one batch and both platforms were
+rebuilt. **Verified in the shipped binaries, not in the config:**
+
+| | iOS build 12 | Android versionCode 3 |
+|---|---|---|
+| runtime | `af3cfcb6` | `1e3cc308` |
+| artifact | `.ipa` | `.aab` |
+| checked | `Info.plist`: `UIDeviceFamily [1]` — **iPhone only**, `CFBundleIdentifier com.anshilo.shop.test`, `ITSAppUsesNonExemptEncryption false`, `CFBundleLocalizations ["he"]` | manifest: **no `SYSTEM_ALERT_WINDOW`**, nine legitimate permissions intact |
+
+`UIDeviceFamily [1]` is what actually removes the iPad review risk —
+`supportsTablet: false` in app.json is only the request.
+
+One false alarm worth recording: a raw string scan of the AAB manifest turns
+up `android.permission.DUMP`. It is **not** requested. The attribute is
+`android:permission` on AndroidX's `ProfileInstallReceiver` — that receiver
+is protected so only a DUMP holder can trigger it. Check the attribute name
+before believing a permission scan.
+
+Two Shopify pages were created, which closed two separate things at once:
+
+- `account-deletion` — Google Play requires a URL where a user can request
+  deletion **without installing the app**; the in-app screen never satisfied
+  that.
+- `quick-order` — the page the announcement bar had always pointed at. **The
+  §22 guard then restored the link by itself**, with no theme change, which
+  is the cheapest possible confirmation the guard was right.
+
+### The site assistant — live for the first time
+
+The `layout/theme.liquid` divergence in §5 is resolved. The merged file is
+v8's content (policy block, `doc_title` cart fix, tile-bg fallback) **plus**
+the repo's assistant render — 20,591 bytes, and `themeFilesUpsert` returned
+exactly 20,591, so the write was byte-faithful. The local diff against the
+repo's old copy removed only four lines, all of them v8 being newer.
+
+Verified on v8: `.shilo-ai__launcher` present on the home page **and** on a
+policy page, while the policy block still renders its wrapper, Hebrew
+heading, breadcrumbs and legal-nav. Both sides of the merge survived.
+
+Full audit after the merge: 22 pages, all 200 except the deliberate 404
+probe. `quick-order` now returns 200 where it used to 404.
+
+### What is left, and it is not code
+
+Apple: iPhone screenshots (build 12 installs on the owner's phone; iPad is
+no longer required), the App Privacy questionnaire — answers are written out
+in `docs/SUBMISSION.md` §4א — store text, then `eas submit`.
+
+Google: create the Play record, a service account for `eas submit` (or
+upload the AAB by hand), Data Safety, content rating. Store assets are ready
+in `docs/store-assets/`.
+
+Still unverified anywhere: **pinch-zoom and multi-image paging on a real
+device.** `adb` cannot inject a second finger, so those rest on the fuzz and
+on construction. Check them on build 12 before submitting.
