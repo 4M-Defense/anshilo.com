@@ -1,12 +1,20 @@
 # HANDOFF — א.נ. שילו · Shilo Pro v2
 
-**Current state: round 6 shipped. Start at §12 for what just changed, then §2.**
-Round 6 is the mobile app only — the theme is untouched since round 5 (§11).
+**Current state: round 13 shipped. Start at §20 for what just changed, then §2.**
+Rounds 9–13 are the app, the AI assistant and its server — the theme is untouched
+since round 5 (§11).
 
 **Written by the previous agent. Read this before touching anything.**
 Run `git log --oneline` for the current head — the list in §9 stops at the commit
 before this file was added.
-Branch: `claude/shopify-store-modern-design-746p2i` · PR: [#1](https://github.com/A-N-Shilo/anshilo.com/pull/1) (closed, not merged)
+Branch: `claude/shopify-app-hebrew-compat-i1wcji` · PR: [#4](https://github.com/A-N-Shilo/anshilo.com/pull/4) (open, draft) → base `claude/shopify-site-app-upgrade-7zwt0s`
+
+> **Several claims in §2, §6 and §7 below were out of date.** They were true in
+> the sandboxed agent environment this file was started in, and are false when
+> Claude Code runs locally on the owner's Windows machine. Each is corrected in
+> place, and §19 lists them together — the distinction matters more than any
+> individual fact: **a measurement in this file carries the conditions it was
+> taken under. Re-measure before you rely on one.**
 
 ---
 
@@ -26,7 +34,7 @@ Branch: `claude/shopify-store-modern-design-746p2i` · PR: [#1](https://github.c
 
 | Fact | Consequence |
 |---|---|
-| **`anshilo.com` is blocked by the agent proxy.** `curl` returns `CONNECT tunnel failed, 403`. Also tested and blocked: `3007b3-4.myshopify.com` and `cdn.shopify.com` (both return `000`). `storage.googleapis.com` and `fonts.gstatic.com` are open. | You **cannot** load the storefront, screenshot it, or verify HTML. Don't waste calls trying, and don't disable TLS or unset `HTTPS_PROXY`. Verify through the Admin API and the static checkers instead. `theme/tools/shoot.mjs` exists and works — it just needs a network that can reach the store. |
+| ⚠️ **Network reachability depends on where you are running — measure it, don't assume.** *Under the agent proxy:* `anshilo.com`, `3007b3-4.myshopify.com` and `cdn.shopify.com` are all blocked (`CONNECT tunnel failed, 403` / `000`); `storage.googleapis.com` and `fonts.gstatic.com` are open. *Running locally on the owner's Windows machine (round 12, measured):* all three return `200`/`301` and the whitener pulled 1,838 product images straight from `cdn.shopify.com`. What **is** blocked locally is `anshilo-assistant.expo.app` — it resolves to `146.112.61.110`, an OpenDNS block page, so the assistant cannot be tested from that machine. | Run one `curl -o /dev/null -w "%{http_code}"` before concluding anything is unreachable. Where the store *is* reachable, `theme/tools/shoot.mjs` works and the visual pass in §7 stops being blocked. Never disable TLS or unset `HTTPS_PROXY` to force it. |
 | **The org hit its monthly spend limit** during the build. | Subagents/Workflows may fail with `You've hit your org's monthly spend limit`. Assume you are working alone unless a call proves otherwise. |
 | `fonts.googleapis.com` / `fonts.gstatic.com` **are** reachable. | Font subsets were downloaded from there. |
 | `registry.npmjs.org` is reachable. | `npm install` works. |
@@ -185,9 +193,15 @@ This is the part with a live blocker. Read it fully.
 | Domain | `3007b3-4.myshopify.com` — correct and verified. |
 | Icon / splash colours | Moved to the v2 palette (`#0F1729` ink, `#D81E29` accent). |
 | `eas.json` | Present, with `development` / `preview` / `production` profiles. |
-| `app.json` | Build-ready: `com.anshilo.shop` on both platforms, RTL forced, splash configured. |
+| `app.json` | RTL forced, splash configured. **Not** `com.anshilo.shop` on both platforms — iOS is `com.anshilo.shop.test`, deliberately, and §18 is the whole argument. |
 
-### 🚩 THE ONE BLOCKER
+### 🚩 THE ONE BLOCKER — resolved, kept for the procedure
+
+**The token exists and is in `mobile-app/.env` as of round 9.** Everything below
+is still the correct procedure if it is ever lost or rotated; it is no longer
+something to go and do. §12 records where it came from: the owner had already
+created the Headless channel "Shilo Mobile App", and the token merely had not
+been copied into the repo.
 
 No Storefront API token. Either of these satisfies it (env wins):
 
@@ -898,3 +912,224 @@ canvas colour now sits behind it.
 alignment itself cannot be verified from here — it needs a device. The
 measurement scripts are the check that matters, and they are what should be used
 on the next screenshots rather than reading them by eye.
+
+---
+
+## 15. Round 9 — "המומחה של שילו", and a server to run it
+
+An AI shopping adviser, on the site and in the app, backed by a new
+`assistant-server/`. It is an Expo API-routes project deployed to EAS Hosting at
+`https://anshilo-assistant.expo.app`, and it runs an agentic loop: the model gets
+two tools against the Shopify **Storefront** API — `search_catalog` and
+`get_product` — and answers in Hebrew from real inventory rather than from
+training data.
+
+It takes whichever provider key is configured. `ANTHROPIC_API_KEY` or
+`OPENAI_API_KEY`; the route picks by which one is present. Both paths share the
+tool definitions and differ only in wire format.
+
+The server is **stateless by design** — no database, no file writes, and the
+request body is `{ messages, source }` with no user id, email or device id. That
+is not an accident, and it is what lets the App Privacy questionnaire declare the
+chat as *Not Linked to You* (`docs/SUBMISSION.md` §3א). Conversations live on the
+client. Do not add server-side history without redoing that declaration.
+
+## 16. Round 10 — the 502, which was not a bug in the code
+
+`/health` was green, every environment variable was present, and `POST /chat`
+returned 502 after eighteen seconds with one line in the EAS log:
+
+```
+ERROR  chat: empty final text from model
+```
+
+No provider error, so the OpenAI calls had *succeeded*. The model is
+`gpt-5-mini`, a reasoning model, and reasoning tokens are billed inside
+`max_completion_tokens`. That was set from a shared `MAX_TOKENS = 1200`. The
+model spent the whole allowance thinking, returned empty `content` with
+`finish_reason: 'length'`, `runOpenAiLoop` returned `''`, and `extractReply`
+turned that into a 502.
+
+Three changes, and the third is the one that matters:
+
+1. A separate, larger budget for the OpenAI route. The shared `MAX_TOKENS` is
+   reasonable for the Anthropic path and was left alone.
+2. `reasoning_effort: 'low'`, sent **only** when the model id starts with
+   `gpt-5`. Other models reject the parameter.
+3. `console.error` on both silent returns — the empty-content branch and the
+   loop-exhausted branch — logging `finish_reason` and content length.
+
+Without (3) this cost hours. A silent `return ''` inside a retry loop produces
+exactly one useless log line and no way to tell an empty answer from a refusal
+from an exhausted budget. **Any branch that returns a falsy value to the caller
+should say why.** Two adjacent fixes came from the same investigation: the server
+was rejecting requests by `Origin`, and it now reports what the provider actually
+said instead of collapsing everything into a generic failure.
+
+## 17. Round 11 — persistence, and a whitener
+
+**Conversations survive closing the chat.** App via `AsyncStorage`, following the
+existing `CartContext` / `FavoritesContext` pattern; site via `localStorage` in
+`ai-assistant.liquid`. Both get a way to start a new conversation.
+
+**`mobile-app/scripts/whiten-product-images.js`** turns coloured studio
+backgrounds white — written for Hagit's ladder photos, shot on navy
+`51,62,118`, which stood out badly inside the white product cards.
+
+Two things in it are load-bearing and easy to "simplify" wrongly:
+
+- The replacement is **global, not a flood fill from the border**. In a ladder
+  photo the gaps between the rungs are fully enclosed by the frame, so a fill
+  crawling inwards never reaches them and leaves a blue rectangle in every gap.
+  On a uniform studio background, every pixel of the background tone *is*
+  background, enclosed or not.
+- What replaces the flood fill as the safety net is a **largest-remaining-blob**
+  measurement. A product the same colour as its background — a blue tool on blue
+  — shatters into fragments, the blob collapses toward zero, and the image is
+  rejected instead of destroyed.
+
+Default is a dry run: nothing is written to the store, before/after samples are
+saved to `mobile-app/whiten-samples/` (untracked), and `--apply` needs
+`SHOPIFY_ADMIN_TOKEN` with `write_products` and `write_files`. **That token is
+not in `.env`** — applying is gated on the owner regardless of approval.
+
+## 18. Round 11 — the bundle identifier, and why it flip-flopped
+
+Read `docs/SUBMISSION.md` §1 first; this is the history behind it.
+
+`6975f47` changed `ios.bundleIdentifier` to `com.anshilo.shop`, calling `.test`
+a leftover. **That contradicted the decision recorded in §12**, where the owner
+was presented with the choice and chose to keep `.test` because App Store Connect
+record `6796238101` is registered against it.
+
+`ef71fda` reverted it, but for a different reason: the change moves the runtime
+fingerprint `7b46ea78` → `b6fa75cd`, and holding it in the branch made installed
+build 11 unreachable over the air, since an update publishes under the
+fingerprint of the source it was built from. Reverting the one line put the
+fingerprint back exactly and let the round's JavaScript ship immediately.
+
+So the repo now says `.test` in `app.json` and *"re-apply this when building for
+submission"* in the commit log. **Following that instruction produces a binary
+that does not match record `6796238101` and fails after the build wait.** The
+decision is unresolved and belongs to the owner; both options and their costs are
+in `docs/SUBMISSION.md`. The identifier is never shown to a customer.
+
+Also this round, and genuinely required: an in-app account deletion route
+(`mobile-app/app/account.tsx:117`) for App Review 5.1.1(v). Shopify exposes no
+customer-delete mutation on the Storefront or Customer Account API, so the screen
+submits a request with the customer's identity pre-filled. Two channels, because
+`mailto:` fails silently on a device with no mail account configured.
+
+## 19. Round 12 — the zoom, the slider, and the fingerprint discipline
+
+Both are in `e042003`; the commit message carries the full reasoning.
+
+**Zoom.** A `Pressable` carrying the double-tap sat between the `ScrollView`'s
+content view and the `Image`. UIScrollView scales its *content view*, so the
+wrapper took the scaling while the Image kept fixed dimensions and never
+reflowed; with `centerContent` the offset maths went wrong and a deep pinch threw
+the picture off screen. The Image is now the only child, the content has an
+explicit size, and the double tap listens on the ScrollView itself — **a touch
+handler is not a view**, so it cannot reintroduce the layer.
+
+**Slider.** Price filtering moved to a two-handle range slider on core
+`PanResponder`. Handles are placed with `insetInlineStart`, so fraction 0 sits at
+the start edge — the right, under RTL. Because a rising fraction walks the handle
+leftwards, a rightward drag must *lower* the value: `PanResponder` reports `dx`
+in physical screen coordinates and does not mirror itself. Bounds come from the
+collection's own `PRICE_RANGE` facet, verified against the live API; collections
+without that facet exist, so the number fields remain as the fallback.
+
+### The rule this round established
+
+**Measure the fingerprint before and after any dependency change.** Adding
+`react-native-gesture-handler` and `react-native-reanimated` to `package.json`
+was measured: `7b46ea78` → `4ffc9a1f`. Moved. It was reverted and the feature
+built on core APIs instead. There is also **no `babel.config.js` in this
+project**, and Reanimated 4 does not work without the worklets plugin — so that
+route was a crash risk, not merely a deployment risk.
+
+```bash
+npx expo-updates fingerprint:generate --platform ios
+```
+
+### Corrections to earlier sections
+
+- **§2's network table** was environment-specific, not permanent. See the
+  corrected row. The general lesson: this file records measurements, and a
+  measurement carries the conditions it was taken under. Re-measure.
+- **§6's "ONE BLOCKER"** is resolved — the Storefront token is in `.env`.
+- **§6 said `app.json` is `com.anshilo.shop` on both platforms.** It is not, and
+  §18 explains why that is deliberate.
+- **§7 item 3 says `cdn.shopify.com` is blocked so nobody has seen the logo
+  pixels.** Locally it is reachable; that check can now actually be done.
+- **§7 item 4's catalogue counts** predate the whitener's audit of 1,838
+  product images. They were about prices and inventory, not photos, so they
+  still stand — but `docs/STORE-HEALTH.md` has no photo section and should
+  gain one.
+
+### Knowingly left / needs eyes
+
+- **The assistant has never been verified end-to-end since the 502 fix.** The
+  host is DNS-blocked from the owner's machine and unreachable under the agent
+  proxy, so no round has actually seen `/chat` return 200. **Test it from a
+  phone.** If it is broken during App Review, it is a visibly broken feature.
+- The zoom and slider need a device. `tsc --noEmit` is clean and
+  `expo export` bundles, which proves neither gesture.
+- Round 8's measurement scripts are still the right way to judge screenshots.
+  Do not go back to reading them by eye.
+
+## 20. Round 13 — the whitener was nominating photos that were already white
+
+Two thirds of the candidate list was not a candidate. The full-catalogue dry run
+reported **94** images to whiten; **35 of them already had white backgrounds.**
+
+The "is the background already white?" test runs on a probe **48 pixels wide**.
+At that size every border pixel is an average of dozens, so a product touching
+the edge of the frame bleeds a mid tone into the border and drags it under the
+250 threshold. Twelve sampled candidates were measured at full resolution:
+border tone `254`–`255`, border 96%–100% white, and every one was selected.
+
+Whitening those is not an improvement, it is a small loss. With no coloured
+background to remove, what the fill erases is the soft shading on white products
+— the white KRAUSS step ladder and the white BONA bottles each lost 0.24%–0.34%
+of their product pixels, flattened to pure white, for nothing in return.
+
+The full-resolution border check now runs **before** the decision instead of only
+after the fill. It costs nothing: the full image is already loaded and
+`borderIsWhite` already ran on it a few lines later.
+
+| | before | after |
+|---|---|---|
+| already white | 1,647 | **1,719** |
+| candidates | 94 | **59** |
+| non-uniform, untouched | 97 | **60** |
+| "extensive locked background" warnings | 4 | **0** |
+
+The warnings vanishing is the same finding from the other side: the "locked"
+area they measured was the white background enclosed by the product outline.
+
+Two reporting fixes followed. **Risky images are now always sampled**, outside
+the twelve-sample quota — the report told the owner to go and look at samples of
+them, and the quota fills in `mapLimit` arrival order, so those samples had never
+once been written. And the candidate list is **split by background tone**,
+because replacing Hagit's navy `51,62,118` and erasing a drop shadow from an
+already-white photo are different decisions that were being reported as one
+number: **50 coloured, 9 shadow-only.** Truncated lists now say how many they
+omitted.
+
+The nine shadow-only images are a question about how the catalogue should look,
+not a defect, and they are the only part still waiting on the owner.
+
+### Also this round
+
+- `docs/SUBMISSION.md` — the submission audit that round 12 was cut off before
+  delivering. What the code already satisfies, what only an account holder can
+  do, and what is missing (every store screenshot, the Play feature graphic, a
+  Play record at all, and `serviceAccountKeyPath` in `eas.json`, without which
+  `eas submit --platform android` stops).
+- The Android preview APK that round 12 left building **finished**, ten minutes
+  after that conversation ended: versionCode 2, runtime `0015047`, from
+  `e042003`. It is the current code and installable.
+- The production Android AAB is **orphaned** — runtime `0645f78d`, built from
+  older source. A new production build is required before uploading to Play.
