@@ -135,13 +135,17 @@ function borderIsWhite(png) {
   for (let x = 0; x < png.width; x++) pts.push([x, 0], [x, png.height - 1]);
   for (let y = 0; y < png.height; y++) pts.push([0, y], [png.width - 1, y]);
   let white = 0;
+  let sr = 0, sg = 0, sb = 0;
   for (const [x, y] of pts) {
     const p = pixel(png, x, y);
     if (p.a < 16 || (p.r >= WHITE_THRESHOLD && p.g >= WHITE_THRESHOLD && p.b >= WHITE_THRESHOLD)) {
       white++;
     }
+    sr += p.r; sg += p.g; sb += p.b;
   }
-  return { ok: white / pts.length >= WHITE_RATIO, corner: pixel(png, 0, 0) };
+  /* הגוון הממוצע נדרש כדי להבחין בין רקע צבעוני לרקע לבן שהמוצר נוגע בקצהו */
+  const tone = { r: sr / pts.length, g: sg / pts.length, b: sb / pts.length };
+  return { ok: white / pts.length >= WHITE_RATIO, corner: pixel(png, 0, 0), tone };
 }
 
 /**
@@ -414,6 +418,29 @@ async function main() {
 
     const full = await loadPng(product.featuredImage.url, WORK_WIDTH);
     if (full == null) return;
+
+    /*
+     * המסגרת נבדקת שוב ברזולוציה המלאה, והפעם היא הקובעת.
+     *
+     * ה-probe הוא ברוחב 48. בהקטנה כזאת כל פיקסל מסגרת הוא ממוצע של עשרות
+     * פיקסלים, ולכן מוצר שנוגע בקצה הפריים מרטיב את המסגרת בגוון ביניים
+     * שנופל מתחת ל-250. התוצאה: תמונות עם רקע לבן לגמרי נכשלות במבחן
+     * היחס ונכנסות לרשימת המועמדים. נמדד על שתים-עשרה דוגמאות מהקטלוג —
+     * גוון המסגרת שלהן 254–255 והיחס המלא 96%–100%, ובכל זאת כולן נבחרו.
+     *
+     * להלבין אותן זה לא שיפור אלא נזק קטן: אין רקע צבעוני להסיר, אז מה
+     * שנמחק הוא ההצללה הרכה על מוצרים לבנים — סולם KRAUSS לבן ובקבוקי BONA
+     * לבנים איבדו כך 0.24%–0.34% מפיקסלי המוצר, שנדחפו ללבן מלא.
+     *
+     * הבדיקה עולה כלום: `full` כבר נטען, ו-borderIsWhite כבר רץ עליו
+     * ממילא אחרי ההלבנה. זו אותה בדיקה, רק מוקדם מספיק כדי למנוע.
+     */
+    const border = borderIsWhite(full);
+    if (border.ok) {
+      clean++;
+      return;
+    }
+
     const before = APPLY ? null : PNG.sync.write(full);
     const result = whitenBackground(full);
     if (result == null) {
@@ -443,23 +470,44 @@ async function main() {
     const buffer = PNG.sync.write(full);
 
     /* רקע נעול נרחב — התמונה שווה בחינה בעין לפני שמחליפים בחנות */
-    if (result.extraRatio > 0.2) risky.push({ title: product.title, ratio: result.extraRatio });
+    const isRisky = result.extraRatio > 0.2;
+    if (isRisky) risky.push({ title: product.title, ratio: result.extraRatio });
+
+    /*
+     * גוון הרקע שהוחלף. מי שמאשר צריך להבחין בין שני דברים שונים לגמרי
+     * שנספרים כאן יחד: החלפת רקע צבעוני אמיתי — הסולמות של חגית על נייבי
+     * 51,62,118 — לעומת תמונה שרקעה כבר לבן והמוצר רק נוגע בקצה הפריים,
+     * שבה כל מה שההלבנה עושה הוא למחוק הצללה רכה. הראשון שיפור, השני
+     * החלטה על מראה הקטלוג. הדוח מפריד ביניהם.
+     */
+    const entry = { title: product.title, tone: border.tone };
 
     if (APPLY) {
       try {
         await uploadAndAttach(product, buffer);
-        fixed.push(product.title);
+        fixed.push(entry);
         process.stdout.write(`\r  הולבנו ${fixed.length}`);
       } catch (err) {
         console.error(`\n  ✗ ${product.title.slice(0, 40)} — ${err.message}`);
       }
     } else {
-      fixed.push(product.title);
+      fixed.push(entry);
       /* בדיקה והוספה באותה פעימה סינכרונית — mapLimit רץ במקביל */
       const imageHash = crypto.createHash('md5').update(before).digest('hex');
-      if (samples < SAMPLE_COUNT && !sampledHashes.has(imageHash)) {
+      /*
+       * תמונה עם רקע נעול נרחב נדגמת תמיד, מחוץ למכסה.
+       *
+       * הדוח מדפיס "רקע נעול נרחב — כדאי להציץ בדוגמאות של אלה" והפנה עד
+       * עכשיו לדוגמאות שלא נכתבו: המכסה מתמלאת לפי סדר ההגעה מ-mapLimit,
+       * והמסוכנות כמעט לעולם אינן שתים-עשרה הראשונות. כלומר מי שאישר
+       * איכות אישר בדיוק את התמונות המשעממות, ולא ראה אף אחת מאלה שבגללן
+       * הודפסה האזהרה. זה אותו כשל שהדה-דופליקציה כבר תיקנה פעם אחת —
+       * דוגמה שנראית מייצגת ואינה.
+       */
+      if (!sampledHashes.has(imageHash) && (isRisky || samples < SAMPLE_COUNT)) {
         sampledHashes.add(imageHash);
-        const n = ++samples;
+        /* קידומת לטינית, כדי שאפשר יהיה למיין ולזהות בלי לנתח עברית */
+        const n = isRisky ? `locked${Math.round(result.extraRatio * 100)}` : ++samples;
         /* השם נושא את המוצר, אחרת אי אפשר לדעת על מה מסתכלים */
         const label = product.title.replace(/[\\/:*?"<>|]/g, '').trim().slice(0, 45);
         fs.writeFileSync(path.join(sampleDir, `${n}-${label}-before.png`), before);
@@ -474,16 +522,39 @@ async function main() {
   console.log(`רקע לא אחיד — לא נגעתי  : ${skipped}`);
   console.log('='.repeat(60));
 
+  /* רשימה שנחתכת בשקט נקראת כמו רשימה מלאה — תמיד אומרים כמה הושמטו */
+  const listTail = (n) => (n > 10 ? `  … ועוד ${n - 10}\n` : '');
+
+  /* רקע שכל ערוציו ≥250 הוא לבן בפועל; מה שיימחק שם הוא הצללה, לא רקע */
+  const isNearWhite = (t) => t.r >= 250 && t.g >= 250 && t.b >= 250;
+  const coloured = fixed.filter((f) => !isNearWhite(f.tone));
+  const shadowOnly = fixed.filter((f) => isNearWhite(f.tone));
+
+  if (fixed.length > 0) {
+    console.log(`\nרקע צבעוני שיוחלף בלבן   : ${coloured.length}`);
+    for (const f of coloured.slice(0, 10)) {
+      const t = f.tone;
+      console.log(`  · ${[t.r, t.g, t.b].map((v) => Math.round(v)).join(',')} — ${f.title.slice(0, 46)}`);
+    }
+    process.stdout.write(listTail(coloured.length));
+
+    console.log(`\nרקע לבן כבר, תימחק רק הצללה : ${shadowOnly.length}`);
+    for (const f of shadowOnly.slice(0, 10)) console.log(`  · ${f.title.slice(0, 54)}`);
+    process.stdout.write(listTail(shadowOnly.length));
+  }
+
   if (risky.length > 0) {
-    console.log('\nרקע נעול נרחב — כדאי להציץ בדוגמאות של אלה:');
+    console.log(`\nרקע נעול נרחב (${risky.length}) — כל אחת מאלה נדגמה, בדקו אותן:`);
     for (const r of risky.slice(0, 10)) {
       console.log(`  · ${(r.ratio * 100).toFixed(0)}% — ${r.title.slice(0, 52)}`);
     }
+    process.stdout.write(listTail(risky.length));
   }
 
   if (unsafe.length > 0) {
-    console.log('\nרקע לא אחיד (צריך טיפול ידני אם חשוב):');
+    console.log(`\nרקע לא אחיד (${unsafe.length}) — צריך טיפול ידני אם חשוב:`);
     for (const t of unsafe.slice(0, 10)) console.log(`  · ${t.slice(0, 58)}`);
+    process.stdout.write(listTail(unsafe.length));
   }
 
   if (!APPLY) {
