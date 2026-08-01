@@ -1281,3 +1281,55 @@ theme's configuration. It has now been fetched from
 correct. The white plate is why `docs/store-assets/feature-graphic-1024x500.png`
 is built on white rather than on the ink colour; on navy the logo would
 sit inside a visible white box.
+
+## 22. Round 15 — the browser pass in §7 finally happened
+
+§7 ranked "a human/browser visual pass" as the highest-value remaining work
+and called it blocked for agents. It was blocked only by the network, and
+locally the storefront is reachable, so `theme/tools/shoot.mjs` runs.
+
+```bash
+npm install playwright --no-save        # in a scratch dir; ESM ignores NODE_PATH,
+npx playwright install chromium         # so run the script from where it resolves
+node shoot.mjs 148376649807 ./shots
+```
+
+Twenty-four page loads, desktop 1440 and mobile 390. **No horizontal
+overflow, no Liquid errors, no broken images, no leftover Empire assets,
+no undersized tap targets, `dir="rtl"` everywhere.** The design was looked
+at, not just audited: header logo proportionate on mobile, hero, search,
+collection grid, product page and empty cart all hold up.
+
+### The one real defect it found
+
+The announcement bar's third message — *"אנשי מקצוע? הזמינו רשימת מקטים
+שלמה בלחיצה אחת"*, the most commercial line on the site, shown on **every
+page** — linked to `/pages/quick-order`, which **404s on the live store**.
+`sections/quick-order.liquid` exists and the link is set in
+`sections/header-group.json`, but the page resource was never created in
+the admin.
+
+Fixed defensively rather than by deleting the block: a link whose target
+is `/pages/<handle>` now renders as plain text when `pages[handle]` is
+blank. Verified on the preview theme — the `/pages/contact` message is
+still a link because that page exists, the quick-order one is now text,
+and `a[href*="/pages/quick-order"]` count is zero. **Create the page and
+the link returns by itself**, no theme change needed: Pages → Add page,
+handle `quick-order`, template `quick-order`.
+
+### Two environment facts for whoever runs this next
+
+- **There is no real Python on this machine** — `python` resolves to the
+  Windows Store stub, so `theme/tools/validate.py` (one of the three green
+  checks in §4) cannot run here. The browser pass is the stronger check
+  anyway; it tests the rendered page rather than the source.
+- **`themeFilesUpsert` returns fewer bytes than the local file, and that is
+  correct.** The upsert reported 5,655 against 5,799 on disk — exactly 144
+  fewer, one per line break, because git checks the repo out CRLF on
+  Windows and the theme stores LF. §3 says to compare the two numbers;
+  expect them to differ by the line count, not to match.
+- Only pages published to the Headless channel come back from the
+  Storefront API, and **zero pages are published to it**, so
+  `pages(first:60)` returns an empty list even though `/pages/contact`
+  renders fine. Do not use that query to decide whether a page exists —
+  ask the storefront over HTTP.

@@ -29,7 +29,12 @@ const PAGES = [
   { name: 'quick-order', path: '/pages/quick-order' },
   { name: 'contact', path: '/pages/contact' },
   { name: 'cart', path: '/cart' },
-  { name: 'faq', path: '/pages/pushdaddy-faq-1' },
+  /*
+   * quick-order is expected to 404 until the owner creates the page in the
+   * admin — the section template exists but the page resource never did.
+   * Left in on purpose: the day it starts returning 200 is the day the
+   * announcement-bar link comes back to life on its own.
+   */
   { name: 'four-oh-four', path: '/pages/this-page-does-not-exist-404-check' },
 ];
 

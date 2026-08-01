@@ -27,10 +27,29 @@
             {% unless forloop.first %}aria-hidden="true"{% endunless %}
             {{ block.shopify_attributes }}
           >
+            {%- liquid
+              # קישור לעמוד שאינו קיים מוצג כטקסט ולא כקישור מת.
+              #
+              # זה נתפס בבדיקה חיה: הבלוק "אנשי מקצוע? הזמינו רשימת מקטים
+              # שלמה בלחיצה אחת" מצביע ל-/pages/quick-order, שמחזיר 404
+              # בחנות החיה. תבנית הסקשן quick-order.liquid קיימת, אבל
+              # **העמוד עצמו מעולם לא נוצר באדמין**, ולכן ההודעה הכי
+              # שיווקית בסרגל הופיעה בכל עמוד באתר והובילה לשגיאה.
+              #
+              # השמירה כאן ולא בהסרת הבלוק: ברגע שהעמוד ייווצר הקישור
+              # יחזור מעצמו, בלי לגעת שוב בת'ים.
+              assign link_ok = true
+              if block.settings.link contains '/pages/'
+                assign page_handle = block.settings.link | split: '/pages/' | last | split: '?' | first | split: '#' | first
+                if pages[page_handle] == blank
+                  assign link_ok = false
+                endif
+              endif
+            -%}
             {%- if block.settings.icon != 'none' -%}
               {% render 'icon', name: block.settings.icon, size: 15, class: 'announcement-bar__icon' %}
             {%- endif -%}
-            {%- if block.settings.link != blank -%}
+            {%- if block.settings.link != blank and link_ok -%}
               <a class="announcement-bar__text announcement-bar__text--link" href="{{ block.settings.link }}">{{ block.settings.text | escape }}</a>
             {%- else -%}
               <span class="announcement-bar__text">{{ block.settings.text | escape }}</span>
