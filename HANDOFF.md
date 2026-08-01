@@ -50,9 +50,9 @@ Branch: `claude/shopify-app-hebrew-compat-i1wcji` · PR: [#4](https://github.com
 | **myshopify domain** | `3007b3-4.myshopify.com` (**not** `anshilo.myshopify.com` — verified via `shop.myshopifyDomain`) |
 | Shop id | `58110246991` |
 | Live theme (**never write to it**) | `שמירה 1` — `gid://shopify/OnlineStoreTheme/141469646927`, role MAIN |
-| **Working preview theme** | `שילו 2026 — העיצוב החדש v6 ⭐` — `gid://shopify/OnlineStoreTheme/148376649807` |
-| Preview URL | `https://anshilo.com/?preview_theme_id=148376649807` |
-| Superseded, owner can delete | `148368425039` (v2), `148371210319` (v3), `148372193359` (v4) and `148375371855` (v5). Each zip import mints a new theme, so these accumulate — delete them from the admin. |
+| **Working preview theme** | `shilov8theme` — `gid://shopify/OnlineStoreTheme/148378648655`. **Confirmed by the owner in round 15; this file named v6 for two rounds after v8 existed.** Always re-check with a `themes` query before deploying — the id here has been wrong before. |
+| Preview URL | `https://anshilo.com/?preview_theme_id=148378648655` |
+| Superseded, owner can delete | `148368425039` (v2), `148371210319` (v3), `148372193359` (v4), `148375371855` (v5), `148376649807` (v6) and `148377370703` (v7). Each zip import mints a new theme, so these accumulate — delete them from the admin. |
 | Disposable theme, owner told to delete | `למחיקה — ייבוא כושל (בלי צבעים)` — `148368293967` |
 | Owner's original copy, mostly untouched | `עותק של שמירה 1` — `148357644367` (12 asset files + one test txt were written to it early on; it is otherwise still an Empire copy) |
 | New navigation menu | handle `shilo-2026-main`, `gid://shopify/Menu/236720193615` — 12 departments, 127 items, 3 levels |
@@ -153,7 +153,23 @@ palette colour, run the validator — it will tell you if you broke AA.
 
 ---
 
-## 5. Deployed theme vs repo — no known delta
+## 5. Deployed theme vs repo — there IS a delta, measured in round 15
+
+> ⚠️ **The heading below was wrong, and believing it would have caused a
+> regression.** `shilov8theme` (`148378648655`) is ahead of the repo, not equal
+> to it. `sections/announcement-bar.liquid` on v8 carries two things `theme/`
+> did not have: `tabindex="-1"` on the link of every non-active rotating item,
+> so hidden announcements are not reachable by keyboard, and a `list` icon
+> option in the block schema. Deploying the repo copy over v8 would have
+> silently reverted both.
+>
+> **Read the file off the theme and diff it before you upsert, every time.**
+> v7 and v8 were created after this section was written and nobody
+> reconciled them back into `theme/`; assume more files differ than the one
+> that has been checked. The repo is the source of truth in intent, not
+> currently in fact.
+
+### The original claim, kept for the v6 history
 
 **The repo and theme `148376649807` (v6) match.** The previous round's one gap —
 `sections/main-addresses.liquid` with the country-select data-loss guard — went
@@ -1333,3 +1349,26 @@ handle `quick-order`, template `quick-order`.
   `pages(first:60)` returns an empty list even though `/pages/contact`
   renders fine. Do not use that query to decide whether a page exists —
   ask the storefront over HTTP.
+
+### Round 15 correction — the audit and the fix went to the wrong theme first
+
+The visual pass and the announcement-bar fix above were run against
+`148376649807` (v6), because §2 named it the working preview. **The owner
+corrected it mid-round: the current preview is `shilov8theme`,
+`148378648655`.** Both were redone against v8, which produced the same clean
+audit and the same dead-link fix, verified there.
+
+Two lessons, and the second is the expensive one:
+
+1. §2's theme id is a moving value written down as a fact. v7 and v8 both
+   appeared after it was written. Run a `themes` query first — the list shows
+   `updatedAt`, and the newest non-MAIN theme is almost always the answer.
+2. **v8 was ahead of the repo.** Its `announcement-bar.liquid` had a
+   `tabindex="-1"` accessibility fix and a `list` icon option that `theme/`
+   never received. Writing the repo's copy over it would have reverted both
+   without a word — `themeFilesUpsert` reports success either way. The fix
+   was rebuilt on top of v8's content instead, and the repo now matches v8
+   plus the guard. See the warning at the top of §5.
+
+v6 did receive the earlier version of that file. It is superseded and slated
+for deletion along with v5 and v7, so it was not synced back.

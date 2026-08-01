@@ -30,14 +30,14 @@
             {%- liquid
               # קישור לעמוד שאינו קיים מוצג כטקסט ולא כקישור מת.
               #
-              # זה נתפס בבדיקה חיה: הבלוק "אנשי מקצוע? הזמינו רשימת מקטים
-              # שלמה בלחיצה אחת" מצביע ל-/pages/quick-order, שמחזיר 404
-              # בחנות החיה. תבנית הסקשן quick-order.liquid קיימת, אבל
-              # **העמוד עצמו מעולם לא נוצר באדמין**, ולכן ההודעה הכי
-              # שיווקית בסרגל הופיעה בכל עמוד באתר והובילה לשגיאה.
+              # נתפס בבדיקה חיה בדפדפן: הבלוק "אנשי מקצוע? הזמינו רשימת
+              # מקטים שלמה בלחיצה אחת" מצביע ל-/pages/quick-order, שמחזיר
+              # 404. תבנית הסקשן quick-order.liquid קיימת, אבל **העמוד עצמו
+              # מעולם לא נוצר באדמין**, ולכן ההודעה הכי שיווקית בסרגל
+              # הופיעה בכל עמוד באתר והובילה לשגיאה.
               #
-              # השמירה כאן ולא בהסרת הבלוק: ברגע שהעמוד ייווצר הקישור
-              # יחזור מעצמו, בלי לגעת שוב בת'ים.
+              # השמירה כאן ולא בהסרת הבלוק: ברגע שהעמוד ייווצר הקישור יחזור
+              # מעצמו, בלי לגעת שוב בת'ים.
               assign link_ok = true
               if block.settings.link contains '/pages/'
                 assign page_handle = block.settings.link | split: '/pages/' | last | split: '?' | first | split: '#' | first
@@ -50,7 +50,7 @@
               {% render 'icon', name: block.settings.icon, size: 15, class: 'announcement-bar__icon' %}
             {%- endif -%}
             {%- if block.settings.link != blank and link_ok -%}
-              <a class="announcement-bar__text announcement-bar__text--link" href="{{ block.settings.link }}">{{ block.settings.text | escape }}</a>
+              <a class="announcement-bar__text announcement-bar__text--link" href="{{ block.settings.link }}"{% unless forloop.first %} tabindex="-1"{% endunless %}>{{ block.settings.text | escape }}</a>
             {%- else -%}
               <span class="announcement-bar__text">{{ block.settings.text | escape }}</span>
             {%- endif -%}
@@ -134,7 +134,8 @@
             { "value": "headset", "label": "שירות לקוחות" },
             { "value": "check-circle", "label": "סימן אישור" },
             { "value": "ruler", "label": "סרט מידה" },
-            { "value": "hammer", "label": "פטיש" }
+            { "value": "hammer", "label": "פטיש" },
+            { "value": "list", "label": "רשימה" }
           ]
         }
       ]

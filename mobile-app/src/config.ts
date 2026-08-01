@@ -251,8 +251,14 @@ export const DIRECTIONS_URL = directionsUrlFor(STORE_INFO.google, STORE_INFO.add
 export const FREE_SHIPPING_THRESHOLD = 399;
 
 /** מספרי הקטלוג שמוצגים באפליקציה — תואמים לחנות בפועל */
+/*
+ * שני מספרים שונים מסתובבים כאן, ושניהם נכונים בהקשר שלהם: באדמין יש
+ * 1,918 מוצרים פעילים, אבל לערוץ ה-Headless שהאפליקציה קוראת ממנו
+ * מפורסמים 1,867 — וזה מה שהאפליקציה יכולה להראות. נמדד מול ה-Storefront
+ * API החי (‎8 עמודים של 250), ולא הועתק מהאדמין.
+ */
 export const CATALOG_STATS = {
-  products: 1918,
+  products: 1867,
   collections: 186,
 } as const;
 

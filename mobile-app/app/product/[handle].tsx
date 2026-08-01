@@ -12,8 +12,7 @@ import {
   Text,
   View,
   useWindowDimensions,
-  type NativeScrollEvent,
-  type NativeSyntheticEvent,
+  type ViewToken,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
@@ -323,11 +322,24 @@ export default function ProductScreen() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [variantImageUrl]);
 
-  const onGalleryScrollEnd = (e: NativeSyntheticEvent<NativeScrollEvent>) => {
-    if (images.length === 0) return;
-    const i = Math.round(e.nativeEvent.contentOffset.x / width);
-    setGalleryIndex(Math.max(0, Math.min(images.length - 1, i)));
-  };
+  /*
+   * העמוד הפעיל בגלריה נקבע לפי מה שנראה בפועל, לא לפי חשבון על contentOffset.
+   *
+   * הגרסה הקודמת חישבה `contentOffset.x / width`. ל-getItemLayout כאן יש
+   * offsets של שמאל-לימין, ותחת RTL רשימה אופקית נפרסת הפוך — האם
+   * contentOffset מסכים עם אותם offsets תלוי פלטפורמה ואינו יציב בין iOS
+   * לאנדרואיד. התוצאה במקרה שהוא לא מסכים: נקודת החיווי מסמנת את התמונה
+   * הממוזגת, כלומר את התמונה הלא נכונה.
+   *
+   * onViewableItemsChanged מדווח על אינדקס הפריט האמיתי ולכן אינו תלוי
+   * בכיוון בכלל. שני האובייקטים חייבים להיות יציבים בין רינדורים — RN
+   * זורק שגיאה אם הם מתחלפים תוך כדי ריצה.
+   */
+  const viewabilityConfig = useRef({ itemVisiblePercentThreshold: 60 }).current;
+  const onViewableItemsChanged = useRef(({ viewableItems }: { viewableItems: ViewToken[] }) => {
+    const first = viewableItems[0];
+    if (first?.index != null) setGalleryIndex(first.index);
+  }).current;
 
   /* ---------- מלאי / מחיר ---------- */
 
@@ -506,7 +518,8 @@ export default function ProductScreen() {
               pagingEnabled
               showsHorizontalScrollIndicator={false}
               keyExtractor={(im, i) => `${im.url}-${i}`}
-              onMomentumScrollEnd={onGalleryScrollEnd}
+              onViewableItemsChanged={onViewableItemsChanged}
+              viewabilityConfig={viewabilityConfig}
               getItemLayout={(_, index) => ({ length: width, offset: width * index, index })}
               renderItem={({ item, index }) => (
                 <Pressable
