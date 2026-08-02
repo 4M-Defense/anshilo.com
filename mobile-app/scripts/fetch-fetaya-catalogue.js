@@ -23,7 +23,20 @@
 const fs = require('fs');
 const path = require('path');
 
-const SITEMAPS = [1, 2, 3, 4].map((p) => `https://www.fetaya.com/sitemap.xml?page=${p}`);
+/*
+ * הדומיין הוא פרמטר, כי אותה פלטפורמה מריצה יותר מספק אחד.
+ *
+ * פתיה, ניסקו, ארגנטולס וטולס אונליין בנויים כולם באותה מערכת: מפת אתר
+ * ממוספרת ב-`sitemap.xml?page=N`, כתובות מוצר תחת `/items/`, בלוק
+ * `application/ld+json` בעמוד ומספר קטלוגי ב-div.cataloge_number. משמע
+ * שולף אחד מכסה את כולם, והחלפת דומיין היא כל ההבדל.
+ *
+ *   node scripts/fetch-fetaya-catalogue.js --domain www.argentools.co.il --out argentools
+ */
+const domIdx = process.argv.indexOf('--domain');
+const DOMAIN = domIdx >= 0 ? process.argv[domIdx + 1] : 'www.fetaya.com';
+const outIdx = process.argv.indexOf('--out');
+const OUT = outIdx >= 0 ? process.argv[outIdx + 1] : 'fetaya';
 /*
  * שתי בקשות במקביל, לא שמונה.
  *
@@ -83,10 +96,21 @@ async function text(url, minBytes = 0) {
   throw new Error(last);
 }
 
-/** כל כתובות המוצר, מתוך ארבע מפות האתר */
+/**
+ * כל כתובות המוצר, מתוך מפות האתר.
+ *
+ * מספר המפות אינו קבוע בין ספקים — לפתיה יש ארבע ולארגנטולס שבע עשרה —
+ * ולכן קוראים את מפת האינדקס ומגלים אותו, במקום לקבע מספר שיחתוך קטלוג
+ * גדול בשקט באמצע.
+ */
 async function collectItemUrls() {
+  const index = await text(`https://${DOMAIN}/sitemap.xml`);
+  const children = [...index.matchAll(/<loc>([^<]*sitemap\.xml\?page=\d+)<\/loc>/g)].map((m) => m[1]);
+  const pages = children.length > 0 ? children : [`https://${DOMAIN}/sitemap.xml`];
+  console.log(`  ${pages.length} מפות אתר`);
+
   const urls = new Set();
-  for (const sm of SITEMAPS) {
+  for (const sm of pages) {
     const xml = await text(sm);
     for (const m of xml.matchAll(/<loc>([^<]+)<\/loc>/g)) {
       if (m[1].includes('/items/')) urls.add(m[1]);
@@ -132,8 +156,14 @@ function extract(html, url) {
    */
   const skuBlock = html.match(/class="cataloge_number"[\s\S]{0,400}?<span>([^<]{1,20})<\/span>/);
   const sku = skuBlock ? skuBlock[1].trim() : null;
-  /* השם ב-JSON-LD מגיע עם " | FETAYA" בסוף ובלי סימני פיסוק — מנקים */
-  const name = String(product.name || '').replace(/\s*\|\s*FETAYA\s*$/i, '').trim();
+  /*
+   * השם ב-JSON-LD נגמר בשם האתר — " | FETAYA" אצל פתיה, וכיוצא בזה אצל
+   * האחרים. זה שם החנות של הספק ואין לו מקום בכותרת מוצר אצלנו, ולכן
+   * נחתכת סיומת אחת של "| משהו" ולא יותר: שמות מוצר לגיטימיים מכילים
+   * לוכסן אנכי באמצע, וחיתוך גורף היה קוטע אותם.
+   */
+  const name = String(product.name || '').replace(/\s*\|\s*[^|]{1,30}\s*$/, '').trim()
+    || String(product.name || '').trim();
 
   return {
     url,
@@ -173,9 +203,32 @@ function toCsv(rows) {
 }
 
 async function main() {
-  console.log('קורא את מפות האתר של פתיה…');
+  console.log(`קורא את מפות האתר של ${DOMAIN}…`);
   let urls = await collectItemUrls();
   console.log(`  ${urls.length} כתובות מוצר`);
+
+  /*
+   * השלמה בלבד.
+   *
+   * הריצה המלאה מחזירה 807 מתוך 910, וההפרש אינו שגיאה בקוד אלא מיתון קצב
+   * של האתר — 78 מהכשלונות היו HTTP 202. אין טעם לשלוף שוב 807 עמודים
+   * שכבר יש, ויש טעם לנסות שוב את מה שנחסם, בהרצה נפרדת ומרווחת בזמן.
+   */
+  let existing = [];
+  if (ONLY_MISSING) {
+    const p = path.join(__dirname, '..', `${OUT}-catalogue.json`);
+    if (!fs.existsSync(p)) throw new Error(`אין ${OUT}-catalogue.json — הריצו קודם ריצה מלאה`);
+    existing = JSON.parse(fs.readFileSync(p, 'utf8')).filter((r) => r && r.url);
+    const have = new Set(existing.map((r) => r.url));
+    const before = urls.length;
+    urls = urls.filter((u) => !have.has(u));
+    console.log(`  יש כבר ${existing.length} | חסרים ${urls.length} מתוך ${before}`);
+    if (urls.length === 0) {
+      console.log('\nהקטלוג שלם, אין מה להשלים.');
+      return;
+    }
+  }
+
   if (LIMIT) {
     urls = urls.slice(0, LIMIT);
     console.log(`  מוגבל ל-${urls.length} לצורך דגימה`);
@@ -219,10 +272,14 @@ async function main() {
   }
   console.log('='.repeat(56));
 
+  /* בהשלמה מצרפים למה שכבר יש, אחרת הקובץ נדרס ב-103 שורות במקום 910 */
+  const merged = ONLY_MISSING ? [...existing, ...ok] : ok;
+  if (ONLY_MISSING) console.log(`סה"כ בקטלוג    : ${merged.length}`);
+
   const dir = path.join(__dirname, '..');
-  fs.writeFileSync(path.join(dir, 'fetaya-catalogue.json'), JSON.stringify(ok, null, 2));
-  fs.writeFileSync(path.join(dir, 'fetaya-catalogue.csv'), toCsv(ok));
-  console.log('\nנשמר: fetaya-catalogue.json ו-fetaya-catalogue.csv');
+  fs.writeFileSync(path.join(dir, `${OUT}-catalogue.json`), JSON.stringify(merged, null, 2));
+  fs.writeFileSync(path.join(dir, `${OUT}-catalogue.csv`), toCsv(merged));
+  console.log(`\nנשמר: ${OUT}-catalogue.json ו-${OUT}-catalogue.csv`);
 }
 
 main().catch((err) => {

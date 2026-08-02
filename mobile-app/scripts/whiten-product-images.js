@@ -36,7 +36,7 @@ const PROBE_WIDTH = 48;
 const WHITE_THRESHOLD = 250;
 const WHITE_RATIO = 0.9;
 /** מרחק צבע מותר מגוון הרקע (סכום ההפרשים בשלושת הערוצים) */
-const FILL_TOLERANCE = 62;
+let FILL_TOLERANCE = 62;
 /** כמה דוגמאות לפני/אחרי לשמור בהרצה יבשה */
 const SAMPLE_COUNT = 12;
 const CONCURRENCY = 6;
@@ -51,6 +51,20 @@ const VENDOR = vendorIdx >= 0 ? args[vendorIdx + 1] : null;
  */
 const colIdx = args.indexOf('--collections');
 const COLLECTIONS = colIdx >= 0 ? (args[colIdx + 1] || '').split(',').map((s) => s.trim()).filter(Boolean) : null;
+/*
+ * --tolerance N — עוקף את FILL_TOLERANCE.
+ *
+ * נחוץ כשהמוצר עצמו בהיר וקרוב לרקע. אריח "גלאים ושעונים" הוא שעון לבן על
+ * קרם 243,239,228: המרחק ביניהם 55, כלומר **מתחת** ל-62 שהוא ברירת המחדל,
+ * ולכן ההלבנה אכלה את גוף השעון יחד עם הרקע. בסבילות 25 הקרם עוד נמחק
+ * (המרחק שלו מעצמו 0, והשונות בתוכו קטנה) והשעון שורד.
+ *
+ * זה גם מה שהופך את התמונה הזאת לניתנת להלבנה בכלל — בסבילות ברירת המחדל
+ * bindZoneRatio דוחה אותה, ובצדק.
+ */
+const tolIdx = args.indexOf('--tolerance');
+const TOLERANCE_OVERRIDE = tolIdx >= 0 ? Number(args[tolIdx + 1]) : null;
+if (TOLERANCE_OVERRIDE != null && Number.isFinite(TOLERANCE_OVERRIDE)) FILL_TOLERANCE = TOLERANCE_OVERRIDE;
 
 /* ---------- טוקנים ---------- */
 

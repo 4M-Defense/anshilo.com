@@ -56,12 +56,30 @@ async function main() {
         name: p.title,
         vendor: p.vendor,
         productType: p.product_type,
+        /* התיאור נשמר כדי שהמוצר המיובא לא יגיע לחנות כשם ומחיר בלבד */
+        descriptionHtml: p.body_html || null,
+        tags: p.tags || null,
         price: p.variants?.[0]?.price != null ? Number(p.variants[0].price) : null,
         currency: 'ILS',
         available: p.variants?.some((v) => v.available) ?? null,
         sku: p.variants?.[0]?.sku || null,
         barcode: p.variants?.[0]?.barcode || null,
-        variants: (p.variants || []).map((v) => ({ title: v.title, price: Number(v.price), sku: v.sku || null })),
+        /*
+         * שמות האפשרויות והערך של כל וריאנט לכל אפשרות — ולא רק כותרת
+         * הווריאנט. הכותרת מגיעה כ"נובוק נייבי / 41", ופיצול על " / " היה
+         * נשבר על כל ערך שמכיל לוכסן. בנעליים 65 מתוך 73 המוצרים הם
+         * רב-וריאנטיים, כך שאיבוד המידות אינו פרט אלא איבוד המוצר.
+         */
+        options: (p.options || []).map((o) => ({ name: o.name, position: o.position })),
+        variants: (p.variants || []).map((v) => ({
+          title: v.title,
+          price: Number(v.price),
+          compareAtPrice: v.compare_at_price != null ? Number(v.compare_at_price) : null,
+          sku: v.sku || null,
+          barcode: v.barcode || null,
+          available: v.available ?? null,
+          optionValues: [v.option1, v.option2, v.option3].filter((x) => x != null),
+        })),
         image: p.images?.[0]?.src ?? null,
         images: (p.images || []).map((i) => i.src),
         url: `https://${DOMAIN}/products/${p.handle}`,
