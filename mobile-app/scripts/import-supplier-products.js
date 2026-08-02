@@ -111,6 +111,20 @@ async function admin(query, variables, attempt = 0) {
     }
     throw new Error(`רשת: ${e.message}`);
   }
+  /*
+   * 401 באמצע ריצה — הטוקן חדל להיות תקף, ומנפיקים אחד חדש וממשיכים.
+   *
+   * זה מה שקטע את הייבוא של פתיה: 139 מוצרים נוצרו ואז כל 355 הנותרים
+   * נכשלו על 401 בזה אחר זה, כי הקוד התייחס לזה ככשלון של מוצר. אורך
+   * החיים המוצהר של הטוקן הוא 86399 שניות, כלומר לא פקיעה — הנפקה חדשה
+   * במקום אחר מבטלת את הקודם. בכל מקרה, הנפקה מחדש היא התגובה הנכונה,
+   * ובלעדיה ריצה ארוכה נעצרת באמצע ומשאירה ייבוא חלקי.
+   */
+  if (res.status === 401 && attempt < 3 && CLIENT_ID && CLIENT_SECRET) {
+    console.log('\n  הטוקן חדל להיות תקף — מנפיק מחדש וממשיך');
+    ADMIN_TOKEN = await mintAdminToken();
+    return admin(query, variables, attempt + 1);
+  }
   if ((res.status === 429 || res.status >= 500) && attempt < 5) {
     await sleep(1500 * 2 ** attempt);
     return admin(query, variables, attempt + 1);
@@ -334,7 +348,19 @@ async function main() {
 
   for (const [i, b] of ready.entries()) {
     const key = b.s.url || b.s.name;
-    if (ledger[key]) { already++; continue; }
+    if (ledger[key]) {
+      /*
+       * מוצר שכבר נוצר בריצה קודמת עדיין נכנס לרשימת השיוך לקטגוריה.
+       *
+       * הריצה שנקטעה יצרה 139 מוצרים ואז מתה לפני שלב השיוך, כך שכולם
+       * נחתו בחנות בלי מחלקה. בלי השורה הזאת ריצה חוזרת מדלגת עליהם
+       * לגמרי והם נשארים יתומים לתמיד. collectionAddProducts אדיש
+       * לכפילות, ולכן אין נזק בהוספה חוזרת.
+       */
+      if (ledger[key].id) createdIds.push(ledger[key].id);
+      already++;
+      continue;
+    }
 
     /*
      * בדיקת המקט נמצאת בתוך ה-try יחד עם היצירה, ולא לפניו.
@@ -383,14 +409,23 @@ async function main() {
   if (collectionId && createdIds.length) {
     for (let i = 0; i < createdIds.length; i += 50) {
       const batch = createdIds.slice(i, i + 50);
-      const d = await admin(
-        `mutation($id:ID!,$ids:[ID!]!){collectionAddProducts(id:$id,productIds:$ids){
-           userErrors{field message}}}`,
-        { id: collectionId, ids: batch }
-      );
-      const errs = d.collectionAddProducts.userErrors;
-      if (errs?.length) console.log(`\n  ⚠ שיוך לקטגוריה: ${errs[0].message}`);
-      else addedToCollection += batch.length;
+      /*
+       * כשלון כאן לא מפיל את הריצה. המוצרים כבר קיימים בחנות, והסיכום
+       * שמגיע אחרי זה הוא מה שאומר מה נוצר ומה לא — לאבד אותו בגלל
+       * תקלה בשיוך פירושו לסיים בלי לדעת מה קרה.
+       */
+      try {
+        const d = await admin(
+          `mutation($id:ID!,$ids:[ID!]!){collectionAddProducts(id:$id,productIds:$ids){
+             userErrors{field message}}}`,
+          { id: collectionId, ids: batch }
+        );
+        const errs = d.collectionAddProducts.userErrors;
+        if (errs?.length) console.log(`\n  ⚠ שיוך לקטגוריה: ${errs[0].message}`);
+        else addedToCollection += batch.length;
+      } catch (e) {
+        console.log(`\n  ⚠ שיוך לקטגוריה נכשל: ${e.message.slice(0, 120)}`);
+      }
       await sleep(400);
     }
   }

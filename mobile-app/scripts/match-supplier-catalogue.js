@@ -135,39 +135,35 @@ async function main() {
     pageInfo{hasNextPage endCursor}
     nodes{ title handle vendor priceRange{maxVariantPrice{amount}} featuredImage{url}
            variants(first:20){nodes{sku}} }}}`;
+  /*
+   * כל החנות, ולא רק היצרן המבוקש.
+   *
+   * סינון לפי יצרן נראה כמו ייעול ואינו כזה: הוא מגדיר את מה שנחשב
+   * "קיים". בייבוא של יעקבי הוא השווה מול 223 מוצרים בלבד וסימן 470
+   * כחדשים — ואז בדיקת המקט שבתוך המייבא עצרה 227 מהם, כי אותם מוצרים
+   * כבר בחנות תחת יצרן אחר או כטיוטה. כלומר כמעט מחצית מ"החדשים" היו
+   * כפילויות, והדבר היחיד שמנע אותן היה מקרי.
+   *
+   * ה-vendor עדיין משמש לבחירת מפתח החיבור הייעודי, אבל לא לצמצום
+   * המועמדים.
+   */
   for (;;) {
-    const d = await storefront(Q, { after, q: VENDOR ? `vendor:${VENDOR}` : null });
+    const d = await storefront(Q, { after, q: null });
     store.push(...d.products.nodes);
     if (!d.products.pageInfo.hasNextPage) break;
     after = d.products.pageInfo.endCursor;
   }
-  console.log(`  ${store.length} מוצרים בחנות${VENDOR ? ` מהיצרן "${VENDOR}"` : ''}`);
-
-  /*
-   * סינון לפי יצרן שמחזיר אפס הוא כמעט תמיד שם שגוי, לא ספק חדש — ואם
-   * ממשיכים ממנו, *כל* מוצרי הספק נראים חדשים והייבוא מייצר כפילויות.
-   * זה קרה: בקשה ל"בלנסטון" החזירה אפס כי בחנות כתוב "בלאנדסטון", ואחת
-   * עשרה נעליים שכבר קיימות סומנו לייבוא. לכן נופלים חזרה לכל החנות —
-   * איטי יותר, אבל יותר מועמדים משמעו פחות "חדש" שגוי.
-   */
-  if (VENDOR && store.length === 0) {
-    console.log(`\n  ⚠ אין בחנות אף מוצר מהיצרן "${VENDOR}" — כנראה שם שונה בחנות.`);
-    console.log('    משווה מול כל החנות במקום, כדי לא לייבא כפילויות.\n');
-    let a2 = null;
-    for (;;) {
-      const d = await storefront(Q, { after: a2, q: null });
-      store.push(...d.products.nodes);
-      if (!d.products.pageInfo.hasNextPage) break;
-      a2 = d.products.pageInfo.endCursor;
-    }
-    console.log(`  ${store.length} מוצרים בחנות (כל היצרנים)`);
+  console.log(`  ${store.length} מוצרים בחנות (כל היצרנים)`);
+  if (VENDOR) {
+    const own = store.filter((p) => p.vendor === VENDOR).length;
+    console.log(`  מהם מהיצרן "${VENDOR}": ${own}`);
   }
 
   /* אינדקס לפי שם מנורמל — התאמה מדויקת היא היחידה שנחתכת אוטומטית */
   const byNorm = new Map();
   const bySku = new Map();
   const byKey = new Map();
-  const KEY = keyFor(VENDOR) ?? keyFor(store[0]?.vendor);
+  const KEY = keyFor(VENDOR);
   for (const p of store) {
     const k = norm(p.title);
     if (!byNorm.has(k)) byNorm.set(k, []);
