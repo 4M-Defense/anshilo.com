@@ -177,11 +177,28 @@ function extract(html, url) {
   const name = String(product.name || '').replace(/\s*\|\s*[^|]{1,30}\s*$/, '').trim()
     || String(product.name || '').trim();
 
+  /*
+   * התיאור. נלקח מה-JSON-LD אם יש, ואחרת מ-meta description של העמוד.
+   *
+   * למה זה נדרש: 418 מוצרים מפורסמים בחנות עם תיאור ריק או מתחת ל-80
+   * תווים, ו-Merchant Center מתריע עליהם. 249 מהם של פתיה, כלומר בדיוק
+   * הספק שהקטלוג שלו נשלף כאן — והשליפה לא אספה תיאורים בכלל.
+   *
+   * ה-meta description של הפלטפורמה הזאת נגמר לעתים בשם החנות, ולכן
+   * נחתכת סיומת אחת של "| משהו" כמו בשם.
+   */
+  const metaDesc = html.match(/<meta\s+name="description"\s+content="([^"]{20,600})"/i);
+  const description = String(product.description || (metaDesc ? metaDesc[1] : '') || '')
+    .replace(/\s*\|\s*[^|]{1,40}\s*$/, '')
+    .replace(/\s+/g, ' ')
+    .trim() || null;
+
   return {
     url,
     itemId: (url.match(/\/items\/(\d+)/) || [])[1] ?? null,
     sku,
     name,
+    description,
     price: offers?.price != null ? Number(offers.price) : null,
     currency: offers?.priceCurrency ?? null,
     availability: offers?.availability ?? null,
@@ -209,7 +226,7 @@ function toCsv(rows) {
     const s = v == null ? '' : String(v);
     return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
   };
-  const cols = ['itemId', 'sku', 'name', 'price', 'currency', 'availability', 'image', 'url'];
+  const cols = ['itemId', 'sku', 'name', 'description', 'price', 'currency', 'availability', 'image', 'url'];
   /* BOM כדי שאקסל בעברית לא יציג ג'יבריש */
   return '﻿' + [cols.join(','), ...rows.map((r) => cols.map((c) => cell(r[c])).join(','))].join('\n');
 }
