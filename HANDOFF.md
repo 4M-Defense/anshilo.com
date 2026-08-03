@@ -1,7 +1,12 @@
 # HANDOFF — א.נ. שילו · Shilo Pro v2
 
-**Current state: round 14 shipped. Start at §21 for what just changed, then §2.**
-Rounds 9–14 are the app, the AI assistant and its server — the theme is untouched
+**Current state: round 18. Start at §26, then §2.**
+Round 18 is supplier imports and the Google Merchant Center cleanup. **§26.4 lists
+six price-sourcing approaches that were measured and failed — read it before
+spending any time on the 102 unpriced products.** Two crawls were mid-flight when
+that session ended; the restart commands are in §26.5.
+
+Rounds 9–17 are the app, the AI assistant and its server — the theme is untouched
 since round 5 (§11).
 
 **Written by the previous agent. Read this before touching anything.**
