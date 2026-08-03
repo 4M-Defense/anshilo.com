@@ -838,6 +838,40 @@ async function runOpenAiLoop(
   return '';
 }
 
+/**
+ * ניסיון אחרון כשהמודל החזיר טקסט ריק.
+ *
+ * נמדד בייצור: אחת מעשר פניות נכשלה כך, וכולן בשאלות שאין להן מוצר בקטלוג —
+ * "צריך צבע לקיר חיצוני" כשאין צבע חוץ. בשאלות עם מוצרים לא נמדד אף כשלון.
+ * הלקוח קיבל "שגיאה זמנית אצל העוזר", שהיא הודעה נכונה אבל מיותרת: המודל
+ * פשוט לא ניסח כלום, ובקשה נוספת עם כלים חסומים מנסחת.
+ *
+ * לא מוסיפים כאן תשובה מוכנה. ניסוח קבוע על מה שיש או אין בקטלוג הוא בדיוק
+ * הדבר שכל שאר הקובץ נזהר ממנו.
+ */
+async function retryForText(
+  apiKey: string,
+  model: string,
+  system: string,
+  transcript: ChatMessage[]
+): Promise<string> {
+  try {
+    const res = await callOpenAi(
+      apiKey,
+      model,
+      [
+        { role: 'system', content: system },
+        ...transcript.map((m) => ({ role: m.role, content: m.content }) as OpenAiChatMessage),
+      ],
+      'none'
+    );
+    return res.choices?.[0]?.message?.content ?? '';
+  } catch (e) {
+    console.error('chat: retryForText failed', e);
+    return '';
+  }
+}
+
 // ---------------------------------------------------------------------------
 // נקודת הקצה
 // ---------------------------------------------------------------------------
@@ -937,6 +971,10 @@ export async function POST(request: Request): Promise<Response> {
         storefrontToken,
         seenProducts
       );
+      /* ראו retryForText — טקסט ריק הוא מצב שנמדד, לא תקלת רשת */
+      if (finalText.trim() === '') {
+        finalText = await retryForText(openAiKey, model, system, parsed.messages);
+      }
     } else {
     const firstUserTurn = parsed.messages.length === 1;
     for (let iteration = 1; iteration <= MAX_ITERATIONS; iteration++) {
