@@ -31,7 +31,9 @@
         "backgroundColor": "#FFFFFF"
       },
       "package": "com.anshilo.shop",
-      "blockedPermissions": ["android.permission.SYSTEM_ALERT_WINDOW"]
+      "blockedPermissions": [
+        "android.permission.SYSTEM_ALERT_WINDOW"
+      ]
     },
     "web": {
       "bundler": "metro",
@@ -57,6 +59,15 @@
           "imageWidth": 200,
           "resizeMode": "contain",
           "backgroundColor": "#FFFFFF"
+        }
+      ],
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "enableProguardInReleaseBuilds": true,
+            "enableShrinkResourcesInReleaseBuilds": true
+          }
         }
       ]
     ],
