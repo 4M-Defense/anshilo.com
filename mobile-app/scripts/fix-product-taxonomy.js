@@ -31,6 +31,15 @@ const API_VERSION = '2025-07';
 const args = process.argv.slice(2);
 const APPLY = args.includes('--apply');
 const ONLY_WRONG = args.includes('--only-wrong');
+/*
+ * SEO בלבד, בלי לגעת בקטגוריה.
+ *
+ * כותרת ותיאור SEO נגזרים משם המוצר ומהתיאור שלו, ולכן הם נכונים לכל
+ * יצרן בלי להכיר את התחום. קטגוריה היא ההפך — היא דורשת מערך כללים, וכל
+ * עוד אין כזה ליצרן מסוים אין סיבה שגם ה-SEO שלו יחכה. 1,050 מוצרים
+ * בחנות חסרי כותרת SEO, ורובם מיצרנים שעוד אין להם תחום.
+ */
+const SEO_ONLY = args.includes('--seo-only');
 const venIdx = args.indexOf('--vendor');
 const VENDOR = venIdx >= 0 ? args[venIdx + 1] : null;
 const limIdx = args.indexOf('--limit');
@@ -212,6 +221,95 @@ const FOOTWEAR_RULES = [
 ];
 
 /*
+ * כלי עבודה — מקיטה, מילווקי, בוש, סטנלי, דיוולט.
+ *
+ * זה הפער הגדול בחנות: מתוך 355 מוצרי מקיטה, 233 בלי קטגוריה כלל ועוד 49
+ * כ-Uncategorized. מוצר בלי קטגוריה בפיד של גוגל מסווג על ידה לבד, וזה
+ * בדיוק המנגנון שסימן אינטרפוץ למקלחת כ-Knob Handles וגרם לחסימה תחת
+ * מדיניות מוצרי טבק.
+ *
+ * הסדר נגזר מהשפה: "פטישון" לפני "פטיש", "מסור חרב" לפני "מסור",
+ * "משחזת זווית" לפני "משחזת", ו"מקדחה" לפני "מברגה" — כי דגם משולב נכתב
+ * "מברגה/מקדחה" ומקובל לסווגו כמקדחה. "אקדח" לבדו לא ממופה בכלל, כי
+ * "אקדח מסמרים" ו"אקדח מרק" הם שני מוצרים שונים לגמרי.
+ */
+const POWER_TOOL_RULES = [
+  [/סט \d+ כלים|סט כלים|קומבו|combo/i, 'ha-15-75-2', 'Power Tool Combo Sets'],
+
+  /*
+   * הכלי לפני מה שמגיע איתו.
+   *
+   * זו אותה תקלה שהופיעה בתאורה, וכאן היא גדולה יותר: כשכללי הסוללה
+   * והמטען נבדקו ראשונים, 30 מוצרים סווגו כמטענים ו-10 כסוללות — וכולם
+   * מקדחות. "מברגה / מקדחה רוטטת HP333DWYE 12V עם מטען וסוללות" הוא
+   * מקדחה, והמטען הוא מה שבקופסה. סוללה או מטען שנמכרים לבדם עדיין
+   * ייתפסו, פשוט מפני שאין בשמם שום כלי.
+   */
+  /*
+   * "מולטיטול" נכתב מילה אחת, ולכן `/מולטי טול/` עם רווח פספס אותו — והוא
+   * נפל לכלל המסור, כי שמו המלא הוא "מולטיטול נטען – מסור מלטשת". הכלל
+   * הזה חייב להיות לפני המסורים והמלטשות מאותה סיבה.
+   */
+  [/מולטיטול|מולטי טול|רב תכליתי|multi.?tool/i, 'ha-15-38', 'Multifunction Power Tools'],
+
+  [/פטישון|פטיש חציבה|פטיש קומבי/, 'ha-15-20-2-2', 'Rotary Hammers'],
+  [/מקדחה רוטטת|רוטטת/, 'ha-15-14-3-1', 'Hammer Drills'],
+  [/מקדחה|מקדחת/, 'ha-15-14-3', 'Handheld Power Drills'],
+  [/אימפקט|מפתח מומנט/, 'ha-15-24-1', 'Impact Drivers'],
+  [/מברגה|מברגת/, 'ha-15-24-2', 'Power Screwdrivers'],
+
+  [/מסור חרב/, 'ha-15-62-9', 'Reciprocating Saws'],
+  [/מסור עגול/, 'ha-15-62-4', 'Handheld Circular Saws'],
+  [/מסור אנכי|פנדולרי|ג.?יגסו/, 'ha-15-62-5', 'Jigsaws'],
+  [/מסור אלכסוני|מסור מיטר|מסור שולחן/, 'ha-15-62-7', 'Miter Saws'],
+  [/להב|דיסק ניסור|דיסק חיתוך/, 'ha-14-23-2', 'Saw Blades'],
+  [/מסור/, 'ha-15-62', 'Saws'],
+
+  [/משחזת זווית|משחזת/, 'ha-15-18-1', 'Angle Grinders'],
+  [/מלטשת|מכונת ליטוש|ליטוש/, 'ha-15-59', 'Sanders'],
+  [/אקדח מסמרים|מהדק סיכות|סיכות|מסמרים/, 'ha-15-40', 'Nailers & Staplers'],
+  [/מקצוע.?ה חשמלית|פלנר/, 'ha-15-47', 'Planers'],
+  [/מדחס|קומפרסור/, 'ha-15-9', 'Compressors'],
+  [/אקדח חום|פן חם|מפזר חום/, 'ha-15-23', 'Heat Guns'],
+  [/רוטר|פרזה/, 'ha-15-58', 'Routing Tools'],
+  [/שואב אבק/, 'hg-9-10-4', 'Handheld Vacuums'],
+
+  /* גינון ממונע — קבוצה שלמה שנפלה לרשת הביטחון: גוזמים, מכסחות וקוצצים */
+  [/גוזם|גיזום/, 'hg-12-3-3', 'Hedge Trimmers'],
+  [/מכסחת דשא|מכסחה/, 'hg-12-3-5', 'Lawn Mowers'],
+  [/קוצץ קנטים|קוצץ עשב|חרמש/, 'hg-12-3', 'Outdoor Power Equipment'],
+  [/מפוח/, 'hg-12-3-7', 'Leaf Blowers'],
+  [/פנס|תאורת עבודה/, 'ha-15-16-1', 'Flashlights'],
+  [/סרט מדידה|מד לייזר|מפלס לייזר/, 'ha-15-36-31', 'Tape Measures'],
+  [/סכין יפנית|סכין חיתוך/, 'ha-15-74', 'Tool Knives'],
+
+  /* אביזרים — נבדקים אחרי כל הכלים, ראו ההערה למעלה */
+  [/מטען/, 'ha-14-17', 'Power Tool Chargers'],
+  /* "סוללת ליתיום" בסמיכות — אותה מלכודת שהפילה את "נורת" בתאורה */
+  [/סוללה|סוללות|סוללת/, 'ha-14-16', 'Power Tool Batteries'],
+  [/תיק כלים|תיק נשיאה/, 'ha-6-24-3', 'Tool Bags'],
+  [/ארגז כלים|מזוודת כלים/, 'ha-6-24-4', 'Tool Boxes'],
+
+  /*
+   * "סט" בפתח השם, אחרי שכל הכלים והאביזרים נבדקו.
+   *
+   * הכלל הצר `/סט \d+ כלים/` תפס חמישה בלבד, כי בפועל כתוב "סט מברגות",
+   * "סט ליתיום" ו"סט מילווקי 4 כלים" — שם היצרן נכנס באמצע. הענף הכללי
+   * Tool Sets ולא Power Tool Combo Sets, כי חלק מהם ערכות ידניות.
+   */
+  [/^סט /, 'ha-15-75', 'Tool Sets'],
+
+  /* רשת אחרונה: כלי עבודה שלא זוהה בדיוק עדיין נכון יותר מכלום */
+  [/./, 'ha-15', 'Hardware > Tools'],
+];
+
+/* סולמות — חגית. 102 מתוך 108 כבר מסומנים נכון, זה משלים את השאר */
+const LADDER_RULES = [
+  [/סולם|פיגום|מדרגות נייד/, 'ha-15-27-2', 'Ladders'],
+  [/עגלה|טרולי/, 'ha-15-13', 'Dollies & Hand Trucks'],
+];
+
+/*
  * יצרן → תחום. השם נבדק בהכלה כדי שווריאציות כתיב לא יפילו את ההתאמה —
  * בחנות כתוב "בלאנדסטון" ובקטלוג "Blundstone".
  */
@@ -219,6 +317,12 @@ const DOMAINS = [
   { rules: CLEANING_RULES, name: 'ניקוי ותחזוקה', vendors: ['יעקבי', 'jacobi'] },
   { rules: LIGHTING_RULES, name: 'תאורה וחשמל', vendors: ['פתיה', 'fetaya', 'ניסקו', 'nisko'] },
   { rules: FOOTWEAR_RULES, name: 'הנעלה', vendors: ['בלאנדסטון', 'בלנסטון', 'blundstone'] },
+  {
+    rules: POWER_TOOL_RULES,
+    name: 'כלי עבודה',
+    vendors: ['מקיטה', 'makita', 'מילווקי', 'milwaukee', 'בוש', 'bosch', 'סטנלי', 'stanley', 'דיוולט', 'dewalt'],
+  },
+  { rules: LADDER_RULES, name: 'סולמות', vendors: ['חגית'] },
 ];
 
 const domainFor = (vendor) =>
@@ -303,6 +407,20 @@ const UPDATE = `
 const WRONG_BRANCH =
   /Food, Beverages|Cooking & Baking|Dairy|Fruits & Vegetables|Beverages >|Aquarium|Ashtray|Incontinence|Dehydrator|Plants >|Artwork|Molasses/;
 
+/*
+ * ענפים נוספים שגוגל חסמה עליהם בפועל, מדוח ה-Merchant Center.
+ *
+ * אלה אינם "מוזרים" אלא מזיקים ממש: אינטרפוץ למקלחת שסומן Knob Handles
+ * נחסם תחת מדיניות מוצרי טבק, ומסגרות לשקעי חשמל שסומנו Pot Racks
+ * ו-Food Dehydrator Accessories נחסמו תחת Vehicles ותחת הגבלות פרסום
+ * מותאם אישית. הדפוס: ענף שאין לו קשר למוצר גורר את מדיניות הענף.
+ *
+ * הרשימה חלה רק כשגם כלל תחום מתאים נמצא, ולכן היא אינה מוחקת סיווג —
+ * היא מחליפה אותו בתשובה מהכללים.
+ */
+const GOOGLE_BLOCKED_BRANCH =
+  /Knob Handles|Pot Racks|Iron Accessories|Smoke Detectors|Patio Heaters|Air Conditioners|Tobacco|Dog Supplies|Dog Kennel|Motor Vehicle/;
+
 async function main() {
   if (!ADMIN_TOKEN) {
     if (!CLIENT_ID || !CLIENT_SECRET) throw new Error('חסר SHOPIFY_CLIENT_ID / SECRET ב-.env');
@@ -314,18 +432,24 @@ async function main() {
    *
    * ריצה על כל החנות עם מערך כללים אחד היא בדיוק התקלה שהמבנה הזה מונע.
    */
-  if (!VENDOR) throw new Error('חובה --vendor: הכללים נבחרים לפי תחום היצרן');
-  const domain = domainFor(VENDOR);
-  if (!domain) {
-    throw new Error(
-      `אין מערך כללים ליצרן "${VENDOR}". התחומים המוגדרים: ` +
-        DOMAINS.map((d) => `${d.name} (${d.vendors[0]})`).join(', ')
-    );
+  if (SEO_ONLY) {
+    RULES = [];
+    console.log(`מצב SEO בלבד — לא נוגעים בקטגוריה${VENDOR ? ` | יצרן "${VENDOR}"` : ' | כל החנות'}`);
+  } else {
+    if (!VENDOR) throw new Error('חובה --vendor: הכללים נבחרים לפי תחום היצרן');
+    const domain = domainFor(VENDOR);
+    if (!domain) {
+      throw new Error(
+        `אין מערך כללים ליצרן "${VENDOR}". התחומים: ` +
+          DOMAINS.map((d) => `${d.name} (${d.vendors[0]})`).join(', ') +
+          '. ל-SEO בלבד השתמשו ב---seo-only'
+      );
+    }
+    RULES = domain.rules;
+    console.log(`תחום: ${domain.name} — ${RULES.length} כללים`);
   }
-  RULES = domain.rules;
-  console.log(`תחום: ${domain.name} — ${RULES.length} כללים`);
 
-  const q = `vendor:${VENDOR}`;
+  const q = VENDOR ? `vendor:${VENDOR}` : null;
   const all = [];
   let after = null;
   for (;;) {
@@ -339,9 +463,12 @@ async function main() {
   const plan = [];
   const unmatched = [];
   for (const p of all) {
-    const wrongNow = p.category != null && WRONG_BRANCH.test(p.category.fullName);
-    const missing = p.category == null || p.category.fullName === 'Uncategorized';
-    const wanted = categoryFor(p.title);
+    const wrongNow =
+      !SEO_ONLY &&
+      p.category != null &&
+      (WRONG_BRANCH.test(p.category.fullName) || GOOGLE_BLOCKED_BRANCH.test(p.category.fullName));
+    const missing = !SEO_ONLY && (p.category == null || p.category.fullName === 'Uncategorized');
+    const wanted = SEO_ONLY ? null : categoryFor(p.title);
 
     const changes = {};
     if ((wrongNow || missing) && wanted) {
@@ -405,9 +532,12 @@ async function main() {
   if (!APPLY) {
     const s = plan.find((x) => x.changes.seo);
     if (s) {
+      /* שדה שאינו נכתב מוצג ככזה, ולא כ-undefined שנראה כמו תקלה */
       console.log('\nדוגמת SEO:');
-      console.log(`  כותרת : ${s.changes.seo.title}`);
-      console.log(`  תיאור : ${s.changes.seo.description}`);
+      console.log(`  כותרת : ${s.changes.seo.title ?? '(לא משתנה — כבר קיימת)'}`);
+      console.log(`  תיאור : ${s.changes.seo.description ?? '(לא משתנה — כבר קיים)'}`);
+      const both = plan.filter((x) => x.changes.seo?.description).length;
+      console.log(`  מתוך ${nSeo}: ${both} יקבלו גם תיאור, ${nSeo - both} כותרת בלבד`);
     }
     const t = plan.find((x) => x.changes._droppedTags);
     if (t) console.log(`\nתגיות שיוסרו, לדוגמה: ${t.changes._droppedTags.join(', ')}`);
