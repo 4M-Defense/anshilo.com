@@ -1,0 +1,19 @@
+# Shopify theme-check configuration.
+#
+# Committed so that CI, a local run and a reviewer all apply the same rules —
+# without it, `shopify theme check` used the shipped defaults and failed on this
+# theme with one error, which would have made every PR red from the workflow's
+# first run.
+extends: theme-check:recommended
+
+ImgWidthAndHeight:
+  enabled: true
+  # snippets/nav-thumb.liquid is a deliberate exemption, and the snippet documents
+  # the reason at length: the menu thumbnails are a mix of designed square tiles,
+  # product shots and brand wordmarks, requested with a width only so Shopify does
+  # NOT crop them server-side. The CSS box is fixed on both axes with
+  # object-fit: contain, so there is no layout shift for width/height to prevent —
+  # and hardcoding width=height=nav_thumb_size would misdeclare the intrinsic
+  # aspect ratio of every wordmark in the menu.
+  ignore:
+    - snippets/nav-thumb.liquid

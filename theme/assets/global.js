@@ -24,12 +24,12 @@
      carry a copy, and the two were kept in step by comment. They are not any
      more — quick-order.js calls this one.
 
-     Each of Shopify's six placeholders names its own grouping AND decimal
+     Each of Shopify's eight placeholders names its own grouping AND decimal
      symbol, so the mapping has to be explicit. An earlier version read the name
      only to decide whether decimals were wanted and then always formatted with
      toLocaleString('he-IL'), which yields comma grouping and a period decimal.
      That is right for {{amount}} and {{amount_no_decimals}} and wrong for the
-     other four: a shop on {{amount_with_comma_separator}} rendered ₪1.134,65
+     other six: a shop on {{amount_with_comma_separator}} rendered ₪1.134,65
      from Liquid and ₪1,134.65 from JS on the same screen, and on the
      no-decimals comma format 1.135 became 1,135 — which reads as a thousand
      times the price. */
@@ -39,13 +39,24 @@
     amount_with_comma_separator: { group: '.', decimal: ',', decimals: 2 },
     amount_no_decimals_with_comma_separator: { group: '.', decimal: '', decimals: 0 },
     amount_with_apostrophe_separator: { group: "'", decimal: '.', decimals: 2 },
-    amount_with_period_and_space_separator: { group: ' ', decimal: '.', decimals: 2 }
+    amount_with_period_and_space_separator: { group: ' ', decimal: '.', decimals: 2 },
+    amount_with_space_separator: { group: ' ', decimal: ',', decimals: 2 },
+    amount_no_decimals_with_space_separator: { group: ' ', decimal: '', decimals: 0 }
   };
 
   window.formatMoney = function (cents) {
     const format = (window.themeSettings && window.themeSettings.moneyFormat) || '₪{{amount}}';
     const match = format.match(/\{\{\s*(amount[a-z_]*)\s*\}\}/);
-    const spec = (match && MONEY_FORMATS[match[1]]) || MONEY_FORMATS.amount;
+    /* An unrecognised placeholder must not silently inherit the `amount` spec:
+       that invents two decimal places for a store that shows none, which reads as
+       a hundredfold error. Keep whatever the NAME still tells us — decimals —
+       and accept a wrong separator, which is only a blemish. */
+    let spec = match ? MONEY_FORMATS[match[1]] : null;
+    if (match && !spec) {
+      const noDecimals = match[1].indexOf('no_decimals') > -1;
+      spec = { group: ',', decimal: noDecimals ? '' : '.', decimals: noDecimals ? 0 : 2 };
+    }
+    if (!spec) spec = MONEY_FORMATS.amount;
 
     const value = Number(cents) || 0;
     const negative = value < 0;
@@ -371,14 +382,21 @@
         /* The swap destroys whatever the shopper was on — inside an open drawer
            that means focus lands on <body> mid-interaction. Note it first. */
         const active = document.activeElement;
-        const host = active && active.closest ? active.closest('[data-line]') : null;
+        /* <quantity-input> ALSO carries data-line (the cart sections pass
+           line: forloop.index into snippets/quantity-input.liquid), and it is
+           nested inside <cart-line-qty> — so a plain closest('[data-line]') always
+           resolved to the inner element, and focusableIn(host)[0] was then the "−"
+           button no matter which control the shopper had been using. Enter on "+"
+           came back focused on "−", so the next press undid the change. Anchor on
+           the custom element, and remember the control by name. */
+        const host = active && active.closest
+          ? active.closest('cart-line-qty, cart-remove-button')
+          : null;
         const memo = host
           ? {
               line: host.dataset.line || '',
-              /* <cart-line-qty> and <cart-remove-button> both carry data-line, so
-                 the host's tag name is what distinguishes the stepper from the
-                 trash button on the same row. */
               host: host.tagName.toLowerCase(),
+              control: active.getAttribute('name') || (active.matches('input') ? 'input' : ''),
               inDrawer: !!(Drawers.activeDrawer && Drawers.activeDrawer.contains(active))
             }
           : null;
@@ -411,7 +429,11 @@
       if (!memo.line || !memo.host) return;
       const host = scope.querySelector(memo.host + '[data-line="' + memo.line + '"]');
       if (!host) return;
-      const target = window.focusableIn(host)[0];
+
+      let target = null;
+      if (memo.control === 'input') target = host.querySelector('input');
+      else if (memo.control) target = host.querySelector('[name="' + memo.control + '"]');
+      if (!target) target = window.focusableIn(host)[0];
       if (target) target.focus({ preventScroll: true });
     },
 
@@ -450,6 +472,11 @@
         if (this.loading) return;
         this.loading = true;
 
+        /* Disabling the focused element blurs it, and the browser will not give
+           focus back. For cartType 'drawer' the opening drawer takes over, but on
+           the cart-page setting a keyboard shopper was left on <body>. */
+        const refocus = document.activeElement === this.submitBtn;
+
         this.submitBtn.classList.add('btn--loading');
         this.submitBtn.setAttribute('aria-busy', 'true');
         this.submitBtn.disabled = true;
@@ -487,9 +514,19 @@
           /* Re-enable only what this handler disabled: a variant that is genuinely
              unavailable keeps aria-disabled and must stay disabled. */
           if (!this.submitBtn.hasAttribute('aria-disabled')) this.submitBtn.disabled = false;
+          /* Strip .btn--loading from the linked buttons too. section-main-product.js
+             puts it on the sticky button on click and clears it on `cart:updated`,
+             which never fires on the failure path — so with pointer-events: none on
+             that class the sticky button stayed blank AND unclickable for the whole
+             5s backstop, blocking the retry. */
           linked.forEach((btn) => {
+            btn.classList.remove('btn--loading');
+            btn.removeAttribute('aria-busy');
             if (!btn.hasAttribute('aria-disabled')) btn.disabled = false;
           });
+          if (refocus && document.contains(this.submitBtn) && !this.submitBtn.disabled) {
+            this.submitBtn.focus({ preventScroll: true });
+          }
         }
       }
     }
@@ -566,11 +603,15 @@
               return;
             }
 
-            /* Respect the input's own bounds before asking the server. */
+            /* Respect the input's own bounds before asking the server — but NOT
+               for 0. Every cart-line input carries min="1", and clamping 0 up to 1
+               removed the "type 0 to delete the line" behaviour that worked before
+               this guard existed: the field snapped back to 1 and the item stayed
+               in the cart with no explanation. 0 is a deliberate delete. */
             const max = parseInt(input.getAttribute('max'), 10);
             const min = parseInt(input.getAttribute('min'), 10);
             let next = qty;
-            if (Number.isFinite(min) && next < min) next = min;
+            if (qty > 0 && Number.isFinite(min) && next < min) next = min;
             if (Number.isFinite(max) && next > max) next = max;
             if (next !== qty) input.value = next;
 

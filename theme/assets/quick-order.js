@@ -19,7 +19,7 @@
 
   function formatMoney(cents) {
     /* One implementation, in global.js. This file used to carry a copy kept in
-       step by comment; both were wrong for four of Shopify's six money formats.
+       step by comment; both were wrong for six of Shopify's eight money formats.
        global.js ships from the layout <head>, so it has always run first. */
     if (typeof window.formatMoney === 'function') return window.formatMoney(cents);
     return '₪' + (cents / 100).toFixed(2);
@@ -53,10 +53,17 @@
     this.emptySummary = this.countEl ? this.countEl.textContent : '';
     this.strings = this.readStrings();
 
-    /* Bounded lookup pool + progress accounting for the paste path. */
+    /* Bounded lookup pool + progress accounting for the paste path.
+       runId invalidates work that belongs to rows this instance has since thrown
+       away: parsePaste and clear() wipe rowsHost, but neither the in-flight
+       lookups nor the per-row debounce timers know that, so a stray response
+       counted towards the new paste's tally ("11 נמצאו" for a 10-line paste) and a
+       late timer could push a detached row back into the pool and hold up
+       finishBatch. */
     this.queue = [];
     this.inFlight = 0;
     this.batch = null;
+    this.runId = 0;
 
     if (!this.rowsHost || !this.template) return;
 
@@ -187,6 +194,9 @@
   /* ---------- Bounded lookup queue ---------- */
 
   QuickOrder.prototype.enqueue = function (row) {
+    /* A row that is no longer in the list cannot be resolved and must not occupy a
+       slot or a tally. */
+    if (!this.rowsHost.contains(row)) return;
     var term = (row.querySelector('[data-quick-order-sku]').value || '').trim();
     this.clearRowState(row);
     if (!term) { this.refreshTotals(); return; }
@@ -202,7 +212,7 @@
       match.appendChild(spinnerWrap);
     }
 
-    this.queue.push({ row: row, term: term });
+    this.queue.push({ row: row, term: term, runId: this.runId });
     this.drain();
   };
 
@@ -211,7 +221,7 @@
     while (this.inFlight < MAX_IN_FLIGHT && this.queue.length) {
       var job = this.queue.shift();
       this.inFlight += 1;
-      this.lookup(job.row, job.term).then(function () {
+      this.lookup(job.row, job.term, job.runId).then(function () {
         self.inFlight -= 1;
         self.drain();
         if (!self.inFlight && !self.queue.length) self.finishBatch();
@@ -219,7 +229,7 @@
     }
   };
 
-  QuickOrder.prototype.lookup = function (row, term) {
+  QuickOrder.prototype.lookup = function (row, term, runId) {
     var self = this;
     var url = '/search?type=product&view=quick-order&q=' + encodeURIComponent(term);
 
@@ -230,8 +240,10 @@
       })
       .then(function (data) {
         row.classList.remove('is-loading');
-        /* The SKU may have been retyped while this request was in flight; the
-           row's own value is the authority. */
+        /* The row may have been thrown away, or its SKU retyped, while this request
+           was in flight. Either way the response is stale and must not be rendered
+           or counted. */
+        if (!self.isCurrent(row, runId)) return;
         var current = (row.querySelector('[data-quick-order-sku]').value || '').trim();
         if (current !== term) return;
 
@@ -247,11 +259,18 @@
       })
       .catch(function () {
         row.classList.remove('is-loading');
+        if (!self.isCurrent(row, runId)) return;
         /* A throttled or dropped request is NOT a missing catalogue number.
            Collapsing the two told buyers the store does not stock items it does. */
         self.applyFailed(row);
         self.tally('failed');
       });
+  };
+
+  /** Is this response still about a row this instance cares about? */
+  QuickOrder.prototype.isCurrent = function (row, runId) {
+    if (runId !== this.runId) return false;
+    return this.rowsHost.contains(row);
   };
 
   /* ---------- Row states ---------- */
@@ -460,6 +479,7 @@
 
     this.rowsHost.innerHTML = '';
     this.queue.length = 0;
+    this.runId += 1;
     this.batch = { found: 0, fuzzy: 0, missing: 0, failed: 0 };
 
     var self = this;
@@ -491,6 +511,7 @@
   QuickOrder.prototype.clear = function () {
     this.rowsHost.innerHTML = '';
     this.queue.length = 0;
+    this.runId += 1;
     this.batch = null;
     var paste = this.root.querySelector('[data-quick-order-paste]');
     if (paste) paste.value = '';

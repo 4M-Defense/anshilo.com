@@ -101,7 +101,17 @@
       </span>
     </p>
 
-    <div class="product-form__dynamic">
+    {%- comment -%}
+      Shopify's accelerated checkout button reads this form's hidden variant id at
+      CLICK time and goes straight to checkout — it never fires the submit event
+      that <product-form> intercepts, and it ignores `disabled`. So gating the two
+      custom buttons on `buyable` was not enough: on a mixed-price product the
+      express button sat next to a disabled "מחיר בטלפון" and would take the ₪0
+      variant to checkout for nothing. Hiding is what works, and
+      section-main-product.js flips it on every variant change so the priced
+      variants keep their express checkout.
+    {%- endcomment -%}
+    <div class="product-form__dynamic" data-dynamic-checkout {% unless buyable %}hidden{% endunless %}>
       {{ form | payment_button }}
     </div>
   {%- endform -%}
@@ -134,8 +144,15 @@
           can reorder inside the RTL bar. It lives on the element rather than being
           re-applied by JS because section-main-product.js updates this node with
           textContent on every variant change, which keeps the attribute.
+
+          It stays UNCONDITIONAL for exactly that reason. Making it depend on the
+          initially selected variant's price broke the guarantee above: JS only
+          writes textContent here, so a render that omitted the attribute lost it
+          for the whole session and picking a priced variant afterwards printed the
+          money un-isolated. A Hebrew phrase inside a dir="ltr" span renders
+          correctly, so the call-for-price text needs no special casing.
         {%- endcomment -%}
-        <span class="product-sticky-bar__price"{% if current_variant.price > 0 %} dir="ltr"{% endif %} data-sticky-price>
+        <span class="product-sticky-bar__price" dir="ltr" data-sticky-price>
           {%- if current_variant.price > 0 -%}
             {{- current_variant.price | money -}}
           {%- else -%}

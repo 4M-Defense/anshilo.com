@@ -5,6 +5,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   Alert,
   FlatList,
+  Linking,
   Pressable,
   RefreshControl,
   StyleSheet,
@@ -16,6 +17,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { StorefrontError, formatMoney } from '@/api/client';
 import type { CartLine, MoneyV2 } from '@/api/types';
 import { Button, EmptyState, Icon, PriceText, QuantityStepper, Skeleton } from '@/components';
+import { STORE_INFO, whatsappUrl } from '@/config';
 import { useCart } from '@/state/CartContext';
 import { colors, radius, shadows, spacing, typography } from '@/theme';
 
@@ -293,6 +295,18 @@ export default function CartScreen() {
   /* ----- חישובי סיכום ----- */
 
   const lines = cart?.lines.nodes ?? [];
+  /* An unpriced line must not reach checkout. Blocking the product screen closed
+     the way a ₪0 item gets ADDED, but a cart can already hold one — the persisted
+     cart id is migrated forward across the upgrade, and the same cart is editable
+     on anshilo.com. Without this the row read "מחיר בטלפון", the total ignored it,
+     and the checkout button was live: the item shipped for free, which is the whole
+     loss being prevented. Keyed off both the variant price and the line cost so a
+     ₪0-priced line and a zero-cost line are both caught. */
+  const unpricedLines = lines.filter(
+    (line) =>
+      parseFloat(line.merchandise.price.amount) === 0 ||
+      parseFloat(line.cost.totalAmount.amount) === 0
+  );
   const currencyCode = cart?.cost.totalAmount.currencyCode ?? 'ILS';
   const savings = lines.reduce((sum, line) => {
     const compare = line.cost.compareAtAmountPerQuantity;
@@ -423,11 +437,38 @@ export default function CartScreen() {
           </Text>
         </View>
         <Text style={styles.summaryHint}>המחיר כולל מע״מ · המשלוח מחושב בתשלום</Text>
+        {unpricedLines.length > 0 && (
+          <View style={styles.quoteBox}>
+            <Text style={styles.quoteTitle}>יש בעגלה פריט שמחירו נקבע בטלפון</Text>
+            <Text style={styles.quoteText}>
+              {unpricedLines.map((line) => line.merchandise.product.title).join(', ')} — המחיר של
+              הפריט הזה נקבע לפי כמות ודגם, ולכן אי אפשר להשלים את ההזמנה בתשלום מקוון. התקשרו
+              אלינו לקבלת הצעת מחיר, או הסירו את הפריט מהעגלה כדי להמשיך.
+            </Text>
+            <View style={styles.quoteActions}>
+              <Button
+                title={STORE_INFO.phone}
+                onPress={() => Linking.openURL(`tel:${STORE_INFO.phoneDial}`).catch(() => {})}
+                icon={<Icon name="call-outline" size={18} color={colors.onAccent} />}
+                style={styles.quoteButton}
+              />
+              {whatsappUrl() !== '' && (
+                <Button
+                  title="וואטסאפ"
+                  variant="outline"
+                  onPress={() => Linking.openURL(whatsappUrl()).catch(() => {})}
+                  icon={<Icon name="logo-whatsapp" size={18} color={colors.accent} />}
+                  style={styles.quoteButton}
+                />
+              )}
+            </View>
+          </View>
+        )}
         <Button
           title="מעבר לתשלום מאובטח"
           onPress={handleCheckout}
           loading={checkingOut}
-          disabled={busy}
+          disabled={busy || unpricedLines.length > 0}
           icon={<Icon name="lock-closed" size={16} color={colors.onAccent} knockout={colors.accent} />}
           style={styles.checkoutButton}
         />
@@ -452,10 +493,12 @@ export default function CartScreen() {
         contentContainerStyle={styles.listContent}
         ItemSeparatorComponent={() => <View style={styles.separator} />}
         ListHeaderComponent={
-          /* getCart pages through every line, so this only fires against the 20-page
-             safety cap. Saying so is still better than a total that does not add up
-             to the rows on screen — the totals are computed server-side over the
-             WHOLE cart, so a truncated list silently disagreed with "סה״כ לתשלום". */
+          /* getCart AND every mutation page through the whole line set, so this only
+             fires against the 20-page safety cap. (Routing the mutations through the
+             same helper is what makes that true — before that, any quantity change
+             returned 100 lines and lit this notice on a cart of 150.) Saying so is
+             still better than a total that does not add up to the rows on screen:
+             the totals are computed server-side over the WHOLE cart. */
           linesTruncated ? (
             <View style={styles.truncatedNotice}>
               <Icon name="alert-circle-outline" size={17} color={colors.warning} />
@@ -525,6 +568,38 @@ const styles = StyleSheet.create({
   listContent: {
     padding: spacing.lg,
     paddingBottom: spacing.xxl,
+  },
+  /* ----- unpriced line blocks checkout ----- */
+  quoteBox: {
+    backgroundColor: colors.surfaceAlt,
+    borderRadius: radius.md,
+    borderWidth: 1,
+    borderColor: colors.warning,
+    padding: spacing.md,
+    gap: spacing.xs,
+    marginBottom: spacing.md,
+  },
+  quoteTitle: {
+    fontSize: typography.body,
+    fontWeight: '800',
+    color: colors.ink,
+    textAlign: 'right',
+    writingDirection: 'rtl',
+  },
+  quoteText: {
+    fontSize: typography.small,
+    lineHeight: typography.small * 1.5,
+    color: colors.textMuted,
+    textAlign: 'right',
+    writingDirection: 'rtl',
+  },
+  quoteActions: {
+    flexDirection: 'row',
+    gap: spacing.sm,
+    marginTop: spacing.xs,
+  },
+  quoteButton: {
+    flex: 1,
   },
   truncatedNotice: {
     flexDirection: 'row',

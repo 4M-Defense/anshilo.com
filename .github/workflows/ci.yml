@@ -2,7 +2,7 @@
 #
 # Why this exists: pushing to `shopify-live` IS the deploy — Shopify's GitHub
 # integration redeploys the connected live theme on every push to that branch.
-# Before this workflow, nothing ran the two checks the README claims are green.
+# Before this workflow, nothing ran the checks the README claims are green.
 # They ran only if a human remembered, and `theme/tools/sync-shopify-live.sh` was
 # the sole caller of the validator, so `git push origin HEAD:shopify-live` or a
 # merge straight into that branch deployed an unvalidated theme to a storefront
@@ -35,15 +35,30 @@ jobs:
         with:
           python-version: '3.12'
 
-      # --strict fails on warnings too. The five outstanding ones are deliberate
-      # (documented at the top of validate.py's ALLOWED_HEX), so they are
-      # allowlisted rather than silenced — a NEW hardcoded colour still fails.
+      # --strict fails on warnings too, and the theme is clean under it: zero
+      # errors, zero warnings. The handful of colours that genuinely cannot be
+      # tokens are documented one by one in validate.py's ALLOWED_HEX, so a NEW
+      # hardcoded colour still fails the build.
       - name: Static checks and design-system rules
         run: python3 theme/tools/validate.py --strict
 
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      # Pinned, not @3: a floating major means a newly-added theme-check rule can
+      # turn CI red on an unchanged repo. The rule config lives in
+      # theme/.theme-check.yml so a local run and CI apply identical rules —
+      # without it the shipped defaults produced one error on this theme, which
+      # would have made every PR red from this workflow's first run.
+      #
+      # --fail-level error: the 6 outstanding warnings are all
+      # UnclosedHTMLElement in sections/main-list-collections.liquid, where markup
+      # is opened in one Liquid branch and closed in another. theme-check's HTML
+      # parser cannot follow that; the section renders correctly.
       - name: Shopify theme-check
         run: |
-          npm install --no-save --no-audit --no-fund @shopify/cli@3
+          npm install --no-save --no-audit --no-fund @shopify/cli@3.94.3
           npx shopify theme check --path theme --fail-level error
 
   app:
@@ -68,3 +83,9 @@ jobs:
 
       - name: Typecheck
         run: npx tsc --noEmit
+
+      # An off-SDK native module builds fine locally and fails on EAS, and tsc
+      # cannot see it. This is the check that would have caught expo-secure-store
+      # being pinned outside the SDK 57 line.
+      - name: Expo dependency versions
+        run: npx expo install --check

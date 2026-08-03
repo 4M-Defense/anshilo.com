@@ -35,19 +35,32 @@ REPO_ROOT=$(git rev-parse --show-toplevel)
 BRANCH=$(git -C "$REPO_ROOT" rev-parse --abbrev-ref HEAD)
 HEAD_SHA=$(git -C "$REPO_ROOT" rev-parse --short HEAD)
 
-# Files the Shopify side owns. Anything listed here is restored from
-# shopify-live after the rsync. Paths are relative to the theme root.
-SHOPIFY_OWNED=(
+# Files the Shopify side owns, restored from shopify-live after the rsync.
+#
+# Listed as FILE patterns, never as bare directories. `templates` as a directory
+# reverted everything under it, including templates/gift_card.liquid and
+# templates/search.quick-order.liquid — hand-written Liquid the theme editor never
+# touches — so those two, and any repo-side edit to a JSON template, became
+# permanently un-deployable while the script still printed success. Only the JSON
+# templates carry editor state (section order, block content, per-block settings).
+SHOPIFY_OWNED_GLOBS=(
   "config/settings_data.json"
-  "templates"
   "sections/header-group.json"
   "sections/footer-group.json"
+  "templates/*.json"
+  "templates/customers/*.json"
 )
 
 die() {
   echo "sync-shopify-live: $*" >&2
   exit 1
 }
+
+# Fail on a missing dependency before touching any branch, rather than half-way
+# through with a worktree already created.
+for tool in rsync tar python3; do
+  command -v "$tool" >/dev/null || die "$tool is required but not installed"
+done
 
 # ---------------------------------------------------------------------------
 # 1. Refuse to deploy anything that is not committed.
@@ -59,7 +72,9 @@ if [ -n "$(git -C "$REPO_ROOT" status --porcelain -- theme)" ]; then
   die "theme/ has uncommitted changes. Commit them first — the deploy commit records $HEAD_SHA and must actually contain what it ships."
 fi
 
-python3 "$REPO_ROOT/theme/tools/validate.py"
+# --strict, the same gate CI applies. The deploy path protects the LIVE store, so
+# it must not be the weaker of the two.
+python3 "$REPO_ROOT/theme/tools/validate.py" --strict
 
 # ---------------------------------------------------------------------------
 # 2. Align the local shopify-live branch to the remote before touching it.
@@ -86,7 +101,12 @@ cleanup() {
   if [ -n "${SYNC_FAILED:-}" ]; then
     echo "sync-shopify-live: FAILED. local shopify-live = $(git -C "$REPO_ROOT" rev-parse --short shopify-live 2>/dev/null || echo unknown), origin/shopify-live = $(git -C "$REPO_ROOT" rev-parse --short origin/shopify-live 2>/dev/null || echo unknown). Nothing was force-pushed. Re-run — the script re-aligns to the remote on every start." >&2
   fi
+  # `worktree remove` cannot delete a path git never registered — which is exactly
+  # what happens when `worktree add` itself fails (e.g. shopify-live is already
+  # checked out elsewhere). Without the rm every aborted run leaked a mktemp dir.
   git -C "$REPO_ROOT" worktree remove --force "$WT" >/dev/null 2>&1 || true
+  rm -rf "$WT"
+  git -C "$REPO_ROOT" worktree prune >/dev/null 2>&1 || true
 }
 trap cleanup EXIT
 
@@ -98,8 +118,10 @@ git -C "$REPO_ROOT" worktree add -B shopify-live "$WT" origin/shopify-live >/dev
 # ---------------------------------------------------------------------------
 # 3. Copy the deployable theme from HEAD, then hand the Shopify-owned files back.
 # ---------------------------------------------------------------------------
+DISCARDED=0
+
 apply_theme() {
-  local staging path
+  local staging pattern
   staging=$(mktemp -d)
   # From HEAD, not the working tree — see the header.
   git -C "$REPO_ROOT" archive "$HEAD_SHA" theme \
@@ -111,17 +133,36 @@ apply_theme() {
     "$staging/templates" "$WT/"
   rm -rf "$staging"
 
-  # Restore everything the theme editor owns. `git checkout HEAD --` inside the
-  # worktree is exact: a path the editor created that this branch does not have
-  # comes back, and a path that does not exist upstream is skipped.
-  for path in "${SHOPIFY_OWNED[@]}"; do
-    if git -C "$WT" cat-file -e "HEAD:$path" 2>/dev/null; then
-      git -C "$WT" checkout HEAD -- "$path"
-    fi
+  # Restore everything the theme editor owns, and SAY SO when a repo-side change is
+  # discarded in the process. Reverting silently is how a developer's edit to a JSON
+  # template disappears inside a commit that reports success.
+  #
+  # The globs are expanded by git against the worktree (quoted pathspecs), not by
+  # this shell against the repo cwd — otherwise they would match nothing.
+  local before after owned
+  for pattern in "${SHOPIFY_OWNED_GLOBS[@]}"; do
+    # Every tracked path on shopify-live matching this pattern.
+    while IFS= read -r owned; do
+      [ -n "$owned" ] || continue
+      before=""
+      [ -f "$WT/$owned" ] && before=$(git -C "$WT" hash-object "$WT/$owned")
+      git -C "$WT" checkout HEAD -- "$owned"
+      after=$(git -C "$WT" hash-object "$WT/$owned")
+      if [ -n "$before" ] && [ "$before" != "$after" ]; then
+        echo "sync-shopify-live: NOT deployed — $owned is owned by the Shopify theme editor, so your repo change to it was reverted. Make that change in the theme editor instead." >&2
+        DISCARDED=$((DISCARDED + 1))
+      fi
+    done < <(git -C "$WT" ls-files -- "$pattern")
   done
 }
 
 apply_theme
+
+report_discarded() {
+  if [ "$DISCARDED" -gt 0 ]; then
+    echo "sync-shopify-live: $DISCARDED repo change(s) above were NOT deployed because the theme editor owns those files." >&2
+  fi
+}
 
 stage_commit() {
   git -C "$WT" add -A
@@ -133,14 +174,14 @@ stage_commit() {
 }
 
 if ! stage_commit; then
-  # Not necessarily "nothing to do": a previous run may have committed and failed
-  # to push, in which case reporting success would hide an undeployed change.
-  if [ "$(git -C "$WT" rev-parse HEAD)" = "$(git -C "$REPO_ROOT" rev-parse origin/shopify-live)" ]; then
-    SYNC_FAILED=""
-    echo "shopify-live is already up to date"
-    exit 0
-  fi
-  echo "sync-shopify-live: content matches but shopify-live is ahead of origin — pushing"
+  # Genuinely nothing to do. There is no "local branch is ahead" case to rescue
+  # here: the `worktree add -B` above resets to origin/shopify-live, which is
+  # precisely how an orphaned unpushed commit from a previous failed run is
+  # discarded — re-running from the dev branch is what reproduces it.
+  SYNC_FAILED=""
+  report_discarded
+  echo "shopify-live is already up to date"
+  exit 0
 fi
 
 # ---------------------------------------------------------------------------
@@ -149,7 +190,9 @@ fi
 for attempt in 1 2 3; do
   if git -C "$WT" push origin HEAD:shopify-live; then
     SYNC_FAILED=""
-    echo "synced shopify-live to $BRANCH @ $HEAD_SHA — Shopify will pick it up in moments"
+    report_discarded
+    echo "synced shopify-live to $BRANCH @ $HEAD_SHA — pushed $(git -C "$WT" rev-parse --short HEAD) to origin/shopify-live."
+    echo "Confirm it landed: the connected theme's \"last saved from GitHub\" timestamp should advance within a minute. If the branch is not connected to a theme, NOTHING was deployed — see HANDOFF §14."
     exit 0
   fi
 
@@ -159,6 +202,7 @@ for attempt in 1 2 3; do
   apply_theme
   if ! stage_commit; then
     SYNC_FAILED=""
+    report_discarded
     echo "shopify-live already carries this theme"
     exit 0
   fi

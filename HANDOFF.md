@@ -1,6 +1,7 @@
 # HANDOFF — א.נ. שילו · Shilo Pro v2
 
-**Current state: round 6 shipped. Start at §12 for what just changed, then §2.**
+**Current state: the v8 theme is PUBLISHED and live. Start at §2, then §13's
+RESOLVED block for how that was verified, then §15 for the audit round.**
 
 **Written by the previous agent. Read this before touching anything.**
 Run `git log --oneline` for the current head — the list in §9 stops at the commit
@@ -29,7 +30,7 @@ Branch: `claude/shopify-store-modern-design-746p2i` · PR: [#1](https://github.c
 | **The org hit its monthly spend limit** during the build. | Subagents/Workflows may fail with `You've hit your org's monthly spend limit`. Assume you are working alone unless a call proves otherwise. |
 | `fonts.googleapis.com` / `fonts.gstatic.com` **are** reachable. | Font subsets were downloaded from there. |
 | `registry.npmjs.org` is reachable. | `npm install` works. |
-| The Shopify MCP **blocks** writes to the live theme, `themeDelete`, and theme publishing. | Deploy only to unpublished themes. The owner publishes and deletes manually. |
+| The Shopify MCP **blocks** writes to the live theme, `themeDelete`, and theme publishing. | An MCP capability limit, not a policy: an agent cannot write to the published theme through it, and the owner publishes and deletes manually. The git route (§14) is not subject to it — pushing to `shopify-live` deploys to whatever theme is connected, published or not. |
 | **Shopify's Predictive Search API (`/search/suggest`) does not support Hebrew.** It is language-gated and `he` is not on the list, so it returns no product suggestions for this store no matter what `resources[type]` asks for. | This is why the typeahead appeared broken for months. Products now come from the **Storefront Search API** via Section Rendering: `routes.search_url + '?q=…&type=product&options[prefix]=last&options[unavailable_products]=last&section_id=predictive-search'`. `options[prefix]=last` is what gives letter-by-letter partial matching. The old endpoint is still in `section-header.js` behind `predictiveApiSupported()`, which reads `#shopify-features` → `predictiveSearch`, so the faster API is picked up automatically if Shopify ever adds Hebrew. **Do not "simplify" that branch away.** |
 | **Storefront search `type` accepts only `product`, `page`, `article`.** | Collection suggestions cannot come back from `/search`, so the Hebrew path has no collection group. Deliberate, not missing. |
 
@@ -40,9 +41,10 @@ Branch: `claude/shopify-store-modern-design-746p2i` · PR: [#1](https://github.c
 | Storefront domain | `anshilo.com` |
 | **myshopify domain** | `3007b3-4.myshopify.com` (**not** `anshilo.myshopify.com` — verified via `shop.myshopifyDomain`) |
 | Shop id | `58110246991` |
-| Live theme (**never write to it**) | `שמירה 1` — `gid://shopify/OnlineStoreTheme/141469646927`, role MAIN |
-| **Working preview theme** | `שילו 2026 — העיצוב החדש v7 ⭐` — `gid://shopify/OnlineStoreTheme/148377370703` |
-| Preview URL | `https://anshilo.com/?preview_theme_id=148377370703` |
+| **Live theme** | `shilov8theme` — `gid://shopify/OnlineStoreTheme/148378648655`, **role MAIN**. Re-verified against the Admin API. This is what shoppers see; a change deployed here is live immediately. |
+| Previous live theme, now an unpublished backup | `שמירה 1` — `gid://shopify/OnlineStoreTheme/141469646927`. **This table used to call it MAIN, which stopped being true when the owner published the v8 zip** — so it named a backup as live, named the real live theme nowhere, and pointed the reader at v7 as a safe write target. |
+| Unpublished backups of the new design | v7 `148377370703`, v6 `148376649807`, v5 `148375371855` |
+| Preview URL | Not needed any more — the design is live at `https://anshilo.com`. Append `?preview_theme_id=<id>` only to inspect an unpublished backup. |
 | Superseded, owner can delete | `148368425039` (v2), `148371210319` (v3), `148372193359` (v4), `148375371855` (v5) and `148376649807` (v6). Each zip import mints a new theme, so these accumulate — delete them from the admin. |
 | Disposable theme, owner told to delete | `למחיקה — ייבוא כושל (בלי צבעים)` — `148368293967` |
 | Owner's original copy, mostly untouched | `עותק של שמירה 1` — `148357644367` (12 asset files + one test txt were written to it early on; it is otherwise still an Empire copy) |
@@ -119,11 +121,15 @@ to rewrite.
 
 ## 4. Verification — all three are currently green
 
+**These run automatically now.** `.github/workflows/ci.yml` runs all three on every
+PR and every push to `shopify-live`, so you no longer have to remember. Locally:
+
 ```bash
-python3 theme/tools/validate.py                      # 0 errors, 3 cosmetic warnings
-cd mobile-app && npx tsc --noEmit                    # 0 errors
-# Shopify's official checker:
-cd <scratch> && npm i @shopify/theme-check-node      # 0 errors, 6 warnings
+python3 theme/tools/validate.py --strict             # 0 errors, 0 warnings
+cd mobile-app && npm ci && npx tsc --noEmit          # 0 errors
+# Shopify's official checker, config in theme/.theme-check.yml:
+npm install --no-save @shopify/cli@3.94.3
+npx shopify theme check --path theme --fail-level error   # 0 errors, 6 warnings
 ```
 
 The 6 `theme-check` warnings are all `UnclosedHTMLElement` in
@@ -132,8 +138,19 @@ The 6 `theme-check` warnings are all `UnclosedHTMLElement` in
 output is balanced — **false positive, do not "fix" it** unless you refactor to a
 two-pass grouping.
 
-The 3 validator warnings are `#eef1f6` in the two layouts (it is the literal value
-of the `--color-on-ink` token, so it belongs there) and `#ccc` in a print rule.
+`theme-check` with the shipped defaults also reported one ERROR,
+`ImgWidthAndHeight` on `snippets/nav-thumb.liquid` — which would have made every PR
+red from the workflow's first run. `theme/.theme-check.yml` exempts that one file,
+and the snippet documents why: the menu thumbnails are a mix of aspect ratios
+requested with a width only so Shopify does not crop them, and the CSS box is fixed
+on both axes with `object-fit: contain`, so there is no layout shift for
+`width`/`height` to prevent.
+
+The validator is clean under `--strict` (it used to report 3, then 5, cosmetic
+colour warnings). The colours that genuinely cannot be tokens — the two layouts'
+`--color-on-ink` and `--color-tile-bg` fallbacks, the accessibility widget's
+high-contrast link blue, and a print rule — are listed one by one in
+`validate.py`'s `ALLOWED_HEX` with the reason. A NEW hardcoded colour still fails.
 
 `validate.py` also runs a **WCAG 2.1 AA contrast audit** over the palette in
 `settings_data.json` — 18 pairs, 4.5:1 for text and 3.0:1 for UI boundaries. It
@@ -631,26 +648,51 @@ heredoc appends.
 
 ---
 
-## 14. GitHub integration — the deploy path that replaces §3 once connected
+## 14. GitHub integration — the deploy path, and the one thing to confirm first
+
+> ⚠️ **UNCONFIRMED: is `shopify-live` actually connected to a theme?**
+>
+> Nothing in this repo can prove it, and the evidence points the other way — §13's
+> RESOLVED block establishes that the published theme came from the owner
+> **uploading and publishing the v8 zip by hand**, not from a GitHub deploy. Note
+> also that this section says to connect `ofir-commits/anshilo.com` while this
+> checkout's origin is `A-N-Shilo/anshilo.com`; settle which repo the integration
+> watches before relying on any of this.
+>
+> **If the branch is not connected, `sync-shopify-live.sh` pushes to a branch
+> nothing is watching, exits 0, and NOTHING reaches the storefront.** The script
+> prints that caveat with the pushed SHA on every success for exactly this reason.
+> Confirm once, in the admin: Online Store → Themes → the published theme should
+> show it is connected to GitHub, and its "last saved from GitHub" timestamp should
+> advance within a minute of a push. Until that is confirmed, treat the zip route
+> (§3) as the live deploy path and this section as the intended one.
 
 A dedicated branch **`shopify-live`** exists: the contents of `theme/` at the
 branch ROOT (Shopify's GitHub integration requires root-level theme folders),
 minus `tools/`, `SPEC.md`, `DESIGN-SYSTEM.md`. The owner connects it once:
 **Online Store → Themes → Add theme → Connect from GitHub →
-`ofir-commits/anshilo.com` → branch `shopify-live`.**
+`<the repo that actually holds this branch>` → branch `shopify-live`.**
 
-After that:
+Once connected:
 
-- **Deploying = pushing.** Run `bash theme/tools/sync-shopify-live.sh` from
-  the dev branch. It validates, pulls shopify-live (the editor commits back to
-  it!), overlays `theme/`, **preserves `config/settings_data.json` from the
-  Shopify side** (that file is editor-owned once connected — the owner's badge
-  uploads and colour tweaks land there and must never be clobbered), commits
-  and pushes. No Admin API, no MCP, no zip — the connector outage class of
-  §13 disappears.
-- The connected theme keeps one stable id/preview URL forever; the v2–v7
-  theme pile stops growing. Once the owner confirms the connected theme, all
-  earlier previews can be deleted and §13's pending-upsert plan is OBSOLETE —
-  round 7 is already in `shopify-live`.
-- Two-way sync means `settings_data.json` history lives in git — the
-  badge-loss problem §13 documents can no longer happen.
+- **Deploying = pushing.** Run `bash theme/tools/sync-shopify-live.sh` from the dev
+  branch. It refuses to run with uncommitted changes under `theme/`, deploys from
+  HEAD rather than the working tree, runs `validate.py --strict`, re-aligns to the
+  remote, overlays `theme/`, and hands back every file the Shopify side owns.
+- **The editor-owned set is four patterns, not one file:**
+  `config/settings_data.json`, `sections/header-group.json`,
+  `sections/footer-group.json` and the JSON templates
+  (`templates/*.json`, `templates/customers/*.json`). Those hold the owner's editor
+  work — section order, block content, the palette, the uploaded importer seals —
+  and are restored from `shopify-live` after the overlay. An earlier version
+  exempted `settings_data.json` alone, so the owner's homepage tile and photo
+  choices in `templates/index.json` were overwritten and pushed live.
+  `templates/*.liquid` (`gift_card.liquid`, `search.quick-order.liquid`) is NOT
+  editor state and does deploy — listing the whole `templates` directory as owned
+  made those two permanently un-deployable while still reporting success.
+- **A repo-side change to an owned file is reported, not silently dropped.** The
+  script names each one and says to make that change in the theme editor instead.
+- The script **never force-pushes.** A rejected push means the editor committed;
+  it re-fetches, re-applies on the new tip and retries.
+- The connected theme keeps one stable id forever; the v2–v8 theme pile stops
+  growing, and earlier previews can be deleted.

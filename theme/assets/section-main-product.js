@@ -192,6 +192,7 @@
     const stickyImage = root.querySelector('[data-sticky-image]');
     const priceCallTpl = root.querySelector('[data-price-call-template]');
     const requestPriceWrap = root.querySelector('[data-request-price-wrap]');
+    const dynamicCheckout = root.querySelector('[data-dynamic-checkout]');
 
     const gallery = initGallery(root);
 
@@ -395,6 +396,26 @@
       if (stickyPrice) stickyPrice.textContent = strings.callForPrice || '';
     }
 
+    /* The quote form is rendered ONCE, server-side, against
+       product.selected_or_first_available_variant — which on a mixed-price product
+       is normally a priced variant. Only its visibility was being toggled, so the
+       enquiry that reached the shop named the wrong variant and the wrong SKU, and
+       two ₪0 variants were indistinguishable in every email. Rewrite the hidden
+       fields to match what the shopper actually selected. */
+    function syncQuoteFields(variant) {
+      if (!requestPriceWrap || !variant) return;
+      const variantField = requestPriceWrap.querySelector('[data-quote-variant]');
+      const skuField = requestPriceWrap.querySelector('[data-quote-sku]');
+      const urlField = requestPriceWrap.querySelector('[data-quote-url]');
+      if (variantField) {
+        variantField.value = variant.title && variant.title !== 'Default Title' ? variant.title : '';
+      }
+      if (skuField) skuField.value = variant.sku || '';
+      if (urlField && urlField.dataset.quoteUrlBase) {
+        urlField.value = urlField.dataset.quoteUrlBase + '?variant=' + variant.id;
+      }
+    }
+
     function renderPrice(variant) {
       if (isCallForPrice(variant)) {
         renderPriceCall();
@@ -536,6 +557,7 @@
         if (saveBadge) saveBadge.hidden = true;
         if (inCartWrap) inCartWrap.hidden = true;
         if (requestPriceWrap) requestPriceWrap.hidden = true;
+        if (dynamicCheckout) dynamicCheckout.hidden = true;
         return;
       }
 
@@ -550,9 +572,16 @@
         : strings.soldOut || '';
       setButtonState(addBtn, addBtnText, buyable, blockedLabel);
       setButtonState(stickyBtn, stickyBtnText, buyable, blockedLabel);
+      /* Shopify's accelerated checkout button ignores `disabled` and reads the
+         form's variant id at click time, so it has to be HIDDEN for an unpriced
+         variant or it walks straight past every other guard to a ₪0 checkout. */
+      if (dynamicCheckout) dynamicCheckout.hidden = !buyable;
       /* Mixed-price product: the quote form is on the page but only belongs on
          screen while an unpriced variant is selected. */
-      if (requestPriceWrap) requestPriceWrap.hidden = !isCallForPrice(variant);
+      if (requestPriceWrap) {
+        requestPriceWrap.hidden = !isCallForPrice(variant);
+        syncQuoteFields(variant);
+      }
       updateUrl(variant);
       updateStickyImage(variant);
       if (inCartWrap) {

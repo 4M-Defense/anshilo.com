@@ -10,6 +10,7 @@ import React, {
   useState,
 } from 'react';
 import {
+  CartMissingError,
   StorefrontError,
   cartCreate,
   cartLinesAdd,
@@ -18,7 +19,7 @@ import {
   cartNoteUpdate,
   getCart,
 } from '../api/client';
-import type { Cart } from '../api/types';
+import type { Cart, UserError } from '../api/types';
 
 const CART_ID_KEY = 'shilo.cartId';
 
@@ -33,20 +34,42 @@ const CART_ID_KEY = 'shilo.cartId';
  * Android Keystore. היסטוריית החיפוש והמועדפים נשארים ב-AsyncStorage - שם זה
  * בסדר.
  */
-async function readCartId(): Promise<string | null> {
+/**
+ * האם SecureStore זמין בפועל.
+ *
+ * ל-expo-secure-store אין מימוש web כלל (המודול שם הוא אובייקט ריק), ולכן כל
+ * קריאה נכשלת שם - וגם במקומות נוספים שבהם המודול הנייטיבי חסר. app.json מגדיר
+ * יעד web, כך שזה מסלול שנשלח בפועל. isAvailableAsync בודק את זה בלי לזרוק.
+ */
+async function secureAvailable(): Promise<boolean> {
   try {
-    const secure = await SecureStore.getItemAsync(CART_ID_KEY);
-    if (secure) return secure;
+    return await SecureStore.isAvailableAsync();
   } catch {
-    /* אין Keychain (סימולטור מסוים, web) - ננסה את המקום הישן */
+    return false;
+  }
+}
+
+async function readCartId(): Promise<string | null> {
+  if (await secureAvailable()) {
+    try {
+      const secure = await SecureStore.getItemAsync(CART_ID_KEY);
+      if (secure) return secure;
+    } catch {
+      /* Keychain נעול או קריאה שנכשלה - ננסה את המקום הישן */
+    }
   }
   try {
-    /* הגירה חד-פעמית ממקום האחסון הקודם, כדי שהעגלה של מי שכבר התקין את
-       האפליקציה לא תיעלם בשדרוג. */
+    /* הגירה ממקום האחסון הקודם, כדי שהעגלה של מי שכבר התקין את האפליקציה לא
+       תיעלם בשדרוג.
+     *
+     * מוחקים את המקור **רק אחרי** שאומתה כתיבה מוצלחת. קודם writeCartId בלעה כל
+     * שגיאה והחזירה void, והשורה שאחריה מחקה בכל מקרה את העותק היחיד שנשאר - כך
+     * שבכל מקום שבו SecureStore לא זמין (web, מודול נייטיבי חסר) מזהה העגלה נמחק
+     * לתמיד, והעגלה האמיתית של הקונה נשארה בשרת בלי דרך לחזור אליה. */
     const legacy = await AsyncStorage.getItem(CART_ID_KEY);
     if (legacy) {
-      await writeCartId(legacy);
-      await AsyncStorage.removeItem(CART_ID_KEY);
+      const migrated = await writeCartId(legacy);
+      if (migrated) await AsyncStorage.removeItem(CART_ID_KEY);
       return legacy;
     }
   } catch {
@@ -55,11 +78,31 @@ async function readCartId(): Promise<string | null> {
   return null;
 }
 
-async function writeCartId(id: string): Promise<void> {
+/**
+ * שומר את מזהה העגלה ומחזיר האם הוא באמת נשמר.
+ *
+ * כשאין SecureStore נופלים בחזרה ל-AsyncStorage. פחות מוגן - אבל עגלה שאבדה היא
+ * נזק ודאי לקונה, בעוד שדליפה של מזהה עגלה דורשת גישה למכשיר. עדיף לשמור פחות
+ * טוב מלא לשמור בכלל.
+ */
+async function writeCartId(id: string): Promise<boolean> {
+  if (await secureAvailable()) {
+    try {
+      await SecureStore.setItemAsync(CART_ID_KEY, id);
+      /* קריאה חזרה: כתיבה שלא זרקה אבל גם לא שמרה היא בדיוק מצב הכשל שמפניו
+         ההגנה הזאת נבנתה. */
+      const readback = await SecureStore.getItemAsync(CART_ID_KEY);
+      if (readback === id) return true;
+    } catch {
+      /* ניסיון נוסף ב-AsyncStorage למטה */
+    }
+  }
   try {
-    await SecureStore.setItemAsync(CART_ID_KEY, id);
+    await AsyncStorage.setItem(CART_ID_KEY, id);
+    return true;
   } catch {
     /* עגלה שלא נשמרת עדיין עובדת בסשן הנוכחי */
+    return false;
   }
 }
 
@@ -71,17 +114,31 @@ async function clearCartId(): Promise<void> {
 }
 
 /**
- * האם השגיאה אומרת שהעגלה בצד השרת לא קיימת יותר - הפכה להזמנה, פגה, או
- * נמחקה. Shopify מחזירה userError או שגיאת GraphQL, שתיהן באנגלית.
+ * האם השגיאה אומרת שהעגלה בצד השרת לא קיימת יותר - הפכה להזמנה, פגה, או נמחקה.
+ *
+ * שני מסלולים, ושניהם מוגדרים בצורה צרה:
+ *
+ * 1. CartMissingError - Shopify החזירה `cart: null`. זה המסלול השכיח, והוא זה
+ *    שזיהוי-לפי-טקסט פספס לגמרי: אין userError לחפש בו, וה-message הוא עברית
+ *    קבועה שלנו.
+ * 2. userError ששדה ה-field שלו הוא `cartId`. זה מה שהופך את הבדיקה לצרה. קודם
+ *    כאן חיפשנו את המחרוזת "does not exist" בכל ה-details - וזאת בדיוק הנוסח
+ *    שבו Shopify מדווחת גם על מזהה שורה מיושן וגם על וריאנט שבוטל. לחיצה כפולה
+ *    על פח האשפה, או הסרת שורה שמכשיר אחר כבר הסיר, מחקה לקונה עגלה שלמה
+ *    שקיימת ותקינה בשרת - והמזהה נמחק משני מקומות האחסון, כך שגם רענון לא החזיר
+ *    אותה.
  */
 function isMissingCartError(err: unknown): boolean {
+  if (err instanceof CartMissingError) return true;
   if (!(err instanceof StorefrontError)) return false;
-  const text = `${err.message} ${JSON.stringify(err.details ?? '')}`.toLowerCase();
-  return (
-    text.includes('does not exist') ||
-    text.includes('not exist') ||
-    text.includes('invalid id') ||
-    text.includes('cart not found')
+  const errors = err.details;
+  if (!Array.isArray(errors)) return false;
+  return errors.some(
+    (e) =>
+      e != null &&
+      typeof e === 'object' &&
+      Array.isArray((e as UserError).field) &&
+      (e as UserError).field?.[0] === 'cartId'
   );
 }
 

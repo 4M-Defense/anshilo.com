@@ -6,8 +6,12 @@
   assign bc_collection = collection | default: product.collections.first
   assign low_stock_threshold = settings.low_stock_threshold | default: 5
 
+  # price > 0 matters: a ₪0 variant that still carries a compare_at_price would
+  # otherwise render "חיסכון של ₪150.00" beside "מחיר בטלפון" — a 100% discount
+  # claim on an item that has no price — and renderPriceCall in the JS hides the
+  # badge, so the two renders of the same variant disagreed.
   assign on_sale = false
-  if current_variant.compare_at_price > current_variant.price
+  if current_variant.price > 0 and current_variant.compare_at_price > current_variant.price
     assign on_sale = true
   endif
   assign saved_amount = current_variant.compare_at_price | minus: current_variant.price | money

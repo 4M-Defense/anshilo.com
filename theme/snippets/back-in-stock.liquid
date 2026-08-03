@@ -30,14 +30,20 @@
       </div>
     </div>
 
+    {%- comment -%}
+      `form.name == blank` is the mirror of the guard in request-price.liquid: the
+      contact form object is page-scoped, and the quote form on the same product
+      page posts contact[שם]. Without this, submitting a quote request also printed
+      "תודה! נעדכן אתכם במייל" here — a promise nobody asked for.
+    {%- endcomment -%}
     {%- form 'contact', id: form_id, class: 'back-in-stock__form' -%}
-      {%- if form.posted_successfully? -%}
+      {%- if form.posted_successfully? and form.name == blank -%}
         <p class="form__success" role="status">
           {% render 'icon', name: 'check-circle', size: 18 %}
           תודה! נעדכן אתכם במייל ברגע שהמוצר חוזר למלאי.
         </p>
       {%- else -%}
-        {%- if form.errors -%}
+        {%- if form.errors and form.name == blank -%}
           <div class="errors" role="alert">
             {{ form.errors | default_errors }}
           </div>

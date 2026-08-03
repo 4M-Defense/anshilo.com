@@ -189,7 +189,18 @@ BLOCK_TAGS = [
     ("tablerow", "endtablerow"),
 ]
 
-COMMENT_RE = re.compile(r"{%-?\s*comment\s*-?%}.*?{%-?\s*endcomment\s*-?%}", re.S)
+# Tempered body: the `.` may not consume another `{% comment %}` opener. Without
+# that, an UNTERMINATED comment made the non-greedy match run on to the NEXT
+# comment block's endcomment and blank everything between — swallowing both
+# `comment` opens and the one `endcomment` so the pair balanced at 0 vs 0, and
+# erasing every real tag in the region. A file with an unterminated comment plus an
+# unclosed `{% if %}` downstream validated clean, where the pre-stripping checker
+# reported both. Tempering keeps that case detectable while still letting a comment
+# quote `{% endcomment %}` in prose, which is why the stripping exists at all.
+COMMENT_RE = re.compile(
+    r"{%-?\s*comment\s*-?%}(?:(?!{%-?\s*comment\s*-?%}).)*?{%-?\s*endcomment\s*-?%}",
+    re.S,
+)
 # `{%- # inline comment -%}` — Liquid's shorthand comment tag.
 INLINE_COMMENT_RE = re.compile(r"{%-?\s*#.*?-?%}", re.S)
 LIQUID_TAG_RE = re.compile(r"{%-?\s*liquid\b(.*?)-?%}", re.S)

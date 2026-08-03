@@ -69,14 +69,29 @@
     contact form on the same product page whenever the variant is sold out — so
     the wording stays generic enough to be true for either.
   {%- endcomment -%}
+  {%- comment -%}
+    form.posted_successfully? and form.errors are PAGE-scoped on a
+    {% form 'contact' %}, not per-form-id, and back-in-stock.liquid opens a second
+    contact form on this same product page — which mixed-price products now do far
+    more often. Reacting to that state outside the disclosure (opening it, printing
+    a confirmation) turned an invisible quirk into a user-facing one: submitting the
+    back-in-stock email popped this quote form open with a duplicate error list, or
+    printed a quote confirmation for a request nobody sent.
+
+    form.name is the discriminator. This form posts contact[שם]; back-in-stock
+    posts only contact[email], and `name` is one of the few contact fields Shopify
+    echoes back on the form object.
+  {%- endcomment -%}
   {%- assign quote_posted = false -%}
   {%- assign quote_failed = false -%}
   {%- capture quote_form -%}
     {%- form 'contact', id: form_id, class: 'request-price__form' -%}
       {%- if form.posted_successfully? -%}
-        {%- assign quote_posted = true -%}
+        {%- if form.name != blank -%}
+          {%- assign quote_posted = true -%}
+        {%- endif -%}
       {%- else -%}
-        {%- if form.errors -%}
+        {%- if form.errors and form.name != blank -%}
           {%- assign quote_failed = true -%}
         {%- endif -%}
         {%- if form.errors -%}
@@ -85,13 +100,31 @@
 
         <input type="hidden" name="contact[נושא]" value="בקשת הצעת מחיר">
         <input type="hidden" name="contact[מוצר]" value="{{ product.title | escape }}">
-        {%- if target.title != 'Default Title' -%}
-          <input type="hidden" name="contact[וריאנט]" value="{{ target.title | escape }}">
-        {%- endif -%}
-        {%- if target.sku != blank -%}
-          <input type="hidden" name="contact[מקט]" value="{{ target.sku | escape }}">
-        {%- endif -%}
-        <input type="hidden" name="contact[קישור]" value="{{ shop.url }}{{ product.url }}">
+        {%- comment -%}
+          These three are emitted UNCONDITIONALLY, with an empty value standing for
+          "none". On a mixed-price product this form is rendered once, server-side,
+          against selected_or_first_available_variant — normally a PRICED variant —
+          and section-main-product.js only unhides it when the shopper picks an
+          unpriced one. So the enquiry that reached the shop named the wrong variant
+          and the wrong SKU, and two ₪0 variants were indistinguishable in every
+          email. The JS rewrites these values on each variant change, which it can
+          only do if the nodes exist — gating them on the initial variant left it
+          nothing to write to.
+        {%- endcomment -%}
+        <input
+          type="hidden"
+          name="contact[וריאנט]"
+          data-quote-variant
+          value="{% if target.title != 'Default Title' %}{{ target.title | escape }}{% endif %}"
+        >
+        <input type="hidden" name="contact[מקט]" data-quote-sku value="{{ target.sku | escape }}">
+        <input
+          type="hidden"
+          name="contact[קישור]"
+          data-quote-url
+          data-quote-url-base="{{ shop.url }}{{ product.url }}"
+          value="{{ shop.url }}{{ product.url }}{% if target.id %}?variant={{ target.id }}{% endif %}"
+        >
 
         <div class="field">
           <label class="field__label" for="{{ form_id }}-name">שם</label>

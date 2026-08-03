@@ -41,6 +41,23 @@ export class StorefrontError extends Error {
   }
 }
 
+/**
+ * העגלה בצד השרת לא קיימת יותר - הפכה להזמנה, פגה, או נמחקה.
+ *
+ * טיפוס נפרד ולא זיהוי לפי טקסט: כשעגלה נעלמת Shopify מחזירה בדרך כלל
+ * `{ cart: null, userErrors: [] }`, כלומר אין שום מחרוזת לחפש בה - ומאז
+ * שההודעות לקונה הן עברית קבועה, גם ה-message לא מכיל את הטקסט של השרת. זיהוי
+ * לפי `includes('does not exist')` לא היה נתפס במסלול הזה בכלל, ובמסלולים שבהם
+ * כן היה userError הוא היה רחב מדי: מזהה שורה מיושן או וריאנט שבוטל מפורסמים
+ * באותה מחרוזת, וכל אחד מהם מחק לקונה עגלה שלמה שקיימת ותקינה.
+ */
+export class CartMissingError extends StorefrontError {
+  constructor(details?: unknown) {
+    super('העגלה לא נמצאה. יצרנו עגלה חדשה.', details);
+    this.name = 'CartMissingError';
+  }
+}
+
 const ENDPOINT = `https://${SHOPIFY_CONFIG.storeDomain}/api/${SHOPIFY_CONFIG.apiVersion}/graphql.json`;
 
 /** קריאת GraphQL בסיסית מול ה-Storefront API */
@@ -253,13 +270,17 @@ export async function cartCreate(
   }>(CART_CREATE_MUTATION, { input: { lines } });
   assertNoUserErrors(data.cartCreate.userErrors, 'שגיאה ביצירת עגלה');
   if (!data.cartCreate.cart) throw new StorefrontError('שגיאה ביצירת עגלה');
-  return data.cartCreate.cart;
+  return withAllCartLines(data.cartCreate.cart);
 }
 
 /**
  * מביא את כל שורות העגלה, לא רק את המאה הראשונות. ה-cost וה-totalQuantity
  * מחושבים בשרת על כל העגלה, ולכן עגלה חתוכה הציגה סה"כ שלא מסתכם עם השורות
  * שעל המסך - ואת השורות שמעל המאה לא היה אפשר לשנות או להסיר בכלל.
+ *
+ * חשוב שכל **מוטציה** תעבור מכאן גם היא, ולא רק getCart: ה-fragment מחזיר
+ * `lines(first: 100)`, ולכן כל שינוי כמות החזיר את העגלה למאה שורות והדליק את
+ * ההודעה "העגלה גדולה במיוחד" - כלומר הבאג חזר ברגע שהקונה נגע במשהו.
  */
 async function withAllCartLines(cart: Cart): Promise<Cart> {
   let pageInfo = cart.lines.pageInfo;
@@ -290,8 +311,8 @@ export async function cartLinesAdd(
     cartLinesAdd: { cart: Cart | null; userErrors: UserError[] };
   }>(CART_LINES_ADD_MUTATION, { cartId, lines });
   assertNoUserErrors(data.cartLinesAdd.userErrors, 'שגיאה בהוספה לעגלה');
-  if (!data.cartLinesAdd.cart) throw new StorefrontError('שגיאה בהוספה לעגלה');
-  return data.cartLinesAdd.cart;
+  if (!data.cartLinesAdd.cart) throw new CartMissingError();
+  return withAllCartLines(data.cartLinesAdd.cart);
 }
 
 export async function cartLinesUpdate(
@@ -302,8 +323,8 @@ export async function cartLinesUpdate(
     cartLinesUpdate: { cart: Cart | null; userErrors: UserError[] };
   }>(CART_LINES_UPDATE_MUTATION, { cartId, lines });
   assertNoUserErrors(data.cartLinesUpdate.userErrors, 'שגיאה בעדכון העגלה');
-  if (!data.cartLinesUpdate.cart) throw new StorefrontError('שגיאה בעדכון העגלה');
-  return data.cartLinesUpdate.cart;
+  if (!data.cartLinesUpdate.cart) throw new CartMissingError();
+  return withAllCartLines(data.cartLinesUpdate.cart);
 }
 
 export async function cartLinesRemove(cartId: string, lineIds: string[]): Promise<Cart> {
@@ -311,8 +332,8 @@ export async function cartLinesRemove(cartId: string, lineIds: string[]): Promis
     cartLinesRemove: { cart: Cart | null; userErrors: UserError[] };
   }>(CART_LINES_REMOVE_MUTATION, { cartId, lineIds });
   assertNoUserErrors(data.cartLinesRemove.userErrors, 'שגיאה בהסרה מהעגלה');
-  if (!data.cartLinesRemove.cart) throw new StorefrontError('שגיאה בהסרה מהעגלה');
-  return data.cartLinesRemove.cart;
+  if (!data.cartLinesRemove.cart) throw new CartMissingError();
+  return withAllCartLines(data.cartLinesRemove.cart);
 }
 
 export async function cartNoteUpdate(cartId: string, note: string): Promise<Cart> {
@@ -320,8 +341,8 @@ export async function cartNoteUpdate(cartId: string, note: string): Promise<Cart
     cartNoteUpdate: { cart: Cart | null; userErrors: UserError[] };
   }>(CART_NOTE_UPDATE_MUTATION, { cartId, note });
   assertNoUserErrors(data.cartNoteUpdate.userErrors, 'שגיאה בעדכון ההערה');
-  if (!data.cartNoteUpdate.cart) throw new StorefrontError('שגיאה בעדכון ההערה');
-  return data.cartNoteUpdate.cart;
+  if (!data.cartNoteUpdate.cart) throw new CartMissingError();
+  return withAllCartLines(data.cartNoteUpdate.cart);
 }
 
 /* ---------- Money formatting ---------- */

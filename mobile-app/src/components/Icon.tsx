@@ -42,6 +42,10 @@ const ALIASES: Record<string, string> = {
   'ellipsis-vertical': 'ellipsis-horizontal',
   'help-circle': 'information-circle',
   information: 'information-circle',
+  /* The More tab's accessibility-statement row asked for `accessibility`, which
+     this file draws nowhere — so it fell through to the neutral unknown-name glyph
+     and sat next to two correctly-drawn siblings looking broken. */
+  accessibility: 'information-circle',
   alert: 'alert-circle',
   pin: 'location',
   navigate: 'location',
