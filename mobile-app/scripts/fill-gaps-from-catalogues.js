@@ -31,6 +31,8 @@ const args = process.argv.slice(2);
 const APPLY = args.includes('--apply');
 const onlyIdx = args.indexOf('--only');
 const ONLY = onlyIdx >= 0 ? args[onlyIdx + 1] : null; /* 'price' | 'image' */
+/* התאמה לפי שם כשאין מקט — ראו ההערה הארוכה למטה על מה שהופך אותה לבטוחה */
+const BY_NAME = args.includes('--by-name');
 const limIdx = args.indexOf('--limit');
 const LIMIT = limIdx >= 0 ? Number(args[limIdx + 1]) : null;
 
@@ -45,6 +47,8 @@ const SOURCES = [
   'blundstone-catalogue.json',
   'argentools-catalogue.json',
   'nisko-catalogue.json',
+  /* חן חשמל — משווק של פתיה, ומקור המחירים למוצרים שפתיה עצמה כבר לא מפרסמת */
+  'chen-catalogue.json',
   'argentools-prices.json',
 ];
 
@@ -64,6 +68,51 @@ const normSku = (s) => {
   const v = String(s ?? '').replace(/[^0-9a-zA-Z]/g, '').toUpperCase();
   return v.length >= 3 ? v : null;
 };
+
+/*
+ * ---------------------------------------------------------------------------
+ * התאמה לפי שם — נדלקת רק עם --by-name, ורק כשאין מקט משני הצדדים.
+ * ---------------------------------------------------------------------------
+ *
+ * התאמת שם נפסלה בשלב מוקדם של העבודה הזאת, ומסיבה טובה: ציון דמיון 0.89
+ * החזיר DARYA 36W מול DARYA 28W ושבילית 4.4W מול 44W. אבל כשבודקים *מה*
+ * נכשל שם, מתברר שזה תמיד היה מספר — הספק, מידה, אורך. המספר הוא גם מה
+ * שקובע את המחיר.
+ *
+ * לכן הכלל כאן אינו "דמיון גבוה" אלא שני תנאים ביחד: **כל המספרים בשני
+ * השמות זהים בדיוק**, ובנוסף חפיפת מילים גבוהה. שם שנבדל במספר אחד נדחה
+ * מיד, גם אם כל השאר זהה. זה מכסה בדיוק את מקרה חן חשמל, שבו אותו מוצר
+ * של פתיה נכתב "פעמון לד 200W LIBBI" אצלם ו"פעמון לד LIBBI 200W FETAYA"
+ * אצלנו — סדר מילים שונה, מספרים זהים.
+ */
+const COLOUR_WORDS =
+  /\b(לבן|שחור|אפור|כסף|זהב|חום|כחול|אדום|ירוק|צהוב|ורוד|ניקל|כרום|שנהב|קרם)\b/g;
+
+const numbersOf = (s) => (String(s).match(/\d+(?:\.\d+)?/g) || []).map(Number).sort((a, b) => a - b).join(',');
+
+const nameTokens = (s) =>
+  new Set(
+    String(s)
+      .replace(/FETAYA|פתיה|נ\s*חן\s*חשמל|בעמ|בע"מ/gi, ' ')
+      .replace(/["'׳״“”‘’()\[\]{}.,;:!?\/\\|+*–—-]/g, ' ')
+      .replace(/\s+/g, ' ')
+      .trim()
+      .toLowerCase()
+      .split(' ')
+      .filter((t) => t.length > 1)
+  );
+
+function tokenOverlap(a, b) {
+  const A = nameTokens(a);
+  const B = nameTokens(b);
+  if (A.size === 0 || B.size === 0) return 0;
+  let inter = 0;
+  for (const t of A) if (B.has(t)) inter++;
+  return inter / Math.min(A.size, B.size);
+}
+
+/** סף החפיפה. גבוה בכוונה — עדיף לפספס התאמה מאשר לתמחר לפי מוצר אחר. */
+const NAME_OVERLAP_MIN = 0.75;
 
 async function mintAdminToken() {
   const res = await fetch(`https://${STORE_DOMAIN}/admin/oauth/access_token`, {
@@ -171,6 +220,45 @@ function buildIndex() {
   return idx;
 }
 
+/** כל שורות הספק שיש להן מחיר, לצורך התאמה לפי שם */
+let NAME_POOL = [];
+
+function buildNamePool() {
+  const dir = path.join(__dirname, '..');
+  const pool = [];
+  for (const file of SOURCES) {
+    const p = path.join(dir, file);
+    if (!fs.existsSync(p)) continue;
+    let rows;
+    try { rows = JSON.parse(fs.readFileSync(p, 'utf8')); } catch { continue; }
+    for (const r of rows) {
+      const price = Number(r?.price);
+      if (!r?.name || !Number.isFinite(price) || price <= 0) continue;
+      pool.push({ name: r.name, price, nums: numbersOf(r.name), source: file.replace('-catalogue.json', '') });
+    }
+  }
+  return pool;
+}
+
+/**
+ * מוצא מחיר לפי שם. מחזיר null אם אין התאמה שעומדת בשני התנאים.
+ *
+ * כשכמה מועמדים עוברים — נלקח הגבוה, לפי אותה הנחיה שחלה על מקט.
+ */
+function matchByName(title) {
+  const nums = numbersOf(title);
+  /* שם בלי שום מספר אינו מזוהה מספיק כדי להסתמך עליו */
+  if (nums === '') return null;
+  let best = null;
+  for (const cand of NAME_POOL) {
+    if (cand.nums !== nums) continue;
+    const ov = tokenOverlap(title, cand.name);
+    if (ov < NAME_OVERLAP_MIN) continue;
+    if (!best || cand.price > best.price) best = { ...cand, overlap: Number(ov.toFixed(2)) };
+  }
+  return best;
+}
+
 async function main() {
   if (!ADMIN_TOKEN) {
     if (!CLIENT_ID || !CLIENT_SECRET) throw new Error('חסר SHOPIFY_CLIENT_ID / SECRET ב-.env');
@@ -179,7 +267,12 @@ async function main() {
 
   console.log('בונה אינדקס מקטים מהקטלוגים:');
   const idx = buildIndex();
-  console.log(`  סה"כ ${idx.size} מקטים ייחודיים\n`);
+  console.log(`  סה"כ ${idx.size} מקטים ייחודיים`);
+  if (BY_NAME) {
+    NAME_POOL = buildNamePool();
+    console.log(`  מאגר להתאמת שם: ${NAME_POOL.length} שורות מתומחרות`);
+  }
+  console.log('');
 
   const all = [];
   let a = null;
@@ -208,7 +301,15 @@ async function main() {
         ?? p.variants.nodes.map((v) => normSku(v.sku)).find(Boolean);
       const hit = sku ? idx.get(sku) : null;
       if (hit?.price) {
-        plan.push({ p, price: hit.price, priceSource: hit.priceSource, vars: zeroVars });
+        plan.push({ p, price: hit.price, priceSource: hit.priceSource, vars: zeroVars, by: 'מקט' });
+        continue;
+      }
+      const byName = BY_NAME ? matchByName(p.title) : null;
+      if (byName) {
+        plan.push({
+          p, price: byName.price, priceSource: byName.source + ' (שם)',
+          vars: zeroVars, by: 'שם', matchedTo: byName.name, overlap: byName.overlap,
+        });
       } else {
         missPrice.push({ title: p.title, sku: sku ?? '(אין מקט)' });
       }
@@ -239,7 +340,8 @@ async function main() {
   if (withPrice.length) {
     console.log('\nדוגמאות מחיר:');
     for (const x of withPrice.slice(0, 8)) {
-      console.log(`  ₪0 → ₪${String(x.price).padEnd(9)} ${x.p.title.slice(0, 42)}  [${x.priceSource.replace('-catalogue.json', '')}]`);
+      console.log(`  ₪0 → ₪${String(x.price).padEnd(9)} [${x.by}] ${x.p.title.slice(0, 38)}  {${x.priceSource.replace("-catalogue.json", "")}}`);
+      if (x.matchedTo) console.log(`         ← ${x.matchedTo.slice(0, 54)}  (חפיפה ${x.overlap})`);
     }
   }
   if (missPrice.length) {
