@@ -1,0 +1,71 @@
+[
+  {
+    "id": "gid://shopify/Product/7225057607759",
+    "title": "מסגרת BE לבנה 3 מודול ניסקו סוויץ'",
+    "price": 9,
+    "src": "chen",
+    "vars": [
+      {
+        "id": "gid://shopify/ProductVariant/41121788231759",
+        "sku": "36050333",
+        "price": "0.00"
+      },
+      {
+        "id": "gid://shopify/ProductVariant/41121788264527",
+        "sku": "36050013",
+        "price": "0.00"
+      },
+      {
+        "id": "gid://shopify/ProductVariant/41121788297295",
+        "sku": "36050183",
+        "price": "0.00"
+      },
+      {
+        "id": "gid://shopify/ProductVariant/41121788330063",
+        "sku": "36050043",
+        "price": "0.00"
+      },
+      {
+        "id": "gid://shopify/ProductVariant/41121788362831",
+        "sku": "36050023",
+        "price": "0.00"
+      },
+      {
+        "id": "gid://shopify/ProductVariant/41121788395599",
+        "sku": "36050053",
+        "price": "0.00"
+      },
+      {
+        "id": "gid://shopify/ProductVariant/41121788428367",
+        "sku": "36050143",
+        "price": "0.00"
+      }
+    ]
+  },
+  {
+    "id": "gid://shopify/Product/7545828048975",
+    "title": "גוף תאורה לאמבטיה AGAM הספק 15W מוגן IP44 גוון אור קר FETAYA",
+    "price": 131,
+    "src": "chen",
+    "vars": [
+      {
+        "id": "gid://shopify/ProductVariant/42038177267791",
+        "sku": "9236",
+        "price": "0.00"
+      }
+    ]
+  },
+  {
+    "id": "gid://shopify/Product/7563961827407",
+    "title": "גוף תאורה פעמון לד LIBBI 200W FETAYA",
+    "price": 554,
+    "src": "chen",
+    "vars": [
+      {
+        "id": "gid://shopify/ProductVariant/42079691309135",
+        "sku": "9163",
+        "price": "0.00"
+      }
+    ]
+  }
+]

@@ -1,0 +1,145 @@
+[
+  {
+    "id": "gid://shopify/Product/7545920847951",
+    "title": "גוף תאורה לד עגול שקוע DISC קוטר 300 הספק 24W אור קר FETAYA",
+    "price": 75,
+    "src": "נתנאל מקט 92454 (הגבוה מבין 69 ו-75)",
+    "vars": [
+      {
+        "id": "gid://shopify/ProductVariant/42039121936463",
+        "sku": "92454",
+        "price": "0.00"
+      }
+    ]
+  },
+  {
+    "id": "gid://shopify/Product/7553491632207",
+    "title": "גוף תאורה לד עגול שקוע DISC קוטר 300 הספק 24W אור חם FETAYA",
+    "price": 75,
+    "src": "נתנאל מקט 92454 (הגבוה מבין 69 ו-75)",
+    "vars": [
+      {
+        "id": "gid://shopify/ProductVariant/42056812429391",
+        "sku": "92554",
+        "price": "0.00"
+      }
+    ]
+  },
+  {
+    "id": "gid://shopify/Product/7553492222031",
+    "title": "גוף תאורה לד עגול שקוע DISC קוטר 300 הספק 24W אור טבעי FETAYA",
+    "price": 75,
+    "src": "נתנאל מקט 92454 (הגבוה מבין 69 ו-75)",
+    "vars": [
+      {
+        "id": "gid://shopify/ProductVariant/42056814329935",
+        "sku": "92654",
+        "price": "0.00"
+      }
+    ]
+  },
+  {
+    "id": "gid://shopify/Product/7553497169999",
+    "title": "גוף תאורה לד עגול שקוע DISC קוטר 170 הספק 12W אור טבעי FETAYA",
+    "price": 35,
+    "src": "נתנאל מקט 92452",
+    "vars": [
+      {
+        "id": "gid://shopify/ProductVariant/42056834842703",
+        "sku": "92652",
+        "price": "0.00"
+      }
+    ]
+  },
+  {
+    "id": "gid://shopify/Product/7553497301071",
+    "title": "גוף תאורה לד עגול שקוע DISC קוטר 170 הספק 12W אור חם FETAYA",
+    "price": 35,
+    "src": "נתנאל מקט 92452",
+    "vars": [
+      {
+        "id": "gid://shopify/ProductVariant/42056835039311",
+        "sku": "92552",
+        "price": "0.00"
+      }
+    ]
+  },
+  {
+    "id": "gid://shopify/Product/7553497464911",
+    "title": "גוף תאורה לד עגול שקוע DISC קוטר 170 הספק 12W אור קר FETAYA",
+    "price": 35,
+    "src": "נתנאל מקט 92452",
+    "vars": [
+      {
+        "id": "gid://shopify/ProductVariant/42056835760207",
+        "sku": "92452",
+        "price": "0.00"
+      }
+    ]
+  },
+  {
+    "id": "gid://shopify/Product/7553497497679",
+    "title": "גוף תאורה לד עגול שקוע DISC קוטר 225 הספק 18W אור טבעי FETAYA",
+    "price": 52,
+    "src": "נתנאל מקט 92453",
+    "vars": [
+      {
+        "id": "gid://shopify/ProductVariant/42056835891279",
+        "sku": "92653",
+        "price": "0.00"
+      }
+    ]
+  },
+  {
+    "id": "gid://shopify/Product/7553497595983",
+    "title": "גוף תאורה לד עגול שקוע DISC קוטר 225 הספק 18W אור חם FETAYA",
+    "price": 52,
+    "src": "נתנאל מקט 92453",
+    "vars": [
+      {
+        "id": "gid://shopify/ProductVariant/42056836644943",
+        "sku": "92553",
+        "price": "0.00"
+      }
+    ]
+  },
+  {
+    "id": "gid://shopify/Product/7553497858127",
+    "title": "גוף תאורה לד עגול שקוע DISC קוטר 225 הספק 18W אור קר FETAYA",
+    "price": 52,
+    "src": "נתנאל מקט 92453",
+    "vars": [
+      {
+        "id": "gid://shopify/ProductVariant/42056837988431",
+        "sku": "92453",
+        "price": "0.00"
+      }
+    ]
+  },
+  {
+    "id": "gid://shopify/Product/7553498054735",
+    "title": "גוף תאורה לד עגול צמוד תקרה DISC קוטר 120 הספק 6W אור קר FETAYA",
+    "price": 40.87,
+    "src": "פתיה: עגול צמוד קוטר 120 6W",
+    "vars": [
+      {
+        "id": "gid://shopify/ProductVariant/42056838774863",
+        "sku": "92455",
+        "price": "0.00"
+      }
+    ]
+  },
+  {
+    "id": "gid://shopify/Product/7553503232079",
+    "title": "גוף תאורה לד מרובע צמוד תקרה DISC מידות 170/170 הספק 12W אור טבעי FETAYA",
+    "price": 54.5,
+    "src": "פתיה: מרובע צמוד 170/170 12W",
+    "vars": [
+      {
+        "id": "gid://shopify/ProductVariant/42056872460367",
+        "sku": "92646",
+        "price": "0.00"
+      }
+    ]
+  }
+]

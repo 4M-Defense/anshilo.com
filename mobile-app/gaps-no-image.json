@@ -1,0 +1,1002 @@
+[
+  {
+    "id": "gid://shopify/Product/7230710022223",
+    "handle": "שקית-חד-פעמית-5-יחידות-למלטשת-bo5030-bo5031",
+    "title": "שקית חד פעמית 5 יחידות למלטשת BO5030/BO5031",
+    "vendor": "מקיטה",
+    "status": "ACTIVE",
+    "featuredImage": null,
+    "media": {
+      "nodes": []
+    },
+    "priceRangeV2": {
+      "maxVariantPrice": {
+        "amount": "99.0"
+      }
+    },
+    "variants": {
+      "nodes": [
+        {
+          "id": "gid://shopify/ProductVariant/41137556881487",
+          "sku": "123455",
+          "price": "99.00"
+        }
+      ]
+    }
+  },
+  {
+    "id": "gid://shopify/Product/7230715002959",
+    "handle": "שרשרת-10-למסור-makita-duc254",
+    "title": "שרשרת “10 למסור MAKITA DUC254",
+    "vendor": "מקיטה",
+    "status": "DRAFT",
+    "featuredImage": null,
+    "media": {
+      "nodes": []
+    },
+    "priceRangeV2": {
+      "maxVariantPrice": {
+        "amount": "399.0"
+      }
+    },
+    "variants": {
+      "nodes": [
+        {
+          "id": "gid://shopify/ProductVariant/41137572380751",
+          "sku": "12-522-10A",
+          "price": "399.00"
+        }
+      ]
+    }
+  },
+  {
+    "id": "gid://shopify/Product/7515082195023",
+    "handle": "סולם-טלסקופי-מקצועי-3-2-מטר-עומד-עבודה-150-קג-11-שלבים-krauss",
+    "title": "סולם טלסקופי מקצועי 3.2 מטר עומד עבודה 150 ק\"ג 11 שלבים Krauss",
+    "vendor": "קראוס",
+    "status": "ACTIVE",
+    "featuredImage": null,
+    "media": {
+      "nodes": []
+    },
+    "priceRangeV2": {
+      "maxVariantPrice": {
+        "amount": "679.0"
+      }
+    },
+    "variants": {
+      "nodes": [
+        {
+          "id": "gid://shopify/ProductVariant/41948523888719",
+          "sku": "KR-3.3X",
+          "price": "679.00"
+        }
+      ]
+    }
+  },
+  {
+    "id": "gid://shopify/Product/7515082326095",
+    "handle": "סולם-טלסקופי-מקצועי-3-8-מטר-עומד-עבודה-150-קג-13-שלבים-krauss",
+    "title": "סולם טלסקופי מקצועי 3.8 מטר עומד עבודה 150 ק\"ג 13 שלבים Krauss",
+    "vendor": "קראוס",
+    "status": "ACTIVE",
+    "featuredImage": null,
+    "media": {
+      "nodes": []
+    },
+    "priceRangeV2": {
+      "maxVariantPrice": {
+        "amount": "719.0"
+      }
+    },
+    "variants": {
+      "nodes": [
+        {
+          "id": "gid://shopify/ProductVariant/41948524740687",
+          "sku": "KR-3.8X",
+          "price": "719.00"
+        }
+      ]
+    }
+  },
+  {
+    "id": "gid://shopify/Product/7515082489935",
+    "handle": "סולם-טלסקופי-מקצועי-4-4-מטר-עומד-עבודה-150-קג-15-שלבים-krauss",
+    "title": "סולם טלסקופי מקצועי 4.4 מטר עומד עבודה 150 ק\"ג 15 שלבים Krauss",
+    "vendor": "קראוס",
+    "status": "ACTIVE",
+    "featuredImage": null,
+    "media": {
+      "nodes": []
+    },
+    "priceRangeV2": {
+      "maxVariantPrice": {
+        "amount": "839.0"
+      }
+    },
+    "variants": {
+      "nodes": [
+        {
+          "id": "gid://shopify/ProductVariant/41948525363279",
+          "sku": "KR-4.4X",
+          "price": "839.00"
+        }
+      ]
+    }
+  },
+  {
+    "id": "gid://shopify/Product/7533102563407",
+    "handle": "משאבה-טבולה-מים-נקים-sp-9-000",
+    "title": "משאבה טבולה - מים נקים SP 9,000",
+    "vendor": "קרשר",
+    "status": "ACTIVE",
+    "featuredImage": null,
+    "media": {
+      "nodes": []
+    },
+    "priceRangeV2": {
+      "maxVariantPrice": {
+        "amount": "479.0"
+      }
+    },
+    "variants": {
+      "nodes": [
+        {
+          "id": "gid://shopify/ProductVariant/41997874331727",
+          "sku": "",
+          "price": "479.00"
+        }
+      ]
+    }
+  },
+  {
+    "id": "gid://shopify/Product/7563961368655",
+    "handle": "סט-4-יחידותפקטוגרמה-לשלט-יציאה-neptune-אגלית-fetaya",
+    "title": "סט 4 יחידות'פקטוגרמה לשלט יציאה NEPTUNE - אגלית FETAYA",
+    "vendor": "פתיה",
+    "status": "ACTIVE",
+    "featuredImage": null,
+    "media": {
+      "nodes": []
+    },
+    "priceRangeV2": {
+      "maxVariantPrice": {
+        "amount": "0.0"
+      }
+    },
+    "variants": {
+      "nodes": [
+        {
+          "id": "gid://shopify/ProductVariant/42079689867343",
+          "sku": "9242",
+          "price": "0.00"
+        }
+      ]
+    }
+  },
+  {
+    "id": "gid://shopify/Product/7563961466959",
+    "handle": "גוף-תאורה-פעמון-לד-multi-libby-3cct-עם-מפסק-בורר-fetaya",
+    "title": "גוף תאורה פעמון לד MULTI LIBBY 3CCT עם מפסק בורר FETAYA",
+    "vendor": "פתיה",
+    "status": "ACTIVE",
+    "featuredImage": null,
+    "media": {
+      "nodes": []
+    },
+    "priceRangeV2": {
+      "maxVariantPrice": {
+        "amount": "785.0"
+      }
+    },
+    "variants": {
+      "nodes": [
+        {
+          "id": "gid://shopify/ProductVariant/42079690326095",
+          "sku": "9164",
+          "price": "785.00"
+        }
+      ]
+    }
+  },
+  {
+    "id": "gid://shopify/Product/7563961598031",
+    "handle": "גוף-תאורה-פעמון-לד-200w-mor-גוון-50k-fetaya",
+    "title": "גוף תאורה פעמון לד 200W MOR גוון 50K FETAYA",
+    "vendor": "פתיה",
+    "status": "ACTIVE",
+    "featuredImage": null,
+    "media": {
+      "nodes": []
+    },
+    "priceRangeV2": {
+      "maxVariantPrice": {
+        "amount": "0.0"
+      }
+    },
+    "variants": {
+      "nodes": [
+        {
+          "id": "gid://shopify/ProductVariant/42079690588239",
+          "sku": "9134",
+          "price": "0.00"
+        }
+      ]
+    }
+  },
+  {
+    "id": "gid://shopify/Product/7563961663567",
+    "handle": "גוף-תאורה-פעמון-לד-150w-mor-גוון-50k-fetaya",
+    "title": "גוף תאורה פעמון לד 150W MOR גוון 50K FETAYA",
+    "vendor": "פתיה",
+    "status": "ACTIVE",
+    "featuredImage": null,
+    "media": {
+      "nodes": []
+    },
+    "priceRangeV2": {
+      "maxVariantPrice": {
+        "amount": "1286.0"
+      }
+    },
+    "variants": {
+      "nodes": [
+        {
+          "id": "gid://shopify/ProductVariant/42079690719311",
+          "sku": "9133",
+          "price": "1286.00"
+        }
+      ]
+    }
+  },
+  {
+    "id": "gid://shopify/Product/7563961827407",
+    "handle": "גוף-תאורה-פעמון-לד-libbi-200w-fetaya",
+    "title": "גוף תאורה פעמון לד LIBBI 200W FETAYA",
+    "vendor": "פתיה",
+    "status": "ACTIVE",
+    "featuredImage": null,
+    "media": {
+      "nodes": []
+    },
+    "priceRangeV2": {
+      "maxVariantPrice": {
+        "amount": "0.0"
+      }
+    },
+    "variants": {
+      "nodes": [
+        {
+          "id": "gid://shopify/ProductVariant/42079691309135",
+          "sku": "9163",
+          "price": "0.00"
+        }
+      ]
+    }
+  },
+  {
+    "id": "gid://shopify/Product/7563961958479",
+    "handle": "גוף-תאורה-פעמוני-לד-libbi-150w-fetaya",
+    "title": "גוף תאורה פעמוני לד LIBBI 150W FETAYA",
+    "vendor": "פתיה",
+    "status": "ACTIVE",
+    "featuredImage": null,
+    "media": {
+      "nodes": []
+    },
+    "priceRangeV2": {
+      "maxVariantPrice": {
+        "amount": "530.0"
+      }
+    },
+    "variants": {
+      "nodes": [
+        {
+          "id": "gid://shopify/ProductVariant/42079691538511",
+          "sku": "9162",
+          "price": "530.00"
+        }
+      ]
+    }
+  },
+  {
+    "id": "gid://shopify/Product/7563961991247",
+    "handle": "כפתור-חירום-מרובע-חד-תכליתי-להתקנה-בולטת-6w-fetaya",
+    "title": "כפתור חירום מרובע חד תכליתי להתקנה בולטת 6W FETAYA",
+    "vendor": "פתיה",
+    "status": "ACTIVE",
+    "featuredImage": null,
+    "media": {
+      "nodes": []
+    },
+    "priceRangeV2": {
+      "maxVariantPrice": {
+        "amount": "375.0"
+      }
+    },
+    "variants": {
+      "nodes": [
+        {
+          "id": "gid://shopify/ProductVariant/42079691604047",
+          "sku": "9193",
+          "price": "375.00"
+        }
+      ]
+    }
+  },
+  {
+    "id": "gid://shopify/Product/7563962056783",
+    "handle": "גוף-תאורה-כפתור-חרום-עגול-חד-תכליתי-הספק-2x3w-גוון-אור-קר-מוגן-ip20-fetaya",
+    "title": "גוף תאורה כפתור חרום עגול חד תכליתי הספק 2X3W גוון אור קר, מוגן IP20 FETAYA",
+    "vendor": "פתיה",
+    "status": "ACTIVE",
+    "featuredImage": null,
+    "media": {
+      "nodes": []
+    },
+    "priceRangeV2": {
+      "maxVariantPrice": {
+        "amount": "0.0"
+      }
+    },
+    "variants": {
+      "nodes": [
+        {
+          "id": "gid://shopify/ProductVariant/42079691702351",
+          "sku": "9191",
+          "price": "0.00"
+        }
+      ]
+    }
+  },
+  {
+    "id": "gid://shopify/Product/7563962155087",
+    "handle": "גוף-תאורה-כפתור-חירום-mini-mitzy-הספק-3w-מוגן-ip20-fetaya",
+    "title": "גוף תאורה כפתור חירום MINI MITZY הספק 3W, מוגן IP20 FETAYA",
+    "vendor": "פתיה",
+    "status": "ACTIVE",
+    "featuredImage": null,
+    "media": {
+      "nodes": []
+    },
+    "priceRangeV2": {
+      "maxVariantPrice": {
+        "amount": "245.0"
+      }
+    },
+    "variants": {
+      "nodes": [
+        {
+          "id": "gid://shopify/ProductVariant/42079691964495",
+          "sku": "9188",
+          "price": "245.00"
+        }
+      ]
+    }
+  },
+  {
+    "id": "gid://shopify/Product/7563962220623",
+    "handle": "גוף-תאורה-כפתור-חירום-מלבני-הספק-4w-גוון-אור-קר-מוגן-ip65-fetaya",
+    "title": "גוף תאורה כפתור חירום מלבני הספק 4W גוון אור קר מוגן IP65 FETAYA",
+    "vendor": "פתיה",
+    "status": "ACTIVE",
+    "featuredImage": null,
+    "media": {
+      "nodes": []
+    },
+    "priceRangeV2": {
+      "maxVariantPrice": {
+        "amount": "382.0"
+      }
+    },
+    "variants": {
+      "nodes": [
+        {
+          "id": "gid://shopify/ProductVariant/42079692619855",
+          "sku": "9228",
+          "price": "382.00"
+        }
+      ]
+    }
+  },
+  {
+    "id": "gid://shopify/Product/7563962351695",
+    "handle": "גוף-תאורה-כפתור-חרום-עגול-speedy-r-הספק-2x3w-גוון-אור-קר-מוגן-ip401-fetaya",
+    "title": "גוף תאורה כפתור חרום עגול SPEEDY-R הספק 2X3W גוון אור קר מוגן IP401 FETAYA",
+    "vendor": "פתיה",
+    "status": "ACTIVE",
+    "featuredImage": null,
+    "media": {
+      "nodes": []
+    },
+    "priceRangeV2": {
+      "maxVariantPrice": {
+        "amount": "273.0"
+      }
+    },
+    "variants": {
+      "nodes": [
+        {
+          "id": "gid://shopify/ProductVariant/42079693799503",
+          "sku": "9186",
+          "price": "273.00"
+        }
+      ]
+    }
+  },
+  {
+    "id": "gid://shopify/Product/7563962417231",
+    "handle": "גוף-תאורה-כפתור-חרום-מרובע-speedy-הספק-2x3w-גוון-אור-קר-מוגן-ip40-fetaya",
+    "title": "גוף תאורה כפתור חרום מרובע SPEEDY הספק 2X3W גוון אור קר מוגן IP40 FETAYA",
+    "vendor": "פתיה",
+    "status": "ACTIVE",
+    "featuredImage": null,
+    "media": {
+      "nodes": []
+    },
+    "priceRangeV2": {
+      "maxVariantPrice": {
+        "amount": "0.0"
+      }
+    },
+    "variants": {
+      "nodes": [
+        {
+          "id": "gid://shopify/ProductVariant/42079693897807",
+          "sku": "9187",
+          "price": "0.00"
+        }
+      ]
+    }
+  },
+  {
+    "id": "gid://shopify/Product/7563962482767",
+    "handle": "תאורה-נטענת-ניידת-פנס-לד-8led-1-super-led-fetaya",
+    "title": "תאורה נטענת ניידת פנס לד 8LED+ 1 SUPER LED FETAYA",
+    "vendor": "פתיה",
+    "status": "ACTIVE",
+    "featuredImage": null,
+    "media": {
+      "nodes": []
+    },
+    "priceRangeV2": {
+      "maxVariantPrice": {
+        "amount": "75.0"
+      }
+    },
+    "variants": {
+      "nodes": [
+        {
+          "id": "gid://shopify/ProductVariant/42079693996111",
+          "sku": "9161",
+          "price": "75.00"
+        }
+      ]
+    }
+  },
+  {
+    "id": "gid://shopify/Product/7563962810447",
+    "handle": "תאורה-נטענת-ניידת-קונוס-37led-1-super-led-fetaya",
+    "title": "תאורה נטענת ניידת \"קונוס\" 37LED+ 1 SUPER LED FETAYA",
+    "vendor": "פתיה",
+    "status": "ACTIVE",
+    "featuredImage": null,
+    "media": {
+      "nodes": []
+    },
+    "priceRangeV2": {
+      "maxVariantPrice": {
+        "amount": "75.0"
+      }
+    },
+    "variants": {
+      "nodes": [
+        {
+          "id": "gid://shopify/ProductVariant/42079694749775",
+          "sku": "9160",
+          "price": "75.00"
+        }
+      ]
+    }
+  },
+  {
+    "id": "gid://shopify/Product/7563962843215",
+    "handle": "מאוור-שולחני-נייד-נטען-סולארי-sahara-fetaya",
+    "title": "מאוור שולחני נייד נטען סולארי SAHARA FETAYA",
+    "vendor": "פתיה",
+    "status": "ACTIVE",
+    "featuredImage": null,
+    "media": {
+      "nodes": []
+    },
+    "priceRangeV2": {
+      "maxVariantPrice": {
+        "amount": "175.0"
+      }
+    },
+    "variants": {
+      "nodes": [
+        {
+          "id": "gid://shopify/ProductVariant/42079694815311",
+          "sku": "9159",
+          "price": "175.00"
+        }
+      ]
+    }
+  },
+  {
+    "id": "gid://shopify/Product/7563962908751",
+    "handle": "תאורה-ניידת-נטענת-60-לד-מסדרת-winter-fetaya",
+    "title": "תאורה ניידת נטענת 60 לד מסדרת WINTER FETAYA",
+    "vendor": "פתיה",
+    "status": "ACTIVE",
+    "featuredImage": null,
+    "media": {
+      "nodes": []
+    },
+    "priceRangeV2": {
+      "maxVariantPrice": {
+        "amount": "77.5"
+      }
+    },
+    "variants": {
+      "nodes": [
+        {
+          "id": "gid://shopify/ProductVariant/42079694913615",
+          "sku": "9361",
+          "price": "77.50"
+        }
+      ]
+    }
+  },
+  {
+    "id": "gid://shopify/Product/7563963039823",
+    "handle": "תאורה-ניידת-נטענת-24-led-ידית-נשיאה-ליתיום-fetaya",
+    "title": "תאורה ניידת נטענת 24 LED ידית נשיאה ליתיום FETAYA",
+    "vendor": "פתיה",
+    "status": "ACTIVE",
+    "featuredImage": null,
+    "media": {
+      "nodes": []
+    },
+    "priceRangeV2": {
+      "maxVariantPrice": {
+        "amount": "150.0"
+      }
+    },
+    "variants": {
+      "nodes": [
+        {
+          "id": "gid://shopify/ProductVariant/42079695536207",
+          "sku": "9150",
+          "price": "150.00"
+        }
+      ]
+    }
+  },
+  {
+    "id": "gid://shopify/Product/7563963105359",
+    "handle": "תאורה-ניידת-נטענת-21-led-ידית-נשיאה-ליתיום-fetaya",
+    "title": "תאורה ניידת נטענת 21 LED ידית נשיאה ליתיום FETAYA",
+    "vendor": "פתיה",
+    "status": "ACTIVE",
+    "featuredImage": null,
+    "media": {
+      "nodes": []
+    },
+    "priceRangeV2": {
+      "maxVariantPrice": {
+        "amount": "130.0"
+      }
+    },
+    "variants": {
+      "nodes": [
+        {
+          "id": "gid://shopify/ProductVariant/42079695634511",
+          "sku": "9149",
+          "price": "130.00"
+        }
+      ]
+    }
+  },
+  {
+    "id": "gid://shopify/Product/7563963170895",
+    "handle": "ניידת-נטענת-שולחנית-60-led-כולל-כבל-טעינה-usb-micro-fetaya",
+    "title": "ניידת נטענת שולחנית 60 LED כולל כבל טעינה USB Micro FETAYA",
+    "vendor": "פתיה",
+    "status": "ACTIVE",
+    "featuredImage": null,
+    "media": {
+      "nodes": []
+    },
+    "priceRangeV2": {
+      "maxVariantPrice": {
+        "amount": "99.0"
+      }
+    },
+    "variants": {
+      "nodes": [
+        {
+          "id": "gid://shopify/ProductVariant/42079695765583",
+          "sku": "9148",
+          "price": "99.00"
+        }
+      ]
+    }
+  },
+  {
+    "id": "gid://shopify/Product/7563963301967",
+    "handle": "תאורה-ניידת-נטענת-120-לד-מסדרת-winter-fetaya",
+    "title": "תאורה ניידת נטענת 120 לד מסדרת WINTER FETAYA",
+    "vendor": "פתיה",
+    "status": "ACTIVE",
+    "featuredImage": null,
+    "media": {
+      "nodes": []
+    },
+    "priceRangeV2": {
+      "maxVariantPrice": {
+        "amount": "106.25"
+      }
+    },
+    "variants": {
+      "nodes": [
+        {
+          "id": "gid://shopify/ProductVariant/42079695994959",
+          "sku": "9363",
+          "price": "106.25"
+        }
+      ]
+    }
+  },
+  {
+    "id": "gid://shopify/Product/7563963433039",
+    "handle": "תאורה-ניידת-נטענת-90-לד-מסדרת-winter-fetaya",
+    "title": "תאורה ניידת נטענת 90 לד מסדרת WINTER FETAYA",
+    "vendor": "פתיה",
+    "status": "ACTIVE",
+    "featuredImage": null,
+    "media": {
+      "nodes": []
+    },
+    "priceRangeV2": {
+      "maxVariantPrice": {
+        "amount": "94.25"
+      }
+    },
+    "variants": {
+      "nodes": [
+        {
+          "id": "gid://shopify/ProductVariant/42079696126031",
+          "sku": "9362",
+          "price": "94.25"
+        }
+      ]
+    }
+  },
+  {
+    "id": "gid://shopify/Product/7563963498575",
+    "handle": "מנורת-לילה-לד-הספק-1w-צבע-עדשה-שחלבי-גוון-אור-קר-fetaya",
+    "title": "מנורת לילה לד הספק 1W צבע עדשה שחלבי גוון אור קר FETAYA",
+    "vendor": "פתיה",
+    "status": "ACTIVE",
+    "featuredImage": null,
+    "media": {
+      "nodes": []
+    },
+    "priceRangeV2": {
+      "maxVariantPrice": {
+        "amount": "23.98"
+      }
+    },
+    "variants": {
+      "nodes": [
+        {
+          "id": "gid://shopify/ProductVariant/42079696224335",
+          "sku": "9156",
+          "price": "23.98"
+        }
+      ]
+    }
+  },
+  {
+    "id": "gid://shopify/Product/7563963695183",
+    "handle": "מנורת-לילה-לד-הספק-1w-צבע-עדשה-שקוף-גוון-אור-חם-fetaya",
+    "title": "מנורת לילה לד הספק 1W צבע עדשה שקוף גוון אור חם FETAYA",
+    "vendor": "פתיה",
+    "status": "ACTIVE",
+    "featuredImage": null,
+    "media": {
+      "nodes": []
+    },
+    "priceRangeV2": {
+      "maxVariantPrice": {
+        "amount": "22.89"
+      }
+    },
+    "variants": {
+      "nodes": [
+        {
+          "id": "gid://shopify/ProductVariant/42079696683087",
+          "sku": "9155",
+          "price": "22.89"
+        }
+      ]
+    }
+  },
+  {
+    "id": "gid://shopify/Product/7563963826255",
+    "handle": "נר-זיכרון-בליסטר-הספק-0-5w-fetaya",
+    "title": "נר זיכרון בליסטר הספק 0.5W FETAYA",
+    "vendor": "פתיה",
+    "status": "ACTIVE",
+    "featuredImage": null,
+    "media": {
+      "nodes": []
+    },
+    "priceRangeV2": {
+      "maxVariantPrice": {
+        "amount": "13.63"
+      }
+    },
+    "variants": {
+      "nodes": [
+        {
+          "id": "gid://shopify/ProductVariant/42079697076303",
+          "sku": "9011",
+          "price": "13.63"
+        }
+      ]
+    }
+  },
+  {
+    "id": "gid://shopify/Product/7614758649935",
+    "handle": "בדיקה",
+    "title": "בדיקה",
+    "vendor": "א.נ. שילו בע\"מ",
+    "status": "ARCHIVED",
+    "featuredImage": null,
+    "media": {
+      "nodes": []
+    },
+    "priceRangeV2": {
+      "maxVariantPrice": {
+        "amount": "3.0"
+      }
+    },
+    "variants": {
+      "nodes": [
+        {
+          "id": "gid://shopify/ProductVariant/42224004628559",
+          "sku": "",
+          "price": "3.00"
+        }
+      ]
+    }
+  },
+  {
+    "id": "gid://shopify/Product/8984986943567",
+    "handle": "נורת-לד-a67-ליבון-23w-הברגה-e27-אור-טבעי-4000k",
+    "title": "נורת לד A67 ליבון 23W הברגה E27 אור טבעי 4000K",
+    "vendor": "פתיה",
+    "status": "DRAFT",
+    "featuredImage": null,
+    "media": {
+      "nodes": []
+    },
+    "priceRangeV2": {
+      "maxVariantPrice": {
+        "amount": "32.5"
+      }
+    },
+    "variants": {
+      "nodes": [
+        {
+          "id": "gid://shopify/ProductVariant/46342953173071",
+          "sku": "92688",
+          "price": "32.50"
+        }
+      ]
+    }
+  },
+  {
+    "id": "gid://shopify/Product/8984993562703",
+    "handle": "קולור-mix-מגוון-צבע-שחור-114",
+    "title": "קולור MIX - מגוון צבע - שחור 114",
+    "vendor": "יעקבי",
+    "status": "DRAFT",
+    "featuredImage": null,
+    "media": {
+      "nodes": []
+    },
+    "priceRangeV2": {
+      "maxVariantPrice": {
+        "amount": "25.0"
+      }
+    },
+    "variants": {
+      "nodes": [
+        {
+          "id": "gid://shopify/ProductVariant/46342985973839",
+          "sku": "4003498698199",
+          "price": "25.00"
+        }
+      ]
+    }
+  },
+  {
+    "id": "gid://shopify/Product/8984993595471",
+    "handle": "קולור-mix-מגוון-צבע-קורל-136",
+    "title": "קולור MIX - מגוון צבע - קורל 136",
+    "vendor": "יעקבי",
+    "status": "DRAFT",
+    "featuredImage": null,
+    "media": {
+      "nodes": []
+    },
+    "priceRangeV2": {
+      "maxVariantPrice": {
+        "amount": "25.0"
+      }
+    },
+    "variants": {
+      "nodes": [
+        {
+          "id": "gid://shopify/ProductVariant/46342986006607",
+          "sku": "4003498698267",
+          "price": "25.00"
+        }
+      ]
+    }
+  },
+  {
+    "id": "gid://shopify/Product/8984993628239",
+    "handle": "קולור-mix-מגוון-צבע-צהוב-זהב-100",
+    "title": "קולור MIX - מגוון צבע - צהוב זהב 100",
+    "vendor": "יעקבי",
+    "status": "DRAFT",
+    "featuredImage": null,
+    "media": {
+      "nodes": []
+    },
+    "priceRangeV2": {
+      "maxVariantPrice": {
+        "amount": "25.0"
+      }
+    },
+    "variants": {
+      "nodes": [
+        {
+          "id": "gid://shopify/ProductVariant/46342986039375",
+          "sku": "4003498698007",
+          "price": "25.00"
+        }
+      ]
+    }
+  },
+  {
+    "id": "gid://shopify/Product/8984993661007",
+    "handle": "קולור-mix-מגוון-צבע-צהוב-101",
+    "title": "קולור MIX - מגוון צבע - צהוב 101",
+    "vendor": "יעקבי",
+    "status": "DRAFT",
+    "featuredImage": null,
+    "media": {
+      "nodes": []
+    },
+    "priceRangeV2": {
+      "maxVariantPrice": {
+        "amount": "25.0"
+      }
+    },
+    "variants": {
+      "nodes": [
+        {
+          "id": "gid://shopify/ProductVariant/46342986072143",
+          "sku": "4003498698014",
+          "price": "25.00"
+        }
+      ]
+    }
+  },
+  {
+    "id": "gid://shopify/Product/8984993693775",
+    "handle": "קולור-mix-מגוון-צבע-לבן-116",
+    "title": "קולור MIX - מגוון צבע - לבן 116",
+    "vendor": "יעקבי",
+    "status": "DRAFT",
+    "featuredImage": null,
+    "media": {
+      "nodes": []
+    },
+    "priceRangeV2": {
+      "maxVariantPrice": {
+        "amount": "25.0"
+      }
+    },
+    "variants": {
+      "nodes": [
+        {
+          "id": "gid://shopify/ProductVariant/46342986104911",
+          "sku": "4003498698281",
+          "price": "25.00"
+        }
+      ]
+    }
+  },
+  {
+    "id": "gid://shopify/Product/8984993759311",
+    "handle": "קולור-mix-מגוון-צבע-כתום-102",
+    "title": "קולור MIX - מגוון צבע - כתום 102",
+    "vendor": "יעקבי",
+    "status": "DRAFT",
+    "featuredImage": null,
+    "media": {
+      "nodes": []
+    },
+    "priceRangeV2": {
+      "maxVariantPrice": {
+        "amount": "25.0"
+      }
+    },
+    "variants": {
+      "nodes": [
+        {
+          "id": "gid://shopify/ProductVariant/46342986170447",
+          "sku": "4003498698038",
+          "price": "25.00"
+        }
+      ]
+    }
+  },
+  {
+    "id": "gid://shopify/Product/8984993792079",
+    "handle": "קולור-mix-מגוון-צבע-כרום-104",
+    "title": "קולור MIX - מגוון צבע - כרום 104",
+    "vendor": "יעקבי",
+    "status": "DRAFT",
+    "featuredImage": null,
+    "media": {
+      "nodes": []
+    },
+    "priceRangeV2": {
+      "maxVariantPrice": {
+        "amount": "25.0"
+      }
+    },
+    "variants": {
+      "nodes": [
+        {
+          "id": "gid://shopify/ProductVariant/46342986203215",
+          "sku": "4003498698069",
+          "price": "25.00"
+        }
+      ]
+    }
+  },
+  {
+    "id": "gid://shopify/Product/8984993824847",
+    "handle": "קולור-mix-מגוון-צבע-כחול-106",
+    "title": "קולור MIX - מגוון צבע - כחול 106",
+    "vendor": "יעקבי",
+    "status": "DRAFT",
+    "featuredImage": null,
+    "media": {
+      "nodes": []
+    },
+    "priceRangeV2": {
+      "maxVariantPrice": {
+        "amount": "25.0"
+      }
+    },
+    "variants": {
+      "nodes": [
+        {
+          "id": "gid://shopify/ProductVariant/46342986235983",
+          "sku": "4003498698076",
+          "price": "25.00"
+        }
+      ]
+    }
+  }
+]

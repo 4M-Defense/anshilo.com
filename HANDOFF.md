@@ -1575,3 +1575,205 @@ just in intent.
 
 Untouched and waiting on the owner's eye: the other 18 coloured backgrounds
 (Kärcher, BLUNDSTONE, BONA) and the 9 shadow-only images.
+
+## 26. Round 18 — supplier imports, and the Merchant Center cleanup
+
+This round did two separate jobs: importing supplier catalogues as drafts, and
+fixing what Google was rejecting. Read §26.4 before touching prices — it lists
+approaches that were **measured and failed**, and repeating them costs hours.
+
+### 26.1 Where the store stands, measured
+
+Admin API, all statuses:
+
+```
+2,714 products    1,867 published    844 drafts
+
+Published only — this is all Google sees:
+  no SEO title        0        (was 2,714)
+  no category         0        (was 514 store-wide)
+  blocked category    0        (was 36)
+  no image           11        (Google reported 29)
+  price 0           102        (Google reported 131)
+  description <80   418        (Google flagged 43)
+```
+
+Nothing was published. 1,867 active is the same number as before this round
+started — every import landed as DRAFT and stayed there.
+
+### 26.2 What was imported, as drafts
+
+| vendor | new drafts | collection | note |
+|---|---|---|---|
+| פתיה | 492 | פתיה | catalogue crawled, 904 of 910 |
+| יעקבי | 250 | ניקיון ותחזוקת הבית | 243 this round plus 7 pre-existing |
+| Blundstone | 61 | ביגוד והנעלה | 516 variants with sizes |
+| מקיטה / מילווקי | 39 | — | pre-existing drafts, categorised |
+
+Dedup is by SKU where both sides have one, and it earned its keep: the Jacobi
+matcher marked 470 as new and the importer's SKU pre-check stopped **227** of
+them, because those products were already in the store as drafts or under a
+different vendor. The Storefront API does not see drafts, which is why the
+matcher missed them — **`match-supplier-catalogue.js` still reads through
+Storefront and should be moved to Admin.** That is the one known unfixed defect
+in the import path.
+
+### 26.3 Taxonomy, SEO and titles — done
+
+`scripts/fix-product-taxonomy.js --vendor "X" [--only-wrong] [--seo-only] [--apply]`
+
+Rules are grouped by domain and chosen by vendor, and the choice **fails
+closed** — a vendor with no domain does not run at all. That guard exists because
+dry-running the cleaning rules against Fetaya would have marked 279 lighting
+products as Paint: a doorbell described as "בצבע לבן" carries the same word as
+paint.
+
+Domains: cleaning (יעקבי, בונה), lighting and electrical (פתיה, ניסקו), footwear
+(Blundstone), power tools (מקיטה, מילווקי, בוש, סטנלי, דיוולט, האנטר, קרשר),
+ladders (חגית), security (ייל), plumbing (אקווילה, גרו, א.נ. שילו), cooling
+(פרוקסן), garden (אמריקן איגל).
+
+Category was the main Google blocker and the errors were not cosmetic: bleach
+under Beverages then Milk, toilet tablets under Edible Baking Decorations,
+charcoal lighter fluid — a flammable liquid — under Cooking and Baking
+Ingredients. 36 of 223 Jacobi products were wrong. A cleaning chemical published
+to a shopping feed as a drink risks the merchant account.
+
+Three lessons that will recur if you write more rules:
+
+- **Check the distribution before applying.** Every batch of new rules produced
+  a systematic error on its first run, and every one was caught this way.
+- **The product resolves before its accessories.** "מברגה / מקדחה HP333DWYE עם
+  מטען וסוללות" is a drill; 30 products landed as chargers and 10 as batteries
+  until the accessory rules were moved last. Same shape as an emergency exit
+  light filed under Wires and Cable because its name mentions its cable.
+- **Hebrew construct forms change the final letter.** A list built from נורה
+  misses נורת, which dropped 83 bulbs; one built from סוללה misses סוללת. And
+  מולטיטול is written as one word.
+
+Titles: 124 corrected. Automated typo detection was tried — word frequency plus
+edit distance 1 — and produced 131 candidates of which most were ordinary Hebrew
+(גרם against זרם, מלח against מתח, ברזל against ברז). Without a dictionary one
+edit is not evidence, so `scripts/fix-product-titles.js` holds an explicit list,
+each entry read against its product. It did surface one systematic fault:
+**מתחזרם on 72 products**, which is מתח זרם run into a meaningless word. That
+matters because the classifier reads titles — the same way מיסגרת הרכבים turned
+an electrical faceplate into a vehicle part.
+
+### 26.4 Prices — 102 open, and what does NOT work
+
+**Do not retry these. Each was measured.**
+
+1. **SKU against Fetaya's own catalogue** — 10 of 112. Held at 10 after fixing
+   the crawler's SKU extraction (31% to 100% coverage; the site uses a second
+   template, `code_item`, alongside `cataloge_number`) and after fetching the 120
+   pages the site had rate-limited away. The SKU ranges line up; the numbers are
+   simply different products.
+2. **Fetaya site search by SKU** — answers "חיפשת 9169, תוצאות: 0".
+3. **A store sibling differing only in colour** — 0 of 116.
+4. **Name similarity** — failed three ways. `שקע TV-FM ANAIS` matched
+   `קופסה 55 עגולה` at 2 shekels; `לחצן מדרגות לא מואר SHOVAL` matched
+   `לחצן מדרגות מואר ANAIS`. Requiring every number to match does not help,
+   because the discriminator is a **word** — the series name, מואר against
+   לא מואר, דו-פיני against כח. Left in `fill-gaps-from-catalogues.js` behind
+   `--by-name` with a warning, and it should stay off.
+5. **Enumerating fetaya.com past its sitemap** — the sitemap gives 910 and the
+   site declares 1,068. `?items=all`, `?page=N` on both search and category
+   pages, bare item IDs, and hunting the lazy-load endpoint all failed. A valid
+   ID with a wrong slug 302s to the product's category, which proves the ID is
+   real and gives nothing else. Six exact item URLs from Google's index now
+   return no product — that index is stale.
+6. **toolsonline.co.il by SKU for Makita** — 71% on a 24-item sample, then 2% on
+   the full 3,783 (1,817 HTTP 202). Rate limiting. Also **not needed**: no Makita
+   product is among the unpriced ones.
+
+**What does work.** `netaneltools.co.il` answers a bare ID with any slug, serves
+JSON-LD, and carries the catalogue number next to the price. An earlier probe of
+that same site failed only because it used the fully-encoded URL from a search
+result. All four Fetaya resellers found run the same Konimbo platform, so
+`fetch-fetaya-catalogue.js --domain X --out Y` covers them:
+
+```
+chen-electric.co.il    1,936 / 1,978   done
+netaneltools.co.il     1,228 / 1,487   done, 362 with SKU
+aspaka.co.il           2,943 total     CRAWL WAS RUNNING — now dead
+nisanihashmal.co.il    8,010 total     CRAWL WAS RUNNING — now dead
+```
+
+**The DISC series is solved structurally** and is 47 of the 116. Its SKUs decode
+completely: bands 924, 925 and 926 are cool, warm and natural light, and the last
+two digits are the product — 40 to 44 square recessed by wattage, 46 to 48 square
+surface, 50 to 54 round recessed, 55 to 58 round surface. Seventeen products,
+three tones each. Colour tone does not move the price, and that is measured
+rather than assumed: the Fetaya catalogue lists the same fixture in three tones
+at 40.87, and square 170 12W in two tones at 54.5. **So one verified price covers
+three store products.** 11 priced from five points. The twelve missing tails are
+40, 41, 42, 43, 44, 47, 48, 50, 51, 56, 57 and 58. One guard: 92417 in the same
+band is a light bulb, so the band prefix alone means nothing.
+
+14 of 116 priced so far — 3 by exact match, 11 DISC.
+
+### 26.5 Next steps, in order
+
+1. Restart the two dead crawls:
+   `node scripts/fetch-fetaya-catalogue.js --domain www.aspaka.co.il --out aspaka`
+   and the same for `www.nisanihashmal.co.il --out nisani`. They are slow on
+   purpose (concurrency 2) — raising it is exactly what got the Makita run
+   blocked at 2%.
+2. Re-run the exact matching in `scratchpad/zero-list.js` against the new
+   catalogues, then `node scripts/apply-price-list.js <list>.json --apply`.
+3. For DISC, find the twelve missing tails and apply — each one closes three
+   products.
+4. Descriptions: the crawler now captures them (JSON-LD, falling back to the page
+   meta description), but every catalogue on disk was crawled before that change,
+   so Fetaya needs one more full crawl to fill 249 of the 418.
+5. Move `match-supplier-catalogue.js` from Storefront to Admin, per §26.2.
+6. Still untouched from the Merchant Center report: the single product rejected
+   for "Promotional overlay on image" — שרשרת תאורה גרילנדה 10 מטר.
+
+### 26.6 Where the data is, and how to regenerate it
+
+`.gitignore` line 43 excludes `mobile-app/*-catalogue.json`, so roughly 6.7 MB of
+crawl output lives **on disk only**, at `C:\Users\dvirs\anshilo.com\mobile-app\`:
+fetaya, chen, netanel, jacobi, blundstone, argentools, nisko. That is hours of
+deliberately slow crawling. If the files are missing, every fetch command is in
+§26.4. The smaller derived files are committed: `zero-open.json`,
+`disc-prices.json`, `store-categories.json`, `thin-descriptions.json`,
+`import-ledger.json`.
+
+`import-ledger.json` is what makes the importer resumable. Do not delete it, or
+the next run re-creates all 796 products.
+
+### 26.7 Waiting on the user
+
+- **The assistant production promote is blocked and pending approval.** The
+  improved version is verified on a preview deployment,
+  `https://anshilo-assistant--saa42ryz10.expo.app/chat`. `eas deploy --prod` was
+  refused by the permission layer. Measured before and after on the same
+  questions: "צריך מקדחה" went from 0 products to 3, ladders from 1,098
+  characters to 452, and a customer who states what they need gets one product in
+  136 characters with no questions at all. The first message of a conversation
+  now forces `search_catalog` through `tool_choice`, because wording alone lost to
+  the clarifying-question rule that sat in the same paragraph.
+- **R8 is off** and worth enabling, but it needs `expo-build-properties`, a build
+  and a smoke test before any submission — it can strip reflection-loaded classes
+  and fail at runtime rather than at build. Left off deliberately.
+- The other two Play warnings are not app-side: the deprecated status-bar and
+  cutout calls live inside React Native and Material Components, and this app
+  never passes `backgroundColor` to StatusBar. Grids are now responsive
+  (`gridColumns` and `gridItemWidth` in `src/theme.ts`) because Android 16 ignores
+  the portrait lock on large screens regardless of what we ask for.
+- **844 drafts are waiting for review** before publishing. Nothing about them is
+  urgent; they are invisible to customers and to Google.
+
+### 26.8 Store hygiene noticed, not touched
+
+Deleting collections is irreversible and was not requested:
+
+- `יעקבי (Copy)` — 173 products in a leftover duplicated collection.
+- `הנמכרים ביותר` and `המוצרים החדשים ביותר` contain the **entire catalogue** —
+  all 625 Fetaya and all 223 Jacobi products sit in both, so "best sellers"
+  carries no information. There is also a separate `הנמכרים ביותר של מקיטה`.
+- The catalogue has **no exterior wall paint at all**: `צבע חוץ` returns zero
+  results. Customers ask for it, and the assistant now says plainly that there
+  is none.

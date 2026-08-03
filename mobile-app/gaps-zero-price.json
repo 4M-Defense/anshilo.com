@@ -1,0 +1,3877 @@
+[
+  {
+    "id": "gid://shopify/Product/7225057607759",
+    "handle": "מסגרת-be-לבנה-3-מודול-ניסקו-סוויץ",
+    "title": "מסגרת BE לבנה 3 מודול ניסקו סוויץ'",
+    "vendor": "ניסקו",
+    "status": "ACTIVE",
+    "featuredImage": {
+      "url": "https://cdn.shopify.com/s/files/1/0581/1024/6991/files/a.jpg?v=1706082908"
+    },
+    "media": {
+      "nodes": [
+        {
+          "id": "gid://shopify/MediaImage/29264725770319"
+        }
+      ]
+    },
+    "priceRangeV2": {
+      "maxVariantPrice": {
+        "amount": "0.0"
+      }
+    },
+    "variants": {
+      "nodes": [
+        {
+          "id": "gid://shopify/ProductVariant/41121788231759",
+          "sku": "36050333",
+          "price": "0.00"
+        },
+        {
+          "id": "gid://shopify/ProductVariant/41121788264527",
+          "sku": "36050013",
+          "price": "0.00"
+        },
+        {
+          "id": "gid://shopify/ProductVariant/41121788297295",
+          "sku": "36050183",
+          "price": "0.00"
+        },
+        {
+          "id": "gid://shopify/ProductVariant/41121788330063",
+          "sku": "36050043",
+          "price": "0.00"
+        },
+        {
+          "id": "gid://shopify/ProductVariant/41121788362831",
+          "sku": "36050023",
+          "price": "0.00"
+        },
+        {
+          "id": "gid://shopify/ProductVariant/41121788395599",
+          "sku": "36050053",
+          "price": "0.00"
+        },
+        {
+          "id": "gid://shopify/ProductVariant/41121788428367",
+          "sku": "36050143",
+          "price": "0.00"
+        }
+      ]
+    }
+  },
+  {
+    "id": "gid://shopify/Product/7515094614095",
+    "handle": "שואב-אבק-3-מנועים-80-ליטר-s-washer-washing-18425",
+    "title": "שואב אבק 3 מנועים 80 ליטר S-WASHER washing 18425",
+    "vendor": "אס וושר",
+    "status": "ACTIVE",
+    "featuredImage": {
+      "url": "https://cdn.shopify.com/s/files/1/0581/1024/6991/files/09e4aacf6a36aa0173f1a59761cf26f0.webp?v=1719094921"
+    },
+    "media": {
+      "nodes": [
+        {
+          "id": "gid://shopify/MediaImage/30326922117199"
+        }
+      ]
+    },
+    "priceRangeV2": {
+      "maxVariantPrice": {
+        "amount": "0.0"
+      }
+    },
+    "variants": {
+      "nodes": [
+        {
+          "id": "gid://shopify/ProductVariant/41948577366095",
+          "sku": "18425",
+          "price": "0.00"
+        }
+      ]
+    }
+  },
+  {
+    "id": "gid://shopify/Product/7533098827855",
+    "handle": "מקציף-סבון-fj6",
+    "title": "מקציף סבון FJ6",
+    "vendor": "קרשר",
+    "status": "ACTIVE",
+    "featuredImage": {
+      "url": "https://cdn.shopify.com/s/files/1/0581/1024/6991/files/2643147_std_2_mirr-67-289-300DPI-768x640.jpg?v=1720451611"
+    },
+    "media": {
+      "nodes": [
+        {
+          "id": "gid://shopify/MediaImage/30436482973775"
+        }
+      ]
+    },
+    "priceRangeV2": {
+      "maxVariantPrice": {
+        "amount": "0.0"
+      }
+    },
+    "variants": {
+      "nodes": [
+        {
+          "id": "gid://shopify/ProductVariant/41997862043727",
+          "sku": "",
+          "price": "0.00"
+        }
+      ]
+    }
+  },
+  {
+    "id": "gid://shopify/Product/7545730269263",
+    "handle": "פרוזקטור-לד-מקצועי-600w-כולל-זרוע-תלייה-מתכוננת-ip-65-גוון-אור-לבן-fetaya",
+    "title": "פרוז'קטור לד מקצועי 600W כולל זרוע תלייה מתכוננת IP-65 גוון אור לבן FETAYA",
+    "vendor": "פתיה",
+    "status": "ACTIVE",
+    "featuredImage": {
+      "url": "https://cdn.shopify.com/s/files/1/0581/1024/6991/files/aa83df6a6abfee5893bf20aa38894c9e.jpg?v=1721836044"
+    },
+    "media": {
+      "nodes": [
+        {
+          "id": "gid://shopify/MediaImage/30506767876175"
+        }
+      ]
+    },
+    "priceRangeV2": {
+      "maxVariantPrice": {
+        "amount": "0.0"
+      }
+    },
+    "variants": {
+      "nodes": [
+        {
+          "id": "gid://shopify/ProductVariant/42037823897679",
+          "sku": "9169",
+          "price": "0.00"
+        }
+      ]
+    }
+  },
+  {
+    "id": "gid://shopify/Product/7545736298575",
+    "handle": "מסגרת-הגבהה-לכל-סוגי-הפנלים-fetaya",
+    "title": "מסגרת הגבהה לכל סוגי הפנלים FETAYA",
+    "vendor": "פתיה",
+    "status": "ACTIVE",
+    "featuredImage": {
+      "url": "https://cdn.shopify.com/s/files/1/0581/1024/6991/files/a13aa887370fd7d754898d947f1b24ec.jpg?v=1721836331"
+    },
+    "media": {
+      "nodes": [
+        {
+          "id": "gid://shopify/MediaImage/30506784620623"
+        }
+      ]
+    },
+    "priceRangeV2": {
+      "maxVariantPrice": {
+        "amount": "0.0"
+      }
+    },
+    "variants": {
+      "nodes": [
+        {
+          "id": "gid://shopify/ProductVariant/42037843820623",
+          "sku": "9113",
+          "price": "0.00"
+        }
+      ]
+    }
+  },
+  {
+    "id": "gid://shopify/Product/7545741049935",
+    "handle": "גוף-תאורה-עגול-לד-ori-הספק-26w-מוגן-ip53-גוון-אור-קר-fetaya",
+    "title": "גוף תאורה עגול לד ORI הספק 26W מוגן IP53 גוון אור קר FETAYA",
+    "vendor": "פתיה",
+    "status": "ACTIVE",
+    "featuredImage": {
+      "url": "https://cdn.shopify.com/s/files/1/0581/1024/6991/files/eb0079b649e8fda10b6208078fdd5ce4.jpg?v=1721836542"
+    },
+    "media": {
+      "nodes": [
+        {
+          "id": "gid://shopify/MediaImage/30506802479183"
+        }
+      ]
+    },
+    "priceRangeV2": {
+      "maxVariantPrice": {
+        "amount": "0.0"
+      }
+    },
+    "variants": {
+      "nodes": [
+        {
+          "id": "gid://shopify/ProductVariant/42037859614799",
+          "sku": "9092",
+          "price": "0.00"
+        }
+      ]
+    }
+  },
+  {
+    "id": "gid://shopify/Product/7545745866831",
+    "handle": "גוף-תאורה-מלבני-לד-ravid-התאמה-לנורה-2xe-27-led-מוגן-ip54-fetaya",
+    "title": "גוף תאורה מלבני לד RAVID התאמה לנורה 2XE-27/LED מוגן IP54 FETAYA",
+    "vendor": "פתיה",
+    "status": "ACTIVE",
+    "featuredImage": {
+      "url": "https://cdn.shopify.com/s/files/1/0581/1024/6991/files/e1993d92d82c6487cf60cc1febbf131a.jpg?v=1721836786"
+    },
+    "media": {
+      "nodes": [
+        {
+          "id": "gid://shopify/MediaImage/30506817126479"
+        }
+      ]
+    },
+    "priceRangeV2": {
+      "maxVariantPrice": {
+        "amount": "0.0"
+      }
+    },
+    "variants": {
+      "nodes": [
+        {
+          "id": "gid://shopify/ProductVariant/42037880913999",
+          "sku": "9027",
+          "price": "0.00"
+        }
+      ]
+    }
+  },
+  {
+    "id": "gid://shopify/Product/7545747144783",
+    "handle": "גוף-תאורה-עגול-לד-ליאהלה-עם-כבל-ומפסק-התאמה-לנורה-e-27-led-מוגן-ip23-fetaya",
+    "title": "גוף תאורה עגול לד ליאהל'ה עם כבל ומפסק התאמה לנורה E-27/LED מוגן IP23 FETAYA",
+    "vendor": "פתיה",
+    "status": "ACTIVE",
+    "featuredImage": {
+      "url": "https://cdn.shopify.com/s/files/1/0581/1024/6991/files/9af3acb03da691ac1d6ada97bc2714f0.jpg?v=1721836856"
+    },
+    "media": {
+      "nodes": [
+        {
+          "id": "gid://shopify/MediaImage/30506821910607"
+        }
+      ]
+    },
+    "priceRangeV2": {
+      "maxVariantPrice": {
+        "amount": "0.0"
+      }
+    },
+    "variants": {
+      "nodes": [
+        {
+          "id": "gid://shopify/ProductVariant/42037887991887",
+          "sku": "90285",
+          "price": "0.00"
+        }
+      ]
+    }
+  },
+  {
+    "id": "gid://shopify/Product/7545777619023",
+    "handle": "גוף-תאורה-שבילית-לד-מלבני-הספק-4-4w-מוגן-ip65-גוון-אור-חם-בצבע-לבן-fetaya",
+    "title": "גוף תאורה שבילית לד מלבני הספק 4.4W מוגן IP65 גוון אור חם בצבע לבן FETAYA",
+    "vendor": "פתיה",
+    "status": "ACTIVE",
+    "featuredImage": {
+      "url": "https://cdn.shopify.com/s/files/1/0581/1024/6991/files/5011419effb017879b2afdf9501c1116.jpg?v=1721838098"
+    },
+    "media": {
+      "nodes": [
+        {
+          "id": "gid://shopify/MediaImage/30506925162575"
+        }
+      ]
+    },
+    "priceRangeV2": {
+      "maxVariantPrice": {
+        "amount": "0.0"
+      }
+    },
+    "variants": {
+      "nodes": [
+        {
+          "id": "gid://shopify/ProductVariant/42038020079695",
+          "sku": "90680",
+          "price": "0.00"
+        }
+      ]
+    }
+  },
+  {
+    "id": "gid://shopify/Product/7545778438223",
+    "handle": "גוף-תאורה-שבילית-לד-מלבני-הספק-4-4w-מוגן-ip65-גוון-אור-קר-בצבע-לבן-fetaya",
+    "title": "גוף תאורה שבילית לד מלבני הספק 4.4W מוגן IP65 גוון אור קר בצבע לבן FETAYA",
+    "vendor": "פתיה",
+    "status": "ACTIVE",
+    "featuredImage": {
+      "url": "https://cdn.shopify.com/s/files/1/0581/1024/6991/files/5e29f8cb35a8e1419f92847e892f7802.jpg?v=1721838128"
+    },
+    "media": {
+      "nodes": [
+        {
+          "id": "gid://shopify/MediaImage/30506926473295"
+        }
+      ]
+    },
+    "priceRangeV2": {
+      "maxVariantPrice": {
+        "amount": "0.0"
+      }
+    },
+    "variants": {
+      "nodes": [
+        {
+          "id": "gid://shopify/ProductVariant/42038023520335",
+          "sku": "9068",
+          "price": "0.00"
+        }
+      ]
+    }
+  },
+  {
+    "id": "gid://shopify/Product/7545779355727",
+    "handle": "גוף-תאורה-שבילית-לד-מלבני-הספק-4-4w-מוגן-ip65-גוון-אור-חם-בצבע-בזלת-fetaya",
+    "title": "גוף תאורה שבילית לד מלבני הספק 4.4W מוגן IP65 גוון אור חם בצבע בזלת FETAYA",
+    "vendor": "פתיה",
+    "status": "ACTIVE",
+    "featuredImage": {
+      "url": "https://cdn.shopify.com/s/files/1/0581/1024/6991/files/f33525ee0fc71a0f90596f818bf150e0.jpg?v=1721838156"
+    },
+    "media": {
+      "nodes": [
+        {
+          "id": "gid://shopify/MediaImage/30506928242767"
+        }
+      ]
+    },
+    "priceRangeV2": {
+      "maxVariantPrice": {
+        "amount": "0.0"
+      }
+    },
+    "variants": {
+      "nodes": [
+        {
+          "id": "gid://shopify/ProductVariant/42038026207311",
+          "sku": "90680B",
+          "price": "0.00"
+        }
+      ]
+    }
+  },
+  {
+    "id": "gid://shopify/Product/7545781026895",
+    "handle": "גוף-תאורה-שבילית-לד-מלבני-הספק-4-4w-מוגן-ip65-גוון-אור-קר-בצבע-בזלת-fetaya",
+    "title": "גוף תאורה שבילית לד מלבני הספק 4.4W מוגן IP65 גוון אור קר בצבע בזלת FETAYA",
+    "vendor": "פתיה",
+    "status": "ACTIVE",
+    "featuredImage": {
+      "url": "https://cdn.shopify.com/s/files/1/0581/1024/6991/files/245f2977370100ad5259d033d3639e85_1.jpg?v=1721838207"
+    },
+    "media": {
+      "nodes": [
+        {
+          "id": "gid://shopify/MediaImage/30506932273231"
+        }
+      ]
+    },
+    "priceRangeV2": {
+      "maxVariantPrice": {
+        "amount": "0.0"
+      }
+    },
+    "variants": {
+      "nodes": [
+        {
+          "id": "gid://shopify/ProductVariant/42038032826447",
+          "sku": "9068B",
+          "price": "0.00"
+        }
+      ]
+    }
+  },
+  {
+    "id": "gid://shopify/Product/7545781944399",
+    "handle": "גוף-תאורה-שבילית-לד-מלבני-הספק-4-4w-מוגן-ip65-גוון-אור-חם-בצבע-אפור-fetaya",
+    "title": "גוף תאורה שבילית לד מלבני הספק 4.4W מוגן IP65 גוון אור חם בצבע אפור FETAYA",
+    "vendor": "פתיה",
+    "status": "ACTIVE",
+    "featuredImage": {
+      "url": "https://cdn.shopify.com/s/files/1/0581/1024/6991/files/26b503dd929ce4122c176d2110d6e801.jpg?v=1721838237"
+    },
+    "media": {
+      "nodes": [
+        {
+          "id": "gid://shopify/MediaImage/30506934960207"
+        }
+      ]
+    },
+    "priceRangeV2": {
+      "maxVariantPrice": {
+        "amount": "0.0"
+      }
+    },
+    "variants": {
+      "nodes": [
+        {
+          "id": "gid://shopify/ProductVariant/42038036299855",
+          "sku": "90680G",
+          "price": "0.00"
+        }
+      ]
+    }
+  },
+  {
+    "id": "gid://shopify/Product/7545784336463",
+    "handle": "גוף-תאורה-שבילית-לד-מלבני-הספק-3-5w-מוגן-ip65-גוון-אור-חם-down-light-בצבע-לבן-fetaya",
+    "title": "גוף תאורה שבילית לד מלבני הספק 3.5W מוגן IP65 גוון אור חם DOWN LIGHT בצבע לבן FETAYA",
+    "vendor": "פתיה",
+    "status": "ACTIVE",
+    "featuredImage": {
+      "url": "https://cdn.shopify.com/s/files/1/0581/1024/6991/files/32fcba2b166b5aef1e66923b57992a75.jpg?v=1721838300"
+    },
+    "media": {
+      "nodes": [
+        {
+          "id": "gid://shopify/MediaImage/30506942038095"
+        }
+      ]
+    },
+    "priceRangeV2": {
+      "maxVariantPrice": {
+        "amount": "0.0"
+      }
+    },
+    "variants": {
+      "nodes": [
+        {
+          "id": "gid://shopify/ProductVariant/42038046064719",
+          "sku": "90700",
+          "price": "0.00"
+        }
+      ]
+    }
+  },
+  {
+    "id": "gid://shopify/Product/7545787875407",
+    "handle": "גוף-תאורה-שבילית-לד-מלבני-הספק-3-5w-מוגן-ip65-גוון-אור-חם-down-light-בצבע-בזלת-fetaya",
+    "title": "גוף תאורה שבילית לד מלבני הספק 3.5W מוגן IP65 גוון אור חם DOWN LIGHT בצבע בזלת FETAYA",
+    "vendor": "פתיה",
+    "status": "ACTIVE",
+    "featuredImage": {
+      "url": "https://cdn.shopify.com/s/files/1/0581/1024/6991/files/73573e00f032380d79dcbdec65ad6574.jpg?v=1721838402"
+    },
+    "media": {
+      "nodes": [
+        {
+          "id": "gid://shopify/MediaImage/30506953146447"
+        }
+      ]
+    },
+    "priceRangeV2": {
+      "maxVariantPrice": {
+        "amount": "0.0"
+      }
+    },
+    "variants": {
+      "nodes": [
+        {
+          "id": "gid://shopify/ProductVariant/42038053765199",
+          "sku": "90700B",
+          "price": "0.00"
+        }
+      ]
+    }
+  },
+  {
+    "id": "gid://shopify/Product/7545788858447",
+    "handle": "גוף-תאורה-שבילית-לד-מלבני-הספק-3-5w-מוגן-ip65-גוון-אור-חם-down-light-בצבע-אפור-fetaya",
+    "title": "גוף תאורה שבילית לד מלבני הספק 3.5W מוגן IP65 גוון אור חם DOWN LIGHT בצבע אפור FETAYA",
+    "vendor": "פתיה",
+    "status": "ACTIVE",
+    "featuredImage": {
+      "url": "https://cdn.shopify.com/s/files/1/0581/1024/6991/files/a2d304cd971b31171b6917754f266840.jpg?v=1721838432"
+    },
+    "media": {
+      "nodes": [
+        {
+          "id": "gid://shopify/MediaImage/30506955636815"
+        }
+      ]
+    },
+    "priceRangeV2": {
+      "maxVariantPrice": {
+        "amount": "0.0"
+      }
+    },
+    "variants": {
+      "nodes": [
+        {
+          "id": "gid://shopify/ProductVariant/42038056321103",
+          "sku": "90700G",
+          "price": "0.00"
+        }
+      ]
+    }
+  },
+  {
+    "id": "gid://shopify/Product/7545789612111",
+    "handle": "גוף-תאורה-שבילית-לד-מלבני-הספק-4-4w-מוגן-ip65-גוון-אור-30-45-65-כולל-כוונון-cct-fetaya",
+    "title": "גוף תאורה שבילית לד מלבני הספק 4.4W מוגן IP65 גוון אור 30-45-65 כולל כוונון CCT FETAYA",
+    "vendor": "פתיה",
+    "status": "ACTIVE",
+    "featuredImage": {
+      "url": "https://cdn.shopify.com/s/files/1/0581/1024/6991/files/2c653560a703949096ce36a0d9c145cb.jpg?v=1721838463"
+    },
+    "media": {
+      "nodes": [
+        {
+          "id": "gid://shopify/MediaImage/30506958717007"
+        }
+      ]
+    },
+    "priceRangeV2": {
+      "maxVariantPrice": {
+        "amount": "0.0"
+      }
+    },
+    "variants": {
+      "nodes": [
+        {
+          "id": "gid://shopify/ProductVariant/42038057566287",
+          "sku": "9252",
+          "price": "0.00"
+        }
+      ]
+    }
+  },
+  {
+    "id": "gid://shopify/Product/7545803636815",
+    "handle": "גוף-תאורה-זוותי-keren-led-בצבע-אפור-גוון-אור-שתנה-3cct-fetaya",
+    "title": "גוף תאורה זוותי KEREN LED בצבע אפור גוון אור שתנה 3CCT FETAYA",
+    "vendor": "פתיה",
+    "status": "ACTIVE",
+    "featuredImage": {
+      "url": "https://cdn.shopify.com/s/files/1/0581/1024/6991/files/e89b857ba171bda826321c91c8db48d8.jpg?v=1721838903"
+    },
+    "media": {
+      "nodes": [
+        {
+          "id": "gid://shopify/MediaImage/30506997481551"
+        }
+      ]
+    },
+    "priceRangeV2": {
+      "maxVariantPrice": {
+        "amount": "0.0"
+      }
+    },
+    "variants": {
+      "nodes": [
+        {
+          "id": "gid://shopify/ProductVariant/42038104358991",
+          "sku": "92095",
+          "price": "0.00"
+        }
+      ]
+    }
+  },
+  {
+    "id": "gid://shopify/Product/7545806651471",
+    "handle": "גוף-תאורה-זוותי-keren-led-בצבע-אפור-גוון-אור-קר-fetaya",
+    "title": "גוף תאורה זוותי KEREN LED בצבע אפור גוון אור קר FETAYA",
+    "vendor": "פתיה",
+    "status": "ACTIVE",
+    "featuredImage": {
+      "url": "https://cdn.shopify.com/s/files/1/0581/1024/6991/files/c5997d5d91e79245a980640461d48668.jpg?v=1721839019"
+    },
+    "media": {
+      "nodes": [
+        {
+          "id": "gid://shopify/MediaImage/30507005378639"
+        }
+      ]
+    },
+    "priceRangeV2": {
+      "maxVariantPrice": {
+        "amount": "0.0"
+      }
+    },
+    "variants": {
+      "nodes": [
+        {
+          "id": "gid://shopify/ProductVariant/42038116319311",
+          "sku": "9209",
+          "price": "0.00"
+        }
+      ]
+    }
+  },
+  {
+    "id": "gid://shopify/Product/7545814483023",
+    "handle": "גוף-תאורה-זוותי-keren-led-בצבע-אפור-גוון-אור-טבעי-fetaya",
+    "title": "גוף תאורה זוותי KEREN LED בצבע אפור גוון אור טבעי FETAYA",
+    "vendor": "פתיה",
+    "status": "ACTIVE",
+    "featuredImage": {
+      "url": "https://cdn.shopify.com/s/files/1/0581/1024/6991/files/995c239ca91abfee788137767868f849.jpg?v=1721839166"
+    },
+    "media": {
+      "nodes": [
+        {
+          "id": "gid://shopify/MediaImage/30507013079119"
+        }
+      ]
+    },
+    "priceRangeV2": {
+      "maxVariantPrice": {
+        "amount": "0.0"
+      }
+    },
+    "variants": {
+      "nodes": [
+        {
+          "id": "gid://shopify/ProductVariant/42038132211791",
+          "sku": "92091",
+          "price": "0.00"
+        }
+      ]
+    }
+  },
+  {
+    "id": "gid://shopify/Product/7545818349647",
+    "handle": "גוף-תאורה-זוותי-keren-led-בצבע-בזלת-גוון-אור-קר-fetaya",
+    "title": "גוף תאורה זוותי KEREN LED בצבע בזלת גוון אור קר FETAYA",
+    "vendor": "פתיה",
+    "status": "ACTIVE",
+    "featuredImage": {
+      "url": "https://cdn.shopify.com/s/files/1/0581/1024/6991/files/73f4e1ba8e7cf2476d62b4f599a81745.jpg?v=1721839248"
+    },
+    "media": {
+      "nodes": [
+        {
+          "id": "gid://shopify/MediaImage/30507018616911"
+        }
+      ]
+    },
+    "priceRangeV2": {
+      "maxVariantPrice": {
+        "amount": "0.0"
+      }
+    },
+    "variants": {
+      "nodes": [
+        {
+          "id": "gid://shopify/ProductVariant/42038138568783",
+          "sku": "9213",
+          "price": "0.00"
+        }
+      ]
+    }
+  },
+  {
+    "id": "gid://shopify/Product/7545819594831",
+    "handle": "גוף-תאורה-זוותי-keren-led-בצבע-לבן-גוון-אור-טבעי-fetaya",
+    "title": "גוף תאורה זוותי KEREN LED בצבע לבן גוון אור טבעי FETAYA",
+    "vendor": "פתיה",
+    "status": "ACTIVE",
+    "featuredImage": {
+      "url": "https://cdn.shopify.com/s/files/1/0581/1024/6991/files/b203cb07dcafcc89133375607ab522e1.jpg?v=1721839275"
+    },
+    "media": {
+      "nodes": [
+        {
+          "id": "gid://shopify/MediaImage/30507019927631"
+        }
+      ]
+    },
+    "priceRangeV2": {
+      "maxVariantPrice": {
+        "amount": "0.0"
+      }
+    },
+    "variants": {
+      "nodes": [
+        {
+          "id": "gid://shopify/ProductVariant/42038140403791",
+          "sku": "92121",
+          "price": "0.00"
+        }
+      ]
+    }
+  },
+  {
+    "id": "gid://shopify/Product/7545821724751",
+    "handle": "גוף-תאורה-זוותי-keren-led-בצבע-בזלת-גוון-אור-טבעי-fetaya",
+    "title": "גוף תאורה זוותי KEREN LED בצבע בזלת גוון אור טבעי FETAYA",
+    "vendor": "פתיה",
+    "status": "ACTIVE",
+    "featuredImage": {
+      "url": "https://cdn.shopify.com/s/files/1/0581/1024/6991/files/30f39e408587df91265cffc28301a8b2.jpg?v=1721839370"
+    },
+    "media": {
+      "nodes": [
+        {
+          "id": "gid://shopify/MediaImage/30507024678991"
+        }
+      ]
+    },
+    "priceRangeV2": {
+      "maxVariantPrice": {
+        "amount": "0.0"
+      }
+    },
+    "variants": {
+      "nodes": [
+        {
+          "id": "gid://shopify/ProductVariant/42038148366415",
+          "sku": "92131",
+          "price": "0.00"
+        }
+      ]
+    }
+  },
+  {
+    "id": "gid://shopify/Product/7545825689679",
+    "handle": "גוף-תאורת-לד-זוויתי-aura-בצבע-אפור-גוון-אור-טבעי-fetaya",
+    "title": "גוף תאורת לד זוויתי AURA בצבע אפור גוון אור טבעי FETAYA",
+    "vendor": "פתיה",
+    "status": "ACTIVE",
+    "featuredImage": {
+      "url": "https://cdn.shopify.com/s/files/1/0581/1024/6991/files/f3079c6e6dcd938d32a5307633878ac6.jpg?v=1721839578"
+    },
+    "media": {
+      "nodes": [
+        {
+          "id": "gid://shopify/MediaImage/30507035525199"
+        }
+      ]
+    },
+    "priceRangeV2": {
+      "maxVariantPrice": {
+        "amount": "0.0"
+      }
+    },
+    "variants": {
+      "nodes": [
+        {
+          "id": "gid://shopify/ProductVariant/42038167928911",
+          "sku": "92301",
+          "price": "0.00"
+        }
+      ]
+    }
+  },
+  {
+    "id": "gid://shopify/Product/7545826246735",
+    "handle": "גוף-תאורת-לד-זוויתי-aura-בצבע-בזלת-גוון-אור-חם-fetaya",
+    "title": "גוף תאורת לד זוויתי AURA בצבע בזלת גוון אור חם FETAYA",
+    "vendor": "פתיה",
+    "status": "ACTIVE",
+    "featuredImage": {
+      "url": "https://cdn.shopify.com/s/files/1/0581/1024/6991/files/ff9f783aff63471546018ba8d49e6645.jpg?v=1721839622"
+    },
+    "media": {
+      "nodes": [
+        {
+          "id": "gid://shopify/MediaImage/30507038343247"
+        }
+      ]
+    },
+    "priceRangeV2": {
+      "maxVariantPrice": {
+        "amount": "0.0"
+      }
+    },
+    "variants": {
+      "nodes": [
+        {
+          "id": "gid://shopify/ProductVariant/42038169305167",
+          "sku": "92320",
+          "price": "0.00"
+        }
+      ]
+    }
+  },
+  {
+    "id": "gid://shopify/Product/7545826476111",
+    "handle": "גוף-תאורת-לד-זוויתי-aura-בצבע-בזלת-גוון-אור-קר-fetaya",
+    "title": "גוף תאורת לד זוויתי AURA בצבע בזלת גוון אור קר FETAYA",
+    "vendor": "א.נ. שילו בע\"מ",
+    "status": "ACTIVE",
+    "featuredImage": {
+      "url": "https://cdn.shopify.com/s/files/1/0581/1024/6991/files/94191f28692f3d43204d27c2f8ffc914.jpg?v=1721839650"
+    },
+    "media": {
+      "nodes": [
+        {
+          "id": "gid://shopify/MediaImage/30507039129679"
+        }
+      ]
+    },
+    "priceRangeV2": {
+      "maxVariantPrice": {
+        "amount": "0.0"
+      }
+    },
+    "variants": {
+      "nodes": [
+        {
+          "id": "gid://shopify/ProductVariant/42038170091599",
+          "sku": "9232",
+          "price": "0.00"
+        }
+      ]
+    }
+  },
+  {
+    "id": "gid://shopify/Product/7545826738255",
+    "handle": "גוף-תאורת-לד-זוויתי-aura-בצבע-לבן-גוון-אור-טבעי-fetaya",
+    "title": "גוף תאורת לד זוויתי AURA בצבע לבן גוון אור טבעי FETAYA",
+    "vendor": "א.נ. שילו בע\"מ",
+    "status": "ACTIVE",
+    "featuredImage": {
+      "url": "https://cdn.shopify.com/s/files/1/0581/1024/6991/files/110e780ac2b693925506d9ea1178a7d0.jpg?v=1721839662"
+    },
+    "media": {
+      "nodes": [
+        {
+          "id": "gid://shopify/MediaImage/30507039752271"
+        }
+      ]
+    },
+    "priceRangeV2": {
+      "maxVariantPrice": {
+        "amount": "0.0"
+      }
+    },
+    "variants": {
+      "nodes": [
+        {
+          "id": "gid://shopify/ProductVariant/42038170746959",
+          "sku": "92311",
+          "price": "0.00"
+        }
+      ]
+    }
+  },
+  {
+    "id": "gid://shopify/Product/7545827524687",
+    "handle": "גוף-תאורה-לאמבטיה-agam-הספק-15w-מוגן-ip44-גוון-אור-חם-fetaya",
+    "title": "גוף תאורה לאמבטיה AGAM הספק 15W מוגן IP44 גוון אור חם FETAYA",
+    "vendor": "פתיה",
+    "status": "ACTIVE",
+    "featuredImage": {
+      "url": "https://cdn.shopify.com/s/files/1/0581/1024/6991/files/643e95e883efa340c45e579a5581d828.jpg?v=1721839687"
+    },
+    "media": {
+      "nodes": [
+        {
+          "id": "gid://shopify/MediaImage/30507040931919"
+        }
+      ]
+    },
+    "priceRangeV2": {
+      "maxVariantPrice": {
+        "amount": "0.0"
+      }
+    },
+    "variants": {
+      "nodes": [
+        {
+          "id": "gid://shopify/ProductVariant/42038175563855",
+          "sku": "92360",
+          "price": "0.00"
+        }
+      ]
+    }
+  },
+  {
+    "id": "gid://shopify/Product/7545828048975",
+    "handle": "גוף-תאורה-לאמבטיה-agam-הספק-15w-מוגן-ip44-גוון-אור-קר-fetaya",
+    "title": "גוף תאורה לאמבטיה AGAM הספק 15W מוגן IP44 גוון אור קר FETAYA",
+    "vendor": "פתיה",
+    "status": "ACTIVE",
+    "featuredImage": {
+      "url": "https://cdn.shopify.com/s/files/1/0581/1024/6991/files/651f683de9e1a86f02e19b147ed417ae.jpg?v=1721839722"
+    },
+    "media": {
+      "nodes": [
+        {
+          "id": "gid://shopify/MediaImage/30507042537551"
+        }
+      ]
+    },
+    "priceRangeV2": {
+      "maxVariantPrice": {
+        "amount": "0.0"
+      }
+    },
+    "variants": {
+      "nodes": [
+        {
+          "id": "gid://shopify/ProductVariant/42038177267791",
+          "sku": "9236",
+          "price": "0.00"
+        }
+      ]
+    }
+  },
+  {
+    "id": "gid://shopify/Product/7545829130319",
+    "handle": "גוף-תאורת-לד-זוויתי-aura-בצבע-בזלת-גוון-אור-טבעי-fetaya",
+    "title": "גוף תאורת לד זוויתי AURA בצבע בזלת גוון אור טבעי FETAYA",
+    "vendor": "פתיה",
+    "status": "ACTIVE",
+    "featuredImage": {
+      "url": "https://cdn.shopify.com/s/files/1/0581/1024/6991/files/dc45c6134c2cb2e91a8e5554a2e7fc7f.jpg?v=1721839750"
+    },
+    "media": {
+      "nodes": [
+        {
+          "id": "gid://shopify/MediaImage/30507043455055"
+        }
+      ]
+    },
+    "priceRangeV2": {
+      "maxVariantPrice": {
+        "amount": "0.0"
+      }
+    },
+    "variants": {
+      "nodes": [
+        {
+          "id": "gid://shopify/ProductVariant/42038195028047",
+          "sku": "92321",
+          "price": "0.00"
+        }
+      ]
+    }
+  },
+  {
+    "id": "gid://shopify/Product/7545920847951",
+    "handle": "גוף-תאורה-לד-עגול-שקוע-disc-קוטר-300-הספק-24w-אור-קר-fetaya",
+    "title": "גוף תאורה לד עגול שקוע DISC קוטר 300 הספק 24W אור קר FETAYA",
+    "vendor": "פתיה",
+    "status": "ACTIVE",
+    "featuredImage": {
+      "url": "https://cdn.shopify.com/s/files/1/0581/1024/6991/files/f311d0be016073c24bd011507096ec91.jpg?v=1721849578"
+    },
+    "media": {
+      "nodes": [
+        {
+          "id": "gid://shopify/MediaImage/30507633836111"
+        }
+      ]
+    },
+    "priceRangeV2": {
+      "maxVariantPrice": {
+        "amount": "0.0"
+      }
+    },
+    "variants": {
+      "nodes": [
+        {
+          "id": "gid://shopify/ProductVariant/42039121936463",
+          "sku": "92454",
+          "price": "0.00"
+        }
+      ]
+    }
+  },
+  {
+    "id": "gid://shopify/Product/7551841697871",
+    "handle": "שקע-yarden-p-1-עם-2-שקעים-דו-פינים-בצבע-לבן-מתח-זרם-230v-16a-fetaya",
+    "title": "שקע YARDEN P-1 עם 2 שקעים דו פינים בצבע לבן מתח/זרם 230V/16A FETAYA",
+    "vendor": "פתיה",
+    "status": "ACTIVE",
+    "featuredImage": {
+      "url": "https://cdn.shopify.com/s/files/1/0581/1024/6991/files/8c5779347802eba0275b2176e8b7e72c.jpg?v=1722335172"
+    },
+    "media": {
+      "nodes": [
+        {
+          "id": "gid://shopify/MediaImage/30523736621135"
+        }
+      ]
+    },
+    "priceRangeV2": {
+      "maxVariantPrice": {
+        "amount": "0.0"
+      }
+    },
+    "variants": {
+      "nodes": [
+        {
+          "id": "gid://shopify/ProductVariant/42053229019215",
+          "sku": "5551-2",
+          "price": "0.00"
+        }
+      ]
+    }
+  },
+  {
+    "id": "gid://shopify/Product/7551853133903",
+    "handle": "לחצן-מדרגות-לא-מואר-yarden-בצבע-לבן-מתח-זרם-230v-10a-fetaya",
+    "title": "לחצן מדרגות לא מואר YARDEN בצבע לבן מתח/זרם 230V/10A FETAYA",
+    "vendor": "פתיה",
+    "status": "ACTIVE",
+    "featuredImage": {
+      "url": "https://cdn.shopify.com/s/files/1/0581/1024/6991/files/f4b1a8fbe104164cee104da497c3e298.jpg?v=1722335601"
+    },
+    "media": {
+      "nodes": [
+        {
+          "id": "gid://shopify/MediaImage/30523749433423"
+        }
+      ]
+    },
+    "priceRangeV2": {
+      "maxVariantPrice": {
+        "amount": "0.0"
+      }
+    },
+    "variants": {
+      "nodes": [
+        {
+          "id": "gid://shopify/ProductVariant/42053245567055",
+          "sku": "5607",
+          "price": "0.00"
+        }
+      ]
+    }
+  },
+  {
+    "id": "gid://shopify/Product/7551859163215",
+    "handle": "שקע-tv-fv-yarden-בצבע-לבן-fetaya",
+    "title": "שקע TV-FV YARDEN בצבע לבן FETAYA",
+    "vendor": "פתיה",
+    "status": "ACTIVE",
+    "featuredImage": {
+      "url": "https://cdn.shopify.com/s/files/1/0581/1024/6991/files/0b0b9b2913305a36b719613ba7b76631.jpg?v=1722335867"
+    },
+    "media": {
+      "nodes": [
+        {
+          "id": "gid://shopify/MediaImage/30523758805071"
+        }
+      ]
+    },
+    "priceRangeV2": {
+      "maxVariantPrice": {
+        "amount": "0.0"
+      }
+    },
+    "variants": {
+      "nodes": [
+        {
+          "id": "gid://shopify/ProductVariant/42053255987279",
+          "sku": "5601",
+          "price": "0.00"
+        }
+      ]
+    }
+  },
+  {
+    "id": "gid://shopify/Product/7551859818575",
+    "handle": "שקע-מחשב-rj-45-yarden-בצבע-לבן-fetaya",
+    "title": "שקע מחשב RJ-45 YARDEN בצבע לבן FETAYA",
+    "vendor": "פתיה",
+    "status": "ACTIVE",
+    "featuredImage": {
+      "url": "https://cdn.shopify.com/s/files/1/0581/1024/6991/files/71de77ded64a63750606917859ed633c.jpg?v=1722335895"
+    },
+    "media": {
+      "nodes": [
+        {
+          "id": "gid://shopify/MediaImage/30523759198287"
+        }
+      ]
+    },
+    "priceRangeV2": {
+      "maxVariantPrice": {
+        "amount": "0.0"
+      }
+    },
+    "variants": {
+      "nodes": [
+        {
+          "id": "gid://shopify/ProductVariant/42053256839247",
+          "sku": "5614",
+          "price": "0.00"
+        }
+      ]
+    }
+  },
+  {
+    "id": "gid://shopify/Product/7551862636623",
+    "handle": "שקע-כח-p1m-עם-מאמת-מחווט-yarden-בצבע-לבן-מתח-זרם-230v-16a-fetaya",
+    "title": "שקע כח P1M עם מאמ\"ת- מחווט YARDEN בצבע לבן מתח/זרם 230V/16A FETAYA",
+    "vendor": "פתיה",
+    "status": "ACTIVE",
+    "featuredImage": {
+      "url": "https://cdn.shopify.com/s/files/1/0581/1024/6991/files/4460e0350f93f7c281c4243538f0667f.jpg?v=1722336057"
+    },
+    "media": {
+      "nodes": [
+        {
+          "id": "gid://shopify/MediaImage/30523761688655"
+        }
+      ]
+    },
+    "priceRangeV2": {
+      "maxVariantPrice": {
+        "amount": "0.0"
+      }
+    },
+    "variants": {
+      "nodes": [
+        {
+          "id": "gid://shopify/ProductVariant/42053264638031",
+          "sku": "5618",
+          "price": "0.00"
+        }
+      ]
+    }
+  },
+  {
+    "id": "gid://shopify/Product/7551900319823",
+    "handle": "מפסק-יחיד-מחליף-yarden-מוגן-מים-ip20-בצבע-לבן-מתח-זרם-230v-10a-fetaya",
+    "title": "מפסק יחיד + מחליף YARDEN מוגן מים IP20 בצבע לבן מתח/זרם 230V/10A FETAYA",
+    "vendor": "פתיה",
+    "status": "ACTIVE",
+    "featuredImage": {
+      "url": "https://cdn.shopify.com/s/files/1/0581/1024/6991/files/f4b1a66ba889fb2e3c1077a6d79360c9.jpg?v=1722336736"
+    },
+    "media": {
+      "nodes": [
+        {
+          "id": "gid://shopify/MediaImage/30524366127183"
+        }
+      ]
+    },
+    "priceRangeV2": {
+      "maxVariantPrice": {
+        "amount": "0.0"
+      }
+    },
+    "variants": {
+      "nodes": [
+        {
+          "id": "gid://shopify/ProductVariant/42053414125647",
+          "sku": "56122",
+          "price": "0.00"
+        }
+      ]
+    }
+  },
+  {
+    "id": "gid://shopify/Product/7551915327567",
+    "handle": "שקע-דו-פיני-anais-בצבע-לבן-אופן-התקנה-תחת-הטיח-קופסה-עגולה-55-מתח-זרם-230v-16a-fetaya",
+    "title": "שקע דו-פיני ANAIS בצבע לבן אופן התקנה תחת הטיח קופסה עגולה (55) מתח/זרם 230V/16A FETAYA",
+    "vendor": "פתיה",
+    "status": "ACTIVE",
+    "featuredImage": {
+      "url": "https://cdn.shopify.com/s/files/1/0581/1024/6991/files/dab00dd8515587f07fabaea7699d2dd2.jpg?v=1722336974"
+    },
+    "media": {
+      "nodes": [
+        {
+          "id": "gid://shopify/MediaImage/30524461744207"
+        }
+      ]
+    },
+    "priceRangeV2": {
+      "maxVariantPrice": {
+        "amount": "0.0"
+      }
+    },
+    "variants": {
+      "nodes": [
+        {
+          "id": "gid://shopify/ProductVariant/42053458821199",
+          "sku": "7775",
+          "price": "0.00"
+        }
+      ]
+    }
+  },
+  {
+    "id": "gid://shopify/Product/7551919980623",
+    "handle": "שקע-tv-fm-anais-בצבע-לבן-אופן-התקנה-תחת-הטיח-קופסה-עגולה-55-fetaya",
+    "title": "שקע TV-FM ANAIS בצבע לבן אופן התקנה תחת הטיח קופסה עגולה (55) FETAYA",
+    "vendor": "פתיה",
+    "status": "ACTIVE",
+    "featuredImage": {
+      "url": "https://cdn.shopify.com/s/files/1/0581/1024/6991/files/81d9057674dda4e23fba54f7a75431fe.jpg?v=1722337141"
+    },
+    "media": {
+      "nodes": [
+        {
+          "id": "gid://shopify/MediaImage/30524466430031"
+        }
+      ]
+    },
+    "priceRangeV2": {
+      "maxVariantPrice": {
+        "amount": "0.0"
+      }
+    },
+    "variants": {
+      "nodes": [
+        {
+          "id": "gid://shopify/ProductVariant/42053465079887",
+          "sku": "7766",
+          "price": "0.00"
+        }
+      ]
+    }
+  },
+  {
+    "id": "gid://shopify/Product/7551929417807",
+    "handle": "מסגרת-anais-צבע-טיטניום-fetaya",
+    "title": "מסגרת ANAIS צבע טיטניום FETAYA",
+    "vendor": "פתיה",
+    "status": "ACTIVE",
+    "featuredImage": {
+      "url": "https://cdn.shopify.com/s/files/1/0581/1024/6991/files/60ecb3e55a618b5ca62a4ba01c83cd64.jpg?v=1722337513"
+    },
+    "media": {
+      "nodes": [
+        {
+          "id": "gid://shopify/MediaImage/30524473671759"
+        }
+      ]
+    },
+    "priceRangeV2": {
+      "maxVariantPrice": {
+        "amount": "0.0"
+      }
+    },
+    "variants": {
+      "nodes": [
+        {
+          "id": "gid://shopify/ProductVariant/42053476483151",
+          "sku": "7782",
+          "price": "0.00"
+        }
+      ]
+    }
+  },
+  {
+    "id": "gid://shopify/Product/7551934070863",
+    "handle": "שקע-דו-פיני-כפול-shoval-בצבע-לבן-אופן-התקנה-תחת-הטיח-קופסה-עגולה-55-מתח-זרם-230v-16a-fetaya",
+    "title": "שקע דו פיני כפול SHOVAL בצבע לבן אופן התקנה תחת הטיח קופסה עגולה (55) מתח/זרם 230V/16A FETAYA",
+    "vendor": "פתיה",
+    "status": "ACTIVE",
+    "featuredImage": {
+      "url": "https://cdn.shopify.com/s/files/1/0581/1024/6991/files/12c06f3acd582aa6da020b4ed99f1e25.jpg?v=1722337720"
+    },
+    "media": {
+      "nodes": [
+        {
+          "id": "gid://shopify/MediaImage/30524477702223"
+        }
+      ]
+    },
+    "priceRangeV2": {
+      "maxVariantPrice": {
+        "amount": "0.0"
+      }
+    },
+    "variants": {
+      "nodes": [
+        {
+          "id": "gid://shopify/ProductVariant/42053482479695",
+          "sku": "5075",
+          "price": "0.00"
+        }
+      ]
+    }
+  },
+  {
+    "id": "gid://shopify/Product/7551936462927",
+    "handle": "מפסק-מחליף-shoval-בצבע-לבן-אופן-התקנה-תחת-הטיח-קופסה-עגולה-55-מתח-זרם-250v-10a-fetaya",
+    "title": "מפסק מחליף SHOVAL בצבע לבן אופן התקנה תחת הטיח קופסה עגולה (55) מתח/זרם 250V/10A FETAYA",
+    "vendor": "פתיה",
+    "status": "ACTIVE",
+    "featuredImage": {
+      "url": "https://cdn.shopify.com/s/files/1/0581/1024/6991/files/a8437972bb9d2d42ed69187fe7811764.jpg?v=1722337821"
+    },
+    "media": {
+      "nodes": [
+        {
+          "id": "gid://shopify/MediaImage/30524479275087"
+        }
+      ]
+    },
+    "priceRangeV2": {
+      "maxVariantPrice": {
+        "amount": "0.0"
+      }
+    },
+    "variants": {
+      "nodes": [
+        {
+          "id": "gid://shopify/ProductVariant/42053485527119",
+          "sku": "5503",
+          "price": "0.00"
+        }
+      ]
+    }
+  },
+  {
+    "id": "gid://shopify/Product/7551937282127",
+    "handle": "מפסק-יחיד-shoval-בצבע-לבן-אופן-התקנה-תחת-הטיח-קופסה-עגולה-55-מתח-זרם-250v-10a-fetaya",
+    "title": "מפסק יחיד SHOVAL בצבע לבן אופן התקנה תחת הטיח קופסה עגולה (55) מתח/זרם 250V/10A FETAYA",
+    "vendor": "פתיה",
+    "status": "ACTIVE",
+    "featuredImage": {
+      "url": "https://cdn.shopify.com/s/files/1/0581/1024/6991/files/ff05870c572605b24034a2392c282968.jpg?v=1722337850"
+    },
+    "media": {
+      "nodes": [
+        {
+          "id": "gid://shopify/MediaImage/30524479832143"
+        }
+      ]
+    },
+    "priceRangeV2": {
+      "maxVariantPrice": {
+        "amount": "0.0"
+      }
+    },
+    "variants": {
+      "nodes": [
+        {
+          "id": "gid://shopify/ProductVariant/42053486542927",
+          "sku": "5502",
+          "price": "0.00"
+        }
+      ]
+    }
+  },
+  {
+    "id": "gid://shopify/Product/7551941050447",
+    "handle": "מפסק-כפול-shoval-בצבע-לבן-אופן-התקנה-תחת-הטיח-קופסה-עגולה-55-מתח-זרם-250v-10a-fetaya",
+    "title": "מפסק כפול SHOVAL בצבע לבן אופן התקנה תחת הטיח קופסה עגולה (55) מתח/זרם 250V/10A FETAYA",
+    "vendor": "פתיה",
+    "status": "ACTIVE",
+    "featuredImage": {
+      "url": "https://cdn.shopify.com/s/files/1/0581/1024/6991/files/ba3af89943c00c0299911adbf1dfa891.jpg?v=1722337986"
+    },
+    "media": {
+      "nodes": [
+        {
+          "id": "gid://shopify/MediaImage/30524483698767"
+        }
+      ]
+    },
+    "priceRangeV2": {
+      "maxVariantPrice": {
+        "amount": "0.0"
+      }
+    },
+    "variants": {
+      "nodes": [
+        {
+          "id": "gid://shopify/ProductVariant/42053491130447",
+          "sku": "5504",
+          "price": "0.00"
+        }
+      ]
+    }
+  },
+  {
+    "id": "gid://shopify/Product/7551941574735",
+    "handle": "מפסק-צלב-shoval-בצבע-לבן-אופן-התקנה-תחת-הטיח-קופסה-עגולה-55-מתח-זרם-250v-10a-fetaya",
+    "title": "מפסק צלב SHOVAL בצבע לבן אופן התקנה תחת הטיח קופסה עגולה (55) מתח/זרם 250V/10A FETAYA",
+    "vendor": "פתיה",
+    "status": "ACTIVE",
+    "featuredImage": {
+      "url": "https://cdn.shopify.com/s/files/1/0581/1024/6991/files/daa675bbd646be6b4d00d81102e5652c.jpg?v=1722338015"
+    },
+    "media": {
+      "nodes": [
+        {
+          "id": "gid://shopify/MediaImage/30524484124751"
+        }
+      ]
+    },
+    "priceRangeV2": {
+      "maxVariantPrice": {
+        "amount": "0.0"
+      }
+    },
+    "variants": {
+      "nodes": [
+        {
+          "id": "gid://shopify/ProductVariant/42053491851343",
+          "sku": "5508",
+          "price": "0.00"
+        }
+      ]
+    }
+  },
+  {
+    "id": "gid://shopify/Product/7551947178063",
+    "handle": "מפסק-צלב-shoval-מוגן-מים-ip44-בצבע-לבן-אופן-התקנה-תחת-הטיח-קופסה-עגולה-55-מתח-זרם-230v-10a-fetaya",
+    "title": "מפסק צלב SHOVAL מוגן מים IP44 בצבע לבן אופן התקנה תחת הטיח קופסה עגולה (55) מתח/זרם 230V/10A FETAYA",
+    "vendor": "פתיה",
+    "status": "ACTIVE",
+    "featuredImage": {
+      "url": "https://cdn.shopify.com/s/files/1/0581/1024/6991/files/7f713e895e1cc24b90c413c6e6634098.jpg?v=1722338263"
+    },
+    "media": {
+      "nodes": [
+        {
+          "id": "gid://shopify/MediaImage/30524492906575"
+        }
+      ]
+    },
+    "priceRangeV2": {
+      "maxVariantPrice": {
+        "amount": "0.0"
+      }
+    },
+    "variants": {
+      "nodes": [
+        {
+          "id": "gid://shopify/ProductVariant/42053501124687",
+          "sku": "55082",
+          "price": "0.00"
+        }
+      ]
+    }
+  },
+  {
+    "id": "gid://shopify/Product/7551949963343",
+    "handle": "לחצן-מדרגות-לא-מואר-shoval-בצבע-לבן-אופן-התקנה-תחת-הטיח-קופסה-עגולה-55-מתח-זרם-230v-16a-fetaya",
+    "title": "לחצן מדרגות לא מואר SHOVAL בצבע לבן אופן התקנה תחת הטיח קופסה עגולה (55) מתח/זרם 230V/16A FETAYA",
+    "vendor": "פתיה",
+    "status": "ACTIVE",
+    "featuredImage": {
+      "url": "https://cdn.shopify.com/s/files/1/0581/1024/6991/files/3cc3a3d873fb7794f46997b510503c1a.jpg?v=1722338351"
+    },
+    "media": {
+      "nodes": [
+        {
+          "id": "gid://shopify/MediaImage/30524496609359"
+        }
+      ]
+    },
+    "priceRangeV2": {
+      "maxVariantPrice": {
+        "amount": "0.0"
+      }
+    },
+    "variants": {
+      "nodes": [
+        {
+          "id": "gid://shopify/ProductVariant/42053506203727",
+          "sku": "5507",
+          "price": "0.00"
+        }
+      ]
+    }
+  },
+  {
+    "id": "gid://shopify/Product/7551951208527",
+    "handle": "לחצן-מדרגות-מואר-shoval-בצבע-לבן-אופן-התקנה-תחת-הטיח-קופסה-עגולה-55-מתח-זרם-230v-16a-fetaya",
+    "title": "לחצן מדרגות מואר SHOVAL בצבע לבן אופן התקנה תחת הטיח קופסה עגולה (55) מתח/זרם 230V/16A FETAYA",
+    "vendor": "פתיה",
+    "status": "ACTIVE",
+    "featuredImage": {
+      "url": "https://cdn.shopify.com/s/files/1/0581/1024/6991/files/b15d3fd921c2f2e92dea08d0f2fbf320.jpg?v=1722338382"
+    },
+    "media": {
+      "nodes": [
+        {
+          "id": "gid://shopify/MediaImage/30524497690703"
+        }
+      ]
+    },
+    "priceRangeV2": {
+      "maxVariantPrice": {
+        "amount": "0.0"
+      }
+    },
+    "variants": {
+      "nodes": [
+        {
+          "id": "gid://shopify/ProductVariant/42053508005967",
+          "sku": "5506",
+          "price": "0.00"
+        }
+      ]
+    }
+  },
+  {
+    "id": "gid://shopify/Product/7551951634511",
+    "handle": "לחצן-פעמון-מואר-shoval-בצבע-לבן-אופן-התקנה-תחת-הטיח-קופסה-עגולה-55-מתח-זרם-230v-16a-fetaya",
+    "title": "לחצן פעמון מואר SHOVAL בצבע לבן אופן התקנה תחת הטיח קופסה עגולה (55) מתח/זרם 230V/16A FETAYA",
+    "vendor": "פתיה",
+    "status": "ACTIVE",
+    "featuredImage": {
+      "url": "https://cdn.shopify.com/s/files/1/0581/1024/6991/files/91e75edff7e3fc8b71444d0c3c44a74c.jpg?v=1722338411"
+    },
+    "media": {
+      "nodes": [
+        {
+          "id": "gid://shopify/MediaImage/30524498706511"
+        }
+      ]
+    },
+    "priceRangeV2": {
+      "maxVariantPrice": {
+        "amount": "0.0"
+      }
+    },
+    "variants": {
+      "nodes": [
+        {
+          "id": "gid://shopify/ProductVariant/42053508726863",
+          "sku": "5513",
+          "price": "0.00"
+        }
+      ]
+    }
+  },
+  {
+    "id": "gid://shopify/Product/7552050626639",
+    "handle": "שקע-תקשורת-בודד-rj-45-אופן-התקנה-תחת-הטיח-קופסה-עגולה-55-fetaya",
+    "title": "שקע תקשורת בודד RJ-45 אופן התקנה תחת הטיח קופסה עגולה (55) FETAYA",
+    "vendor": "פתיה",
+    "status": "ACTIVE",
+    "featuredImage": {
+      "url": "https://cdn.shopify.com/s/files/1/0581/1024/6991/files/0a9457b6e9b769596d48eec338722f3f_1.jpg?v=1722342953"
+    },
+    "media": {
+      "nodes": [
+        {
+          "id": "gid://shopify/MediaImage/30524626305103"
+        }
+      ]
+    },
+    "priceRangeV2": {
+      "maxVariantPrice": {
+        "amount": "0.0"
+      }
+    },
+    "variants": {
+      "nodes": [
+        {
+          "id": "gid://shopify/ProductVariant/42053655101519",
+          "sku": "9515",
+          "price": "0.00"
+        }
+      ]
+    }
+  },
+  {
+    "id": "gid://shopify/Product/7552051085391",
+    "handle": "שקע-תקשורת-בודד-rj-45-קיסטון-אופן-התקנה-על-תחת-הטיח-fetaya",
+    "title": "שקע תקשורת בודד RJ-45 קיסטון אופן התקנה על/תחת הטיח FETAYA",
+    "vendor": "א.נ. שילו בע\"מ",
+    "status": "ACTIVE",
+    "featuredImage": {
+      "url": "https://cdn.shopify.com/s/files/1/0581/1024/6991/files/c5398373cdfdc62d011d39dc6af23f58.jpg?v=1722342982"
+    },
+    "media": {
+      "nodes": [
+        {
+          "id": "gid://shopify/MediaImage/30524626468943"
+        }
+      ]
+    },
+    "priceRangeV2": {
+      "maxVariantPrice": {
+        "amount": "0.0"
+      }
+    },
+    "variants": {
+      "nodes": [
+        {
+          "id": "gid://shopify/ProductVariant/42053655625807",
+          "sku": "9513",
+          "price": "0.00"
+        }
+      ]
+    }
+  },
+  {
+    "id": "gid://shopify/Product/7552053477455",
+    "handle": "שקע-תקשורת-rj-45-עם-בזח-יחיד-אופן-התקנה-על-תחת-הטיח-fetaya",
+    "title": "שקע תקשורת RJ-45 עם בז\"ח יחיד אופן התקנה על/תחת הטיח FETAYA",
+    "vendor": "פתיה",
+    "status": "ACTIVE",
+    "featuredImage": {
+      "url": "https://cdn.shopify.com/s/files/1/0581/1024/6991/files/833ac1eec0451abfbcdf06bcad9c0a0d.jpg?v=1722343061"
+    },
+    "media": {
+      "nodes": [
+        {
+          "id": "gid://shopify/MediaImage/30524628009039"
+        }
+      ]
+    },
+    "priceRangeV2": {
+      "maxVariantPrice": {
+        "amount": "0.0"
+      }
+    },
+    "variants": {
+      "nodes": [
+        {
+          "id": "gid://shopify/ProductVariant/42053658378319",
+          "sku": "9517",
+          "price": "0.00"
+        }
+      ]
+    }
+  },
+  {
+    "id": "gid://shopify/Product/7552056164431",
+    "handle": "שקע-טלפון-בזק-כפול-אופן-התקנה-תחת-הטיח-fetaya",
+    "title": "שקע טלפון בזק כפול אופן התקנה תחת הטיח FETAYA",
+    "vendor": "פתיה",
+    "status": "ACTIVE",
+    "featuredImage": {
+      "url": "https://cdn.shopify.com/s/files/1/0581/1024/6991/files/07235347df6e75ba3fa8181da75f6fe8.jpg?v=1722343152"
+    },
+    "media": {
+      "nodes": [
+        {
+          "id": "gid://shopify/MediaImage/30524630564943"
+        }
+      ]
+    },
+    "priceRangeV2": {
+      "maxVariantPrice": {
+        "amount": "0.0"
+      }
+    },
+    "variants": {
+      "nodes": [
+        {
+          "id": "gid://shopify/ProductVariant/42053661491279",
+          "sku": "9504",
+          "price": "0.00"
+        }
+      ]
+    }
+  },
+  {
+    "id": "gid://shopify/Product/7552131366991",
+    "handle": "שקע-כח-ישראלי-כולל-תריס-הגנה-לקופסה-מלבנית-להתקנה-במתאמים-מודולריים-2-מודול-fetaya",
+    "title": "שקע כח ישראלי כולל תריס הגנה לקופסה מלבנית להתקנה במתאמים מודולריים 2 מודול FETAYA",
+    "vendor": "פתיה",
+    "status": "ACTIVE",
+    "featuredImage": {
+      "url": "https://cdn.shopify.com/s/files/1/0581/1024/6991/files/e4da4af216acea157a833d8f5954f33f.jpg?v=1722345950"
+    },
+    "media": {
+      "nodes": [
+        {
+          "id": "gid://shopify/MediaImage/30524691742799"
+        }
+      ]
+    },
+    "priceRangeV2": {
+      "maxVariantPrice": {
+        "amount": "0.0"
+      }
+    },
+    "variants": {
+      "nodes": [
+        {
+          "id": "gid://shopify/ProductVariant/42053769199695",
+          "sku": "5910",
+          "price": "0.00"
+        }
+      ]
+    }
+  },
+  {
+    "id": "gid://shopify/Product/7553491632207",
+    "handle": "גוף-תאורה-לד-עגול-שקוע-disc-קוטר-300-הספק-24w-אור-חם-fetaya",
+    "title": "גוף תאורה לד עגול שקוע DISC קוטר 300 הספק 24W אור חם FETAYA",
+    "vendor": "פתיה",
+    "status": "ACTIVE",
+    "featuredImage": {
+      "url": "https://cdn.shopify.com/s/files/1/0581/1024/6991/files/5747db0975b100a8003ca6a00a5663b3.jpg?v=1722445643"
+    },
+    "media": {
+      "nodes": [
+        {
+          "id": "gid://shopify/MediaImage/30527680708687"
+        }
+      ]
+    },
+    "priceRangeV2": {
+      "maxVariantPrice": {
+        "amount": "0.0"
+      }
+    },
+    "variants": {
+      "nodes": [
+        {
+          "id": "gid://shopify/ProductVariant/42056812429391",
+          "sku": "92554",
+          "price": "0.00"
+        }
+      ]
+    }
+  },
+  {
+    "id": "gid://shopify/Product/7553492222031",
+    "handle": "גוף-תאורה-לד-עגול-שקוע-disc-קוטר-300-הספק-24w-אור-טבעי-fetaya",
+    "title": "גוף תאורה לד עגול שקוע DISC קוטר 300 הספק 24W אור טבעי FETAYA",
+    "vendor": "פתיה",
+    "status": "ACTIVE",
+    "featuredImage": {
+      "url": "https://cdn.shopify.com/s/files/1/0581/1024/6991/files/cc90df576c8a3a3e00715e82eab1ed44.jpg?v=1722445766"
+    },
+    "media": {
+      "nodes": [
+        {
+          "id": "gid://shopify/MediaImage/30527684116559"
+        }
+      ]
+    },
+    "priceRangeV2": {
+      "maxVariantPrice": {
+        "amount": "0.0"
+      }
+    },
+    "variants": {
+      "nodes": [
+        {
+          "id": "gid://shopify/ProductVariant/42056814329935",
+          "sku": "92654",
+          "price": "0.00"
+        }
+      ]
+    }
+  },
+  {
+    "id": "gid://shopify/Product/7553493172303",
+    "handle": "גוף-תאורה-לד-עגול-צמוד-תקרה-disc-קוטר-300-הספק-24w-אור-טבעי-fetaya",
+    "title": "גוף תאורה לד עגול צמוד תקרה DISC קוטר 300 הספק 24W אור טבעי FETAYA",
+    "vendor": "פתיה",
+    "status": "ACTIVE",
+    "featuredImage": {
+      "url": "https://cdn.shopify.com/s/files/1/0581/1024/6991/files/c8f990555f8faf66f1ea6ce399858be3.jpg?v=1722446080"
+    },
+    "media": {
+      "nodes": [
+        {
+          "id": "gid://shopify/MediaImage/30527691456591"
+        }
+      ]
+    },
+    "priceRangeV2": {
+      "maxVariantPrice": {
+        "amount": "0.0"
+      }
+    },
+    "variants": {
+      "nodes": [
+        {
+          "id": "gid://shopify/ProductVariant/42056818753615",
+          "sku": "92658",
+          "price": "0.00"
+        }
+      ]
+    }
+  },
+  {
+    "id": "gid://shopify/Product/7553493237839",
+    "handle": "גוף-תאורה-לד-עגול-צמוד-תקרה-disc-קוטר-300-הספק-24w-אור-חם-fetaya",
+    "title": "גוף תאורה לד עגול צמוד תקרה DISC קוטר 300 הספק 24W אור חם FETAYA",
+    "vendor": "פתיה",
+    "status": "ACTIVE",
+    "featuredImage": {
+      "url": "https://cdn.shopify.com/s/files/1/0581/1024/6991/files/0dc1974b8412aeee485e4736cab5bf94.jpg?v=1722446104"
+    },
+    "media": {
+      "nodes": [
+        {
+          "id": "gid://shopify/MediaImage/30527692570703"
+        }
+      ]
+    },
+    "priceRangeV2": {
+      "maxVariantPrice": {
+        "amount": "0.0"
+      }
+    },
+    "variants": {
+      "nodes": [
+        {
+          "id": "gid://shopify/ProductVariant/42056818884687",
+          "sku": "92558",
+          "price": "0.00"
+        }
+      ]
+    }
+  },
+  {
+    "id": "gid://shopify/Product/7553493303375",
+    "handle": "גוף-תאורה-לד-עגול-צמוד-תקרה-disc-קוטר-300-הספק-24w-אור-קר-fetaya",
+    "title": "גוף תאורה לד עגול צמוד תקרה DISC קוטר 300 הספק 24W אור קר FETAYA",
+    "vendor": "פתיה",
+    "status": "ACTIVE",
+    "featuredImage": {
+      "url": "https://cdn.shopify.com/s/files/1/0581/1024/6991/files/48afb059a30de411c2c4695dc74a9cd8.jpg?v=1722446127"
+    },
+    "media": {
+      "nodes": [
+        {
+          "id": "gid://shopify/MediaImage/30527692669007"
+        }
+      ]
+    },
+    "priceRangeV2": {
+      "maxVariantPrice": {
+        "amount": "0.0"
+      }
+    },
+    "variants": {
+      "nodes": [
+        {
+          "id": "gid://shopify/ProductVariant/42056819048527",
+          "sku": "92458",
+          "price": "0.00"
+        }
+      ]
+    }
+  },
+  {
+    "id": "gid://shopify/Product/7553493368911",
+    "handle": "גוף-תאורה-לד-מרובע-שקוע-disc-מידות-300-300-הספק-24w-אור-טבעי-fetaya",
+    "title": "גוף תאורה לד מרובע שקוע DISC מידות 300/300 הספק 24W אור טבעי FETAYA",
+    "vendor": "פתיה",
+    "status": "ACTIVE",
+    "featuredImage": {
+      "url": "https://cdn.shopify.com/s/files/1/0581/1024/6991/files/52425926282b68197cdbb2cb73416fb1.jpg?v=1722446150"
+    },
+    "media": {
+      "nodes": [
+        {
+          "id": "gid://shopify/MediaImage/30527692734543"
+        }
+      ]
+    },
+    "priceRangeV2": {
+      "maxVariantPrice": {
+        "amount": "0.0"
+      }
+    },
+    "variants": {
+      "nodes": [
+        {
+          "id": "gid://shopify/ProductVariant/42056819212367",
+          "sku": "92644",
+          "price": "0.00"
+        }
+      ]
+    }
+  },
+  {
+    "id": "gid://shopify/Product/7553493598287",
+    "handle": "גוף-תאורה-לד-מרובע-שקוע-disc-מידות-300-300-הספק-24w-אור-חם-fetaya",
+    "title": "גוף תאורה לד מרובע שקוע DISC מידות 300/300 הספק 24W אור חם FETAYA",
+    "vendor": "פתיה",
+    "status": "ACTIVE",
+    "featuredImage": {
+      "url": "https://cdn.shopify.com/s/files/1/0581/1024/6991/files/550d69f5527a9ecfb98911d26537f7a9.jpg?v=1722446174"
+    },
+    "media": {
+      "nodes": [
+        {
+          "id": "gid://shopify/MediaImage/30527693094991"
+        }
+      ]
+    },
+    "priceRangeV2": {
+      "maxVariantPrice": {
+        "amount": "0.0"
+      }
+    },
+    "variants": {
+      "nodes": [
+        {
+          "id": "gid://shopify/ProductVariant/42056819802191",
+          "sku": "92544",
+          "price": "0.00"
+        }
+      ]
+    }
+  },
+  {
+    "id": "gid://shopify/Product/7553493762127",
+    "handle": "גוף-תאורה-לד-מרובע-שקוע-disc-מידות-300-300-הספק-24w-אור-קר-fetaya",
+    "title": "גוף תאורה לד מרובע שקוע DISC מידות 300/300 הספק 24W אור קר FETAYA",
+    "vendor": "פתיה",
+    "status": "ACTIVE",
+    "featuredImage": {
+      "url": "https://cdn.shopify.com/s/files/1/0581/1024/6991/files/77e2e1ef19aa4e6d40e0258bd1879563.jpg?v=1722446196"
+    },
+    "media": {
+      "nodes": [
+        {
+          "id": "gid://shopify/MediaImage/30527693291599"
+        }
+      ]
+    },
+    "priceRangeV2": {
+      "maxVariantPrice": {
+        "amount": "0.0"
+      }
+    },
+    "variants": {
+      "nodes": [
+        {
+          "id": "gid://shopify/ProductVariant/42056820097103",
+          "sku": "92444",
+          "price": "0.00"
+        }
+      ]
+    }
+  },
+  {
+    "id": "gid://shopify/Product/7553493925967",
+    "handle": "גוף-תאורה-לד-מרובע-צמוד-תקרה-disc-מידות-300-300-הספק-24w-אור-טבעי-fetaya",
+    "title": "גוף תאורה לד מרובע צמוד תקרה DISC מידות 300/300 הספק 24W אור טבעי FETAYA",
+    "vendor": "פתיה",
+    "status": "ACTIVE",
+    "featuredImage": {
+      "url": "https://cdn.shopify.com/s/files/1/0581/1024/6991/files/95a224a69eb21c2a8299bbc4740c53ab.jpg?v=1722446240"
+    },
+    "media": {
+      "nodes": [
+        {
+          "id": "gid://shopify/MediaImage/30527695487055"
+        }
+      ]
+    },
+    "priceRangeV2": {
+      "maxVariantPrice": {
+        "amount": "0.0"
+      }
+    },
+    "variants": {
+      "nodes": [
+        {
+          "id": "gid://shopify/ProductVariant/42056820686927",
+          "sku": "92648",
+          "price": "0.00"
+        }
+      ]
+    }
+  },
+  {
+    "id": "gid://shopify/Product/7553494024271",
+    "handle": "גוף-תאורה-לד-מרובע-צמוד-תקרה-disc-מידות-300-300-הספק-24w-אור-חם-fetaya",
+    "title": "גוף תאורה לד מרובע צמוד תקרה DISC מידות 300/300 הספק 24W אור חם FETAYA",
+    "vendor": "פתיה",
+    "status": "ACTIVE",
+    "featuredImage": {
+      "url": "https://cdn.shopify.com/s/files/1/0581/1024/6991/files/61e1069bce92ed7a45fe02175fe43ce7.jpg?v=1722446267"
+    },
+    "media": {
+      "nodes": [
+        {
+          "id": "gid://shopify/MediaImage/30527696371791"
+        }
+      ]
+    },
+    "priceRangeV2": {
+      "maxVariantPrice": {
+        "amount": "0.0"
+      }
+    },
+    "variants": {
+      "nodes": [
+        {
+          "id": "gid://shopify/ProductVariant/42056820883535",
+          "sku": "92548",
+          "price": "0.00"
+        }
+      ]
+    }
+  },
+  {
+    "id": "gid://shopify/Product/7553494155343",
+    "handle": "גוף-תאורה-לד-מרובע-צמוד-תקרה-disc-מידות-300-300-הספק-24w-אור-קר-fetaya",
+    "title": "גוף תאורה לד מרובע צמוד תקרה DISC מידות 300/300 הספק 24W אור קר FETAYA",
+    "vendor": "פתיה",
+    "status": "ACTIVE",
+    "featuredImage": {
+      "url": "https://cdn.shopify.com/s/files/1/0581/1024/6991/files/b578ac0d5f25c252044cf20be0312f97.jpg?v=1722446291"
+    },
+    "media": {
+      "nodes": [
+        {
+          "id": "gid://shopify/MediaImage/30527696470095"
+        }
+      ]
+    },
+    "priceRangeV2": {
+      "maxVariantPrice": {
+        "amount": "0.0"
+      }
+    },
+    "variants": {
+      "nodes": [
+        {
+          "id": "gid://shopify/ProductVariant/42056821145679",
+          "sku": "92448",
+          "price": "0.00"
+        }
+      ]
+    }
+  },
+  {
+    "id": "gid://shopify/Product/7553494286415",
+    "handle": "גוף-תאורה-לד-עגול-שקוע-מתכוונן-view-360-7w-אור-קר-fetaya",
+    "title": "גוף תאורה לד עגול שקוע מתכוונן VIEW 360 7W אור קר FETAYA",
+    "vendor": "פתיה",
+    "status": "ACTIVE",
+    "featuredImage": {
+      "url": "https://cdn.shopify.com/s/files/1/0581/1024/6991/files/281d09e320e433089f9065d0c5473429.jpg?v=1722446316"
+    },
+    "media": {
+      "nodes": [
+        {
+          "id": "gid://shopify/MediaImage/30527696601167"
+        }
+      ]
+    },
+    "priceRangeV2": {
+      "maxVariantPrice": {
+        "amount": "0.0"
+      }
+    },
+    "variants": {
+      "nodes": [
+        {
+          "id": "gid://shopify/ProductVariant/42056821440591",
+          "sku": "92459",
+          "price": "0.00"
+        }
+      ]
+    }
+  },
+  {
+    "id": "gid://shopify/Product/7553494450255",
+    "handle": "גוף-תאורה-לד-עגול-שקוע-disc-קוטר-90-הספק-3w-אור-קר-fetaya",
+    "title": "גוף תאורה לד עגול שקוע DISC קוטר 90 הספק 3W אור קר FETAYA",
+    "vendor": "פתיה",
+    "status": "ACTIVE",
+    "featuredImage": {
+      "url": "https://cdn.shopify.com/s/files/1/0581/1024/6991/files/e5be932a25003df741e9b38912428211.jpg?v=1722446339"
+    },
+    "media": {
+      "nodes": [
+        {
+          "id": "gid://shopify/MediaImage/30527698010191"
+        }
+      ]
+    },
+    "priceRangeV2": {
+      "maxVariantPrice": {
+        "amount": "0.0"
+      }
+    },
+    "variants": {
+      "nodes": [
+        {
+          "id": "gid://shopify/ProductVariant/42056821833807",
+          "sku": "92450",
+          "price": "0.00"
+        }
+      ]
+    }
+  },
+  {
+    "id": "gid://shopify/Product/7553494777935",
+    "handle": "גוף-תאורה-לד-עגול-שקוע-disc-קוטר-90-הספק-3w-אור-טבעי-fetaya",
+    "title": "גוף תאורה לד עגול שקוע DISC קוטר 90 הספק 3W אור טבעי FETAYA",
+    "vendor": "פתיה",
+    "status": "ACTIVE",
+    "featuredImage": {
+      "url": "https://cdn.shopify.com/s/files/1/0581/1024/6991/files/ffb47b1d81ce1ee69a2007ae478b1980.jpg?v=1722446420"
+    },
+    "media": {
+      "nodes": [
+        {
+          "id": "gid://shopify/MediaImage/30527698501711"
+        }
+      ]
+    },
+    "priceRangeV2": {
+      "maxVariantPrice": {
+        "amount": "0.0"
+      }
+    },
+    "variants": {
+      "nodes": [
+        {
+          "id": "gid://shopify/ProductVariant/42056823046223",
+          "sku": "92650",
+          "price": "0.00"
+        }
+      ]
+    }
+  },
+  {
+    "id": "gid://shopify/Product/7553494909007",
+    "handle": "גוף-תאורה-לד-עגול-שקוע-disc-קוטר-90-הספק-3w-אור-חם-fetaya",
+    "title": "גוף תאורה לד עגול שקוע DISC קוטר 90 הספק 3W אור חם FETAYA",
+    "vendor": "פתיה",
+    "status": "ACTIVE",
+    "featuredImage": {
+      "url": "https://cdn.shopify.com/s/files/1/0581/1024/6991/files/801fe12aaaf369fe94e3971d7b515346.jpg?v=1722446444"
+    },
+    "media": {
+      "nodes": [
+        {
+          "id": "gid://shopify/MediaImage/30527698632783"
+        }
+      ]
+    },
+    "priceRangeV2": {
+      "maxVariantPrice": {
+        "amount": "0.0"
+      }
+    },
+    "variants": {
+      "nodes": [
+        {
+          "id": "gid://shopify/ProductVariant/42056823898191",
+          "sku": "92550",
+          "price": "0.00"
+        }
+      ]
+    }
+  },
+  {
+    "id": "gid://shopify/Product/7553495072847",
+    "handle": "גוף-תאורה-לד-עגול-שקוע-מתכוונן-view-360-7w-אור-חם-fetaya",
+    "title": "גוף תאורה לד עגול שקוע מתכוונן VIEW 360 7W אור חם FETAYA",
+    "vendor": "פתיה",
+    "status": "ACTIVE",
+    "featuredImage": {
+      "url": "https://cdn.shopify.com/s/files/1/0581/1024/6991/files/93b51e8fdc2219d669c4062b6a765701.jpg?v=1722446467"
+    },
+    "media": {
+      "nodes": [
+        {
+          "id": "gid://shopify/MediaImage/30527698927695"
+        }
+      ]
+    },
+    "priceRangeV2": {
+      "maxVariantPrice": {
+        "amount": "0.0"
+      }
+    },
+    "variants": {
+      "nodes": [
+        {
+          "id": "gid://shopify/ProductVariant/42056824094799",
+          "sku": "92559",
+          "price": "0.00"
+        }
+      ]
+    }
+  },
+  {
+    "id": "gid://shopify/Product/7553496678479",
+    "handle": "גוף-תאורה-לד-עגול-שקוע-disc-קוטר-120-הספק-6w-אור-טבעי-fetaya",
+    "title": "גוף תאורה לד עגול שקוע DISC קוטר 120 הספק 6W אור טבעי FETAYA",
+    "vendor": "פתיה",
+    "status": "ACTIVE",
+    "featuredImage": {
+      "url": "https://cdn.shopify.com/s/files/1/0581/1024/6991/files/f94c4fa875befc1f151811a96262e79a.jpg?v=1722446491"
+    },
+    "media": {
+      "nodes": [
+        {
+          "id": "gid://shopify/MediaImage/30527699157071"
+        }
+      ]
+    },
+    "priceRangeV2": {
+      "maxVariantPrice": {
+        "amount": "0.0"
+      }
+    },
+    "variants": {
+      "nodes": [
+        {
+          "id": "gid://shopify/ProductVariant/42056832712783",
+          "sku": "92651",
+          "price": "0.00"
+        }
+      ]
+    }
+  },
+  {
+    "id": "gid://shopify/Product/7553496907855",
+    "handle": "גוף-תאורה-לד-עגול-שקוע-disc-קוטר-120-הספק-6w-אור-חם-fetaya",
+    "title": "גוף תאורה לד עגול שקוע DISC קוטר 120 הספק 6W אור חם FETAYA",
+    "vendor": "פתיה",
+    "status": "ACTIVE",
+    "featuredImage": {
+      "url": "https://cdn.shopify.com/s/files/1/0581/1024/6991/files/4fa033dd92bc65e77f9cdfa24f5dd765_1.jpg?v=1722446867"
+    },
+    "media": {
+      "nodes": [
+        {
+          "id": "gid://shopify/MediaImage/30527705284687"
+        }
+      ]
+    },
+    "priceRangeV2": {
+      "maxVariantPrice": {
+        "amount": "0.0"
+      }
+    },
+    "variants": {
+      "nodes": [
+        {
+          "id": "gid://shopify/ProductVariant/42056833728591",
+          "sku": "92551",
+          "price": "0.00"
+        }
+      ]
+    }
+  },
+  {
+    "id": "gid://shopify/Product/7553497038927",
+    "handle": "גוף-תאורה-לד-עגול-שקוע-disc-קוטר-120-הספק-6w-אור-קר-fetaya",
+    "title": "גוף תאורה לד עגול שקוע DISC קוטר 120 הספק 6W אור קר FETAYA",
+    "vendor": "פתיה",
+    "status": "ACTIVE",
+    "featuredImage": {
+      "url": "https://cdn.shopify.com/s/files/1/0581/1024/6991/files/0ebfc98776fa96b3813d52312e636b83.jpg?v=1722446899"
+    },
+    "media": {
+      "nodes": [
+        {
+          "id": "gid://shopify/MediaImage/30527705808975"
+        }
+      ]
+    },
+    "priceRangeV2": {
+      "maxVariantPrice": {
+        "amount": "0.0"
+      }
+    },
+    "variants": {
+      "nodes": [
+        {
+          "id": "gid://shopify/ProductVariant/42056834285647",
+          "sku": "92451",
+          "price": "0.00"
+        }
+      ]
+    }
+  },
+  {
+    "id": "gid://shopify/Product/7553497169999",
+    "handle": "גוף-תאורה-לד-עגול-שקוע-disc-קוטר-170-הספק-12w-אור-טבעי-fetaya",
+    "title": "גוף תאורה לד עגול שקוע DISC קוטר 170 הספק 12W אור טבעי FETAYA",
+    "vendor": "פתיה",
+    "status": "ACTIVE",
+    "featuredImage": {
+      "url": "https://cdn.shopify.com/s/files/1/0581/1024/6991/files/7fd9a22f4a088323de03805a7f6398a0.jpg?v=1722446923"
+    },
+    "media": {
+      "nodes": [
+        {
+          "id": "gid://shopify/MediaImage/30527706333263"
+        }
+      ]
+    },
+    "priceRangeV2": {
+      "maxVariantPrice": {
+        "amount": "0.0"
+      }
+    },
+    "variants": {
+      "nodes": [
+        {
+          "id": "gid://shopify/ProductVariant/42056834842703",
+          "sku": "92652",
+          "price": "0.00"
+        }
+      ]
+    }
+  },
+  {
+    "id": "gid://shopify/Product/7553497301071",
+    "handle": "גוף-תאורה-לד-עגול-שקוע-disc-קוטר-170-הספק-12w-אור-חם-fetaya",
+    "title": "גוף תאורה לד עגול שקוע DISC קוטר 170 הספק 12W אור חם FETAYA",
+    "vendor": "פתיה",
+    "status": "ACTIVE",
+    "featuredImage": {
+      "url": "https://cdn.shopify.com/s/files/1/0581/1024/6991/files/65215808f05280e480d6ac0b89a14719.jpg?v=1722446947"
+    },
+    "media": {
+      "nodes": [
+        {
+          "id": "gid://shopify/MediaImage/30527707381839"
+        }
+      ]
+    },
+    "priceRangeV2": {
+      "maxVariantPrice": {
+        "amount": "0.0"
+      }
+    },
+    "variants": {
+      "nodes": [
+        {
+          "id": "gid://shopify/ProductVariant/42056835039311",
+          "sku": "92552",
+          "price": "0.00"
+        }
+      ]
+    }
+  },
+  {
+    "id": "gid://shopify/Product/7553497464911",
+    "handle": "גוף-תאורה-לד-עגול-שקוע-disc-קוטר-170-הספק-12w-אור-קר-fetaya",
+    "title": "גוף תאורה לד עגול שקוע DISC קוטר 170 הספק 12W אור קר FETAYA",
+    "vendor": "פתיה",
+    "status": "ACTIVE",
+    "featuredImage": {
+      "url": "https://cdn.shopify.com/s/files/1/0581/1024/6991/files/a99c26d33a6ef1b13c28208d008118a4.jpg?v=1722446984"
+    },
+    "media": {
+      "nodes": [
+        {
+          "id": "gid://shopify/MediaImage/30527707480143"
+        }
+      ]
+    },
+    "priceRangeV2": {
+      "maxVariantPrice": {
+        "amount": "0.0"
+      }
+    },
+    "variants": {
+      "nodes": [
+        {
+          "id": "gid://shopify/ProductVariant/42056835760207",
+          "sku": "92452",
+          "price": "0.00"
+        }
+      ]
+    }
+  },
+  {
+    "id": "gid://shopify/Product/7553497497679",
+    "handle": "גוף-תאורה-לד-עגול-שקוע-disc-קוטר-225-הספק-18w-אור-טבעי-fetaya",
+    "title": "גוף תאורה לד עגול שקוע DISC קוטר 225 הספק 18W אור טבעי FETAYA",
+    "vendor": "פתיה",
+    "status": "ACTIVE",
+    "featuredImage": {
+      "url": "https://cdn.shopify.com/s/files/1/0581/1024/6991/files/3a2a12c7facb12a61c6b6ccf4b08b948.jpg?v=1722447010"
+    },
+    "media": {
+      "nodes": [
+        {
+          "id": "gid://shopify/MediaImage/30527707611215"
+        }
+      ]
+    },
+    "priceRangeV2": {
+      "maxVariantPrice": {
+        "amount": "0.0"
+      }
+    },
+    "variants": {
+      "nodes": [
+        {
+          "id": "gid://shopify/ProductVariant/42056835891279",
+          "sku": "92653",
+          "price": "0.00"
+        }
+      ]
+    }
+  },
+  {
+    "id": "gid://shopify/Product/7553497595983",
+    "handle": "גוף-תאורה-לד-עגול-שקוע-disc-קוטר-225-הספק-18w-אור-חם-fetaya",
+    "title": "גוף תאורה לד עגול שקוע DISC קוטר 225 הספק 18W אור חם FETAYA",
+    "vendor": "פתיה",
+    "status": "ACTIVE",
+    "featuredImage": {
+      "url": "https://cdn.shopify.com/s/files/1/0581/1024/6991/files/a336fa8212bb93440cc68e6c6b79a6ae.jpg?v=1722447034"
+    },
+    "media": {
+      "nodes": [
+        {
+          "id": "gid://shopify/MediaImage/30527707643983"
+        }
+      ]
+    },
+    "priceRangeV2": {
+      "maxVariantPrice": {
+        "amount": "0.0"
+      }
+    },
+    "variants": {
+      "nodes": [
+        {
+          "id": "gid://shopify/ProductVariant/42056836644943",
+          "sku": "92553",
+          "price": "0.00"
+        }
+      ]
+    }
+  },
+  {
+    "id": "gid://shopify/Product/7553497858127",
+    "handle": "גוף-תאורה-לד-עגול-שקוע-disc-קוטר-225-הספק-18w-אור-קר-fetaya",
+    "title": "גוף תאורה לד עגול שקוע DISC קוטר 225 הספק 18W אור קר FETAYA",
+    "vendor": "פתיה",
+    "status": "ACTIVE",
+    "featuredImage": {
+      "url": "https://cdn.shopify.com/s/files/1/0581/1024/6991/files/c6a91b88ec71b8121d43f7cd55ab239c.jpg?v=1722447057"
+    },
+    "media": {
+      "nodes": [
+        {
+          "id": "gid://shopify/MediaImage/30527708201039"
+        }
+      ]
+    },
+    "priceRangeV2": {
+      "maxVariantPrice": {
+        "amount": "0.0"
+      }
+    },
+    "variants": {
+      "nodes": [
+        {
+          "id": "gid://shopify/ProductVariant/42056837988431",
+          "sku": "92453",
+          "price": "0.00"
+        }
+      ]
+    }
+  },
+  {
+    "id": "gid://shopify/Product/7553498054735",
+    "handle": "גוף-תאורה-לד-עגול-צמוד-תקרה-disc-קוטר-120-הספק-6w-אור-קר-fetaya",
+    "title": "גוף תאורה לד עגול צמוד תקרה DISC קוטר 120 הספק 6W אור קר FETAYA",
+    "vendor": "פתיה",
+    "status": "ACTIVE",
+    "featuredImage": {
+      "url": "https://cdn.shopify.com/s/files/1/0581/1024/6991/files/20acc94487a4fff20fecc1fe159210aa.jpg?v=1722447138"
+    },
+    "media": {
+      "nodes": [
+        {
+          "id": "gid://shopify/MediaImage/30527708856399"
+        }
+      ]
+    },
+    "priceRangeV2": {
+      "maxVariantPrice": {
+        "amount": "0.0"
+      }
+    },
+    "variants": {
+      "nodes": [
+        {
+          "id": "gid://shopify/ProductVariant/42056838774863",
+          "sku": "92455",
+          "price": "0.00"
+        }
+      ]
+    }
+  },
+  {
+    "id": "gid://shopify/Product/7553498185807",
+    "handle": "גוף-תאורה-לד-עגול-צמוד-תקרה-disc-קוטר-170-הספק-12w-אור-טבעי-fetaya",
+    "title": "גוף תאורה לד עגול צמוד תקרה DISC קוטר 170 הספק 12W אור טבעי FETAYA",
+    "vendor": "פתיה",
+    "status": "ACTIVE",
+    "featuredImage": {
+      "url": "https://cdn.shopify.com/s/files/1/0581/1024/6991/files/bf5d3e1648b8d91d16e55fa7391348b1.jpg?v=1722447161"
+    },
+    "media": {
+      "nodes": [
+        {
+          "id": "gid://shopify/MediaImage/30527708921935"
+        }
+      ]
+    },
+    "priceRangeV2": {
+      "maxVariantPrice": {
+        "amount": "0.0"
+      }
+    },
+    "variants": {
+      "nodes": [
+        {
+          "id": "gid://shopify/ProductVariant/42056839856207",
+          "sku": "92656",
+          "price": "0.00"
+        }
+      ]
+    }
+  },
+  {
+    "id": "gid://shopify/Product/7553498415183",
+    "handle": "גוף-תאורה-לד-עגול-צמוד-תקרה-disc-קוטר-170-הספק-12w-אור-חם-fetaya",
+    "title": "גוף תאורה לד עגול צמוד תקרה DISC קוטר 170 הספק 12W אור חם FETAYA",
+    "vendor": "פתיה",
+    "status": "ACTIVE",
+    "featuredImage": {
+      "url": "https://cdn.shopify.com/s/files/1/0581/1024/6991/files/727f89b10a24d74bc189fd2c372e25c4.jpg?v=1722447184"
+    },
+    "media": {
+      "nodes": [
+        {
+          "id": "gid://shopify/MediaImage/30527709020239"
+        }
+      ]
+    },
+    "priceRangeV2": {
+      "maxVariantPrice": {
+        "amount": "0.0"
+      }
+    },
+    "variants": {
+      "nodes": [
+        {
+          "id": "gid://shopify/ProductVariant/42056840642639",
+          "sku": "92556",
+          "price": "0.00"
+        }
+      ]
+    }
+  },
+  {
+    "id": "gid://shopify/Product/7553498480719",
+    "handle": "גוף-תאורה-לד-עגול-צמוד-תקרה-disc-קוטר-170-הספק-12w-אור-קר-fetaya",
+    "title": "גוף תאורה לד עגול צמוד תקרה DISC קוטר 170 הספק 12W אור קר FETAYA",
+    "vendor": "פתיה",
+    "status": "ACTIVE",
+    "featuredImage": {
+      "url": "https://cdn.shopify.com/s/files/1/0581/1024/6991/files/5d81a759510b5c39170539d980f913de.jpg?v=1722447209"
+    },
+    "media": {
+      "nodes": [
+        {
+          "id": "gid://shopify/MediaImage/30527710036047"
+        }
+      ]
+    },
+    "priceRangeV2": {
+      "maxVariantPrice": {
+        "amount": "0.0"
+      }
+    },
+    "variants": {
+      "nodes": [
+        {
+          "id": "gid://shopify/ProductVariant/42056840839247",
+          "sku": "92456",
+          "price": "0.00"
+        }
+      ]
+    }
+  },
+  {
+    "id": "gid://shopify/Product/7553498546255",
+    "handle": "גוף-תאורה-לד-עגול-צמוד-תקרה-disc-קוטר-225-הספק-18w-אור-טבעי-fetaya",
+    "title": "גוף תאורה לד עגול צמוד תקרה DISC קוטר 225 הספק 18W אור טבעי FETAYA",
+    "vendor": "פתיה",
+    "status": "ACTIVE",
+    "featuredImage": {
+      "url": "https://cdn.shopify.com/s/files/1/0581/1024/6991/files/f56b856fab7f861d1321193bebef344c.jpg?v=1722447233"
+    },
+    "media": {
+      "nodes": [
+        {
+          "id": "gid://shopify/MediaImage/30527711117391"
+        }
+      ]
+    },
+    "priceRangeV2": {
+      "maxVariantPrice": {
+        "amount": "0.0"
+      }
+    },
+    "variants": {
+      "nodes": [
+        {
+          "id": "gid://shopify/ProductVariant/42056841134159",
+          "sku": "92657",
+          "price": "0.00"
+        }
+      ]
+    }
+  },
+  {
+    "id": "gid://shopify/Product/7553498644559",
+    "handle": "גוף-תאורה-לד-עגול-צמוד-תקרה-disc-קוטר-225-הספק-18w-אור-חם-fetaya",
+    "title": "גוף תאורה לד עגול צמוד תקרה DISC קוטר 225 הספק 18W אור חם FETAYA",
+    "vendor": "פתיה",
+    "status": "ACTIVE",
+    "featuredImage": {
+      "url": "https://cdn.shopify.com/s/files/1/0581/1024/6991/files/0f8ce61fff466bef76d2b3fe01402027.jpg?v=1722447256"
+    },
+    "media": {
+      "nodes": [
+        {
+          "id": "gid://shopify/MediaImage/30527711838287"
+        }
+      ]
+    },
+    "priceRangeV2": {
+      "maxVariantPrice": {
+        "amount": "0.0"
+      }
+    },
+    "variants": {
+      "nodes": [
+        {
+          "id": "gid://shopify/ProductVariant/42056841363535",
+          "sku": "92557",
+          "price": "0.00"
+        }
+      ]
+    }
+  },
+  {
+    "id": "gid://shopify/Product/7553498710095",
+    "handle": "גוף-תאורה-לד-עגול-צמוד-תקרה-disc-קוטר-225-הספק-18w-אור-קר-fetaya",
+    "title": "גוף תאורה לד עגול צמוד תקרה DISC קוטר 225 הספק 18W אור קר FETAYA",
+    "vendor": "פתיה",
+    "status": "ACTIVE",
+    "featuredImage": {
+      "url": "https://cdn.shopify.com/s/files/1/0581/1024/6991/files/e04d2d37b3ab5a04f1a8ad274cabeba6.jpg?v=1722447280"
+    },
+    "media": {
+      "nodes": [
+        {
+          "id": "gid://shopify/MediaImage/30527714263119"
+        }
+      ]
+    },
+    "priceRangeV2": {
+      "maxVariantPrice": {
+        "amount": "0.0"
+      }
+    },
+    "variants": {
+      "nodes": [
+        {
+          "id": "gid://shopify/ProductVariant/42056842805327",
+          "sku": "92457",
+          "price": "0.00"
+        }
+      ]
+    }
+  },
+  {
+    "id": "gid://shopify/Product/7553498906703",
+    "handle": "גוף-תאורה-לד-מרובע-שקוע-disc-מידות-86-86-הספק-3w-אור-טבעי-fetaya",
+    "title": "גוף תאורה לד מרובע שקוע DISC מידות 86/86 הספק 3W אור טבעי FETAYA",
+    "vendor": "פתיה",
+    "status": "ACTIVE",
+    "featuredImage": {
+      "url": "https://cdn.shopify.com/s/files/1/0581/1024/6991/files/15ee80f41fb917f9dfd23684873d980f.jpg?v=1722447306"
+    },
+    "media": {
+      "nodes": [
+        {
+          "id": "gid://shopify/MediaImage/30527714590799"
+        }
+      ]
+    },
+    "priceRangeV2": {
+      "maxVariantPrice": {
+        "amount": "0.0"
+      }
+    },
+    "variants": {
+      "nodes": [
+        {
+          "id": "gid://shopify/ProductVariant/42056843526223",
+          "sku": "92640",
+          "price": "0.00"
+        }
+      ]
+    }
+  },
+  {
+    "id": "gid://shopify/Product/7553499005007",
+    "handle": "גוף-תאורה-לד-מרובע-שקוע-disc-מידות-86-86-הספק-3w-אור-חם-fetaya",
+    "title": "גוף תאורה לד מרובע שקוע DISC מידות 86/86 הספק 3W אור חם FETAYA",
+    "vendor": "פתיה",
+    "status": "ACTIVE",
+    "featuredImage": {
+      "url": "https://cdn.shopify.com/s/files/1/0581/1024/6991/files/5b8f87d657ee74d37f90ca449b3c8f3d.jpg?v=1722447329"
+    },
+    "media": {
+      "nodes": [
+        {
+          "id": "gid://shopify/MediaImage/30527718326351"
+        }
+      ]
+    },
+    "priceRangeV2": {
+      "maxVariantPrice": {
+        "amount": "0.0"
+      }
+    },
+    "variants": {
+      "nodes": [
+        {
+          "id": "gid://shopify/ProductVariant/42056843984975",
+          "sku": "92540",
+          "price": "0.00"
+        }
+      ]
+    }
+  },
+  {
+    "id": "gid://shopify/Product/7553500708943",
+    "handle": "גוף-תאורה-לד-מרובע-שקוע-disc-מידות-86-86-הספק-3w-אור-קר-fetaya",
+    "title": "גוף תאורה לד מרובע שקוע DISC מידות 86/86 הספק 3W אור קר FETAYA",
+    "vendor": "פתיה",
+    "status": "ACTIVE",
+    "featuredImage": {
+      "url": "https://cdn.shopify.com/s/files/1/0581/1024/6991/files/9b7b086435fc6dc161072687658013e7.jpg?v=1722447733"
+    },
+    "media": {
+      "nodes": [
+        {
+          "id": "gid://shopify/MediaImage/30527746211919"
+        }
+      ]
+    },
+    "priceRangeV2": {
+      "maxVariantPrice": {
+        "amount": "0.0"
+      }
+    },
+    "variants": {
+      "nodes": [
+        {
+          "id": "gid://shopify/ProductVariant/42056859123791",
+          "sku": "92440",
+          "price": "0.00"
+        }
+      ]
+    }
+  },
+  {
+    "id": "gid://shopify/Product/7553500840015",
+    "handle": "גוף-תאורה-לד-מרובע-שקוע-disc-מידות-120-120-הספק-6w-אור-טבעי-fetaya",
+    "title": "גוף תאורה לד מרובע שקוע DISC מידות 120/120 הספק 6W אור טבעי FETAYA",
+    "vendor": "פתיה",
+    "status": "ACTIVE",
+    "featuredImage": {
+      "url": "https://cdn.shopify.com/s/files/1/0581/1024/6991/files/64dda20aea73d8e5ccb73505c083d66a.jpg?v=1722447756"
+    },
+    "media": {
+      "nodes": [
+        {
+          "id": "gid://shopify/MediaImage/30527746506831"
+        }
+      ]
+    },
+    "priceRangeV2": {
+      "maxVariantPrice": {
+        "amount": "0.0"
+      }
+    },
+    "variants": {
+      "nodes": [
+        {
+          "id": "gid://shopify/ProductVariant/42056860041295",
+          "sku": "92641",
+          "price": "0.00"
+        }
+      ]
+    }
+  },
+  {
+    "id": "gid://shopify/Product/7553500938319",
+    "handle": "גוף-תאורה-לד-מרובע-שקוע-disc-מידות-120-120-הספק-6w-אור-חם-fetaya",
+    "title": "גוף תאורה לד מרובע שקוע DISC מידות 120/120 הספק 6W אור חם FETAYA",
+    "vendor": "פתיה",
+    "status": "ACTIVE",
+    "featuredImage": {
+      "url": "https://cdn.shopify.com/s/files/1/0581/1024/6991/files/a7a3cd3d6e2a44d10f995e49afabdd0b.jpg?v=1722447782"
+    },
+    "media": {
+      "nodes": [
+        {
+          "id": "gid://shopify/MediaImage/30527746637903"
+        }
+      ]
+    },
+    "priceRangeV2": {
+      "maxVariantPrice": {
+        "amount": "0.0"
+      }
+    },
+    "variants": {
+      "nodes": [
+        {
+          "id": "gid://shopify/ProductVariant/42056860467279",
+          "sku": "92541",
+          "price": "0.00"
+        }
+      ]
+    }
+  },
+  {
+    "id": "gid://shopify/Product/7553501134927",
+    "handle": "גוף-תאורה-לד-מרובע-שקוע-disc-מידות-120-120-הספק-6w-אור-קר-fetaya",
+    "title": "גוף תאורה לד מרובע שקוע DISC מידות 120/120 הספק 6W אור קר FETAYA",
+    "vendor": "פתיה",
+    "status": "ACTIVE",
+    "featuredImage": {
+      "url": "https://cdn.shopify.com/s/files/1/0581/1024/6991/files/6c3f83dfb8b200cd701f014137f483eb.jpg?v=1722447805"
+    },
+    "media": {
+      "nodes": [
+        {
+          "id": "gid://shopify/MediaImage/30527746768975"
+        }
+      ]
+    },
+    "priceRangeV2": {
+      "maxVariantPrice": {
+        "amount": "0.0"
+      }
+    },
+    "variants": {
+      "nodes": [
+        {
+          "id": "gid://shopify/ProductVariant/42056860893263",
+          "sku": "92441",
+          "price": "0.00"
+        }
+      ]
+    }
+  },
+  {
+    "id": "gid://shopify/Product/7553501298767",
+    "handle": "גוף-תאורה-לד-מרובע-שקוע-disc-מידות-170-170-הספק-12w-אור-טבעי-fetaya",
+    "title": "גוף תאורה לד מרובע שקוע DISC מידות 170/170 הספק 12W אור טבעי FETAYA",
+    "vendor": "פתיה",
+    "status": "ACTIVE",
+    "featuredImage": {
+      "url": "https://cdn.shopify.com/s/files/1/0581/1024/6991/files/e9f05efa644493ecfe910687d689f229.jpg?v=1722447829"
+    },
+    "media": {
+      "nodes": [
+        {
+          "id": "gid://shopify/MediaImage/30527747227727"
+        }
+      ]
+    },
+    "priceRangeV2": {
+      "maxVariantPrice": {
+        "amount": "0.0"
+      }
+    },
+    "variants": {
+      "nodes": [
+        {
+          "id": "gid://shopify/ProductVariant/42056861777999",
+          "sku": "92642",
+          "price": "0.00"
+        }
+      ]
+    }
+  },
+  {
+    "id": "gid://shopify/Product/7553501495375",
+    "handle": "גוף-תאורה-לד-מרובע-שקוע-disc-מידות-170-170-הספק-12w-אור-חם-fetaya",
+    "title": "גוף תאורה לד מרובע שקוע DISC מידות 170/170 הספק 12W אור חם FETAYA",
+    "vendor": "פתיה",
+    "status": "ACTIVE",
+    "featuredImage": {
+      "url": "https://cdn.shopify.com/s/files/1/0581/1024/6991/files/f7deedaf5ab8eeef9d045b678ef0597f.jpg?v=1722447875"
+    },
+    "media": {
+      "nodes": [
+        {
+          "id": "gid://shopify/MediaImage/30527749455951"
+        }
+      ]
+    },
+    "priceRangeV2": {
+      "maxVariantPrice": {
+        "amount": "0.0"
+      }
+    },
+    "variants": {
+      "nodes": [
+        {
+          "id": "gid://shopify/ProductVariant/42056862826575",
+          "sku": "92542",
+          "price": "0.00"
+        }
+      ]
+    }
+  },
+  {
+    "id": "gid://shopify/Product/7553501593679",
+    "handle": "גוף-תאורה-לד-מרובע-שקוע-disc-מידות-170-170-הספק-12w-אור-קר-fetaya",
+    "title": "גוף תאורה לד מרובע שקוע DISC מידות 170/170 הספק 12W אור קר FETAYA",
+    "vendor": "פתיה",
+    "status": "ACTIVE",
+    "featuredImage": {
+      "url": "https://cdn.shopify.com/s/files/1/0581/1024/6991/files/1f591cc6c1353932016dcb9bd511bacd.jpg?v=1722447897"
+    },
+    "media": {
+      "nodes": [
+        {
+          "id": "gid://shopify/MediaImage/30527749587023"
+        }
+      ]
+    },
+    "priceRangeV2": {
+      "maxVariantPrice": {
+        "amount": "0.0"
+      }
+    },
+    "variants": {
+      "nodes": [
+        {
+          "id": "gid://shopify/ProductVariant/42056864006223",
+          "sku": "92442",
+          "price": "0.00"
+        }
+      ]
+    }
+  },
+  {
+    "id": "gid://shopify/Product/7553501855823",
+    "handle": "גוף-תאורה-לד-מרובע-שקוע-disc-מידות-225-225-הספק-18w-אור-טבעי-fetaya",
+    "title": "גוף תאורה לד מרובע שקוע DISC מידות 225/225 הספק 18W אור טבעי FETAYA",
+    "vendor": "פתיה",
+    "status": "ACTIVE",
+    "featuredImage": {
+      "url": "https://cdn.shopify.com/s/files/1/0581/1024/6991/files/d6357816605babebb006b8ef7709a473.jpg?v=1722447922"
+    },
+    "media": {
+      "nodes": [
+        {
+          "id": "gid://shopify/MediaImage/30527749816399"
+        }
+      ]
+    },
+    "priceRangeV2": {
+      "maxVariantPrice": {
+        "amount": "0.0"
+      }
+    },
+    "variants": {
+      "nodes": [
+        {
+          "id": "gid://shopify/ProductVariant/42056864989263",
+          "sku": "92643",
+          "price": "0.00"
+        }
+      ]
+    }
+  },
+  {
+    "id": "gid://shopify/Product/7553502150735",
+    "handle": "גוף-תאורה-לד-מרובע-שקוע-disc-מידות-225-225-הספק-18w-אור-חם-fetaya",
+    "title": "גוף תאורה לד מרובע שקוע DISC מידות 225/225 הספק 18W אור חם FETAYA",
+    "vendor": "פתיה",
+    "status": "ACTIVE",
+    "featuredImage": {
+      "url": "https://cdn.shopify.com/s/files/1/0581/1024/6991/files/2a05a469c11b5795129b4b930eb69a10.jpg?v=1722447946"
+    },
+    "media": {
+      "nodes": [
+        {
+          "id": "gid://shopify/MediaImage/30527750340687"
+        }
+      ]
+    },
+    "priceRangeV2": {
+      "maxVariantPrice": {
+        "amount": "0.0"
+      }
+    },
+    "variants": {
+      "nodes": [
+        {
+          "id": "gid://shopify/ProductVariant/42056866136143",
+          "sku": "92543",
+          "price": "0.00"
+        }
+      ]
+    }
+  },
+  {
+    "id": "gid://shopify/Product/7553502347343",
+    "handle": "גוף-תאורה-לד-מרובע-שקוע-disc-מידות-225-225-הספק-18w-אור-קר-fetaya",
+    "title": "גוף תאורה לד מרובע שקוע DISC מידות 225/225 הספק 18W אור קר FETAYA",
+    "vendor": "פתיה",
+    "status": "ACTIVE",
+    "featuredImage": {
+      "url": "https://cdn.shopify.com/s/files/1/0581/1024/6991/files/5f739bf9913d9c4649bca5cb5163f65e.jpg?v=1722447967"
+    },
+    "media": {
+      "nodes": [
+        {
+          "id": "gid://shopify/MediaImage/30527750668367"
+        }
+      ]
+    },
+    "priceRangeV2": {
+      "maxVariantPrice": {
+        "amount": "0.0"
+      }
+    },
+    "variants": {
+      "nodes": [
+        {
+          "id": "gid://shopify/ProductVariant/42056866693199",
+          "sku": "92443",
+          "price": "0.00"
+        }
+      ]
+    }
+  },
+  {
+    "id": "gid://shopify/Product/7553503232079",
+    "handle": "גוף-תאורה-לד-מרובע-צמוד-תקרה-disc-מידות-170-170-הספק-12w-אור-טבעי-fetaya",
+    "title": "גוף תאורה לד מרובע צמוד תקרה DISC מידות 170/170 הספק 12W אור טבעי FETAYA",
+    "vendor": "פתיה",
+    "status": "ACTIVE",
+    "featuredImage": {
+      "url": "https://cdn.shopify.com/s/files/1/0581/1024/6991/files/17fd889a7aa1f2ad250237587a523b40.jpg?v=1722448069"
+    },
+    "media": {
+      "nodes": [
+        {
+          "id": "gid://shopify/MediaImage/30527752699983"
+        }
+      ]
+    },
+    "priceRangeV2": {
+      "maxVariantPrice": {
+        "amount": "0.0"
+      }
+    },
+    "variants": {
+      "nodes": [
+        {
+          "id": "gid://shopify/ProductVariant/42056872460367",
+          "sku": "92646",
+          "price": "0.00"
+        }
+      ]
+    }
+  },
+  {
+    "id": "gid://shopify/Product/7553503887439",
+    "handle": "גוף-תאורה-לד-מרובע-צמוד-תקרה-disc-מידות-225-225-הספק-18w-אור-טבעי-fetaya",
+    "title": "גוף תאורה לד מרובע צמוד תקרה DISC מידות 225/225 הספק 18W אור טבעי FETAYA",
+    "vendor": "פתיה",
+    "status": "ACTIVE",
+    "featuredImage": {
+      "url": "https://cdn.shopify.com/s/files/1/0581/1024/6991/files/6775c3d7ffeaddaba414ecfc7341cbd8.jpg?v=1722448145"
+    },
+    "media": {
+      "nodes": [
+        {
+          "id": "gid://shopify/MediaImage/30527755911247"
+        }
+      ]
+    },
+    "priceRangeV2": {
+      "maxVariantPrice": {
+        "amount": "0.0"
+      }
+    },
+    "variants": {
+      "nodes": [
+        {
+          "id": "gid://shopify/ProductVariant/42056876228687",
+          "sku": "92647",
+          "price": "0.00"
+        }
+      ]
+    }
+  },
+  {
+    "id": "gid://shopify/Product/7553504084047",
+    "handle": "גוף-תאורה-לד-מרובע-צמוד-תקרה-disc-מידות-225-225-הספק-18w-אור-חם-fetaya",
+    "title": "גוף תאורה לד מרובע צמוד תקרה DISC מידות 225/225 הספק 18W אור חם FETAYA",
+    "vendor": "פתיה",
+    "status": "ACTIVE",
+    "featuredImage": {
+      "url": "https://cdn.shopify.com/s/files/1/0581/1024/6991/files/3b36581054dbe6fcff008a1ef46de4db.jpg?v=1722448170"
+    },
+    "media": {
+      "nodes": [
+        {
+          "id": "gid://shopify/MediaImage/30527756206159"
+        }
+      ]
+    },
+    "priceRangeV2": {
+      "maxVariantPrice": {
+        "amount": "0.0"
+      }
+    },
+    "variants": {
+      "nodes": [
+        {
+          "id": "gid://shopify/ProductVariant/42056877473871",
+          "sku": "92547",
+          "price": "0.00"
+        }
+      ]
+    }
+  },
+  {
+    "id": "gid://shopify/Product/7553504411727",
+    "handle": "גוף-תאורה-לד-מרובע-צמוד-תקרה-disc-מידות-225-225-הספק-18w-אור-קר-fetaya",
+    "title": "גוף תאורה לד מרובע צמוד תקרה DISC מידות 225/225 הספק 18W אור קר FETAYA",
+    "vendor": "פתיה",
+    "status": "ACTIVE",
+    "featuredImage": {
+      "url": "https://cdn.shopify.com/s/files/1/0581/1024/6991/files/efe55f19fc857c1bcec726ebabcef195.jpg?v=1722448203"
+    },
+    "media": {
+      "nodes": [
+        {
+          "id": "gid://shopify/MediaImage/30527756501071"
+        }
+      ]
+    },
+    "priceRangeV2": {
+      "maxVariantPrice": {
+        "amount": "0.0"
+      }
+    },
+    "variants": {
+      "nodes": [
+        {
+          "id": "gid://shopify/ProductVariant/42056878489679",
+          "sku": "92447",
+          "price": "0.00"
+        }
+      ]
+    }
+  },
+  {
+    "id": "gid://shopify/Product/7553504772175",
+    "handle": "גוף-תאורה-פרבולי-לד-back-light-36w-אור-חם-fetaya",
+    "title": "גוף תאורה פרבולי לד BACK LIGHT 36W אור חם FETAYA",
+    "vendor": "פתיה",
+    "status": "ACTIVE",
+    "featuredImage": {
+      "url": "https://cdn.shopify.com/s/files/1/0581/1024/6991/files/1a9b4bbe24262a46fda1ab0d0cb45ff3.jpg?v=1722448251"
+    },
+    "media": {
+      "nodes": [
+        {
+          "id": "gid://shopify/MediaImage/30527756861519"
+        }
+      ]
+    },
+    "priceRangeV2": {
+      "maxVariantPrice": {
+        "amount": "0.0"
+      }
+    },
+    "variants": {
+      "nodes": [
+        {
+          "id": "gid://shopify/ProductVariant/42056880521295",
+          "sku": "92564",
+          "price": "0.00"
+        }
+      ]
+    }
+  },
+  {
+    "id": "gid://shopify/Product/7553504870479",
+    "handle": "גוף-תאורה-פרבולי-לד-back-light-40w-אור-טבעי-fetaya",
+    "title": "גוף תאורה פרבולי לד BACK LIGHT 40W אור טבעי FETAYA",
+    "vendor": "פתיה",
+    "status": "ACTIVE",
+    "featuredImage": {
+      "url": "https://cdn.shopify.com/s/files/1/0581/1024/6991/files/2cf7ea8d7600f07a4a86f07f3e9ae8b7.jpg?v=1722448278"
+    },
+    "media": {
+      "nodes": [
+        {
+          "id": "gid://shopify/MediaImage/30527757385807"
+        }
+      ]
+    },
+    "priceRangeV2": {
+      "maxVariantPrice": {
+        "amount": "0.0"
+      }
+    },
+    "variants": {
+      "nodes": [
+        {
+          "id": "gid://shopify/ProductVariant/42056881078351",
+          "sku": "92569",
+          "price": "0.00"
+        }
+      ]
+    }
+  },
+  {
+    "id": "gid://shopify/Product/7563949277263",
+    "handle": "בית-מנורה-liri-הספק-100w-fetaya",
+    "title": "בית מנורה LIRI הספק 100W FETAYA",
+    "vendor": "פתיה",
+    "status": "ACTIVE",
+    "featuredImage": {
+      "url": "https://cdn.shopify.com/s/files/1/0581/1024/6991/files/3b42015eda18f91eb11a9977ad6885cd_1.jpg?v=1723307069"
+    },
+    "media": {
+      "nodes": [
+        {
+          "id": "gid://shopify/MediaImage/30553659277391"
+        }
+      ]
+    },
+    "priceRangeV2": {
+      "maxVariantPrice": {
+        "amount": "0.0"
+      }
+    },
+    "variants": {
+      "nodes": [
+        {
+          "id": "gid://shopify/ProductVariant/42079654674511",
+          "sku": "9550",
+          "price": "0.00"
+        }
+      ]
+    }
+  },
+  {
+    "id": "gid://shopify/Product/7563949932623",
+    "handle": "בית-מנורה-חרסינה-הספק-100w-fetaya",
+    "title": "בית מנורה חרסינה הספק 100W FETAYA",
+    "vendor": "פתיה",
+    "status": "ACTIVE",
+    "featuredImage": {
+      "url": "https://cdn.shopify.com/s/files/1/0581/1024/6991/files/a482bccdcb2a0c472b79082b9de12cef.jpg?v=1723307281"
+    },
+    "media": {
+      "nodes": [
+        {
+          "id": "gid://shopify/MediaImage/30553661669455"
+        }
+      ]
+    },
+    "priceRangeV2": {
+      "maxVariantPrice": {
+        "amount": "0.0"
+      }
+    },
+    "variants": {
+      "nodes": [
+        {
+          "id": "gid://shopify/ProductVariant/42079656312911",
+          "sku": "9014",
+          "price": "0.00"
+        }
+      ]
+    }
+  },
+  {
+    "id": "gid://shopify/Product/7563949998159",
+    "handle": "בית-מנורה-חרסינה-עם-רגל-הספק-100w-fetaya",
+    "title": "בית מנורה חרסינה עם רגל הספק 100W FETAYA",
+    "vendor": "פתיה",
+    "status": "ACTIVE",
+    "featuredImage": {
+      "url": "https://cdn.shopify.com/s/files/1/0581/1024/6991/files/891270cc01828c4f157c3be076bf428e.jpg?v=1723307313"
+    },
+    "media": {
+      "nodes": [
+        {
+          "id": "gid://shopify/MediaImage/30553661767759"
+        }
+      ]
+    },
+    "priceRangeV2": {
+      "maxVariantPrice": {
+        "amount": "0.0"
+      }
+    },
+    "variants": {
+      "nodes": [
+        {
+          "id": "gid://shopify/ProductVariant/42079656443983",
+          "sku": "9013",
+          "price": "0.00"
+        }
+      ]
+    }
+  },
+  {
+    "id": "gid://shopify/Product/7563958845519",
+    "handle": "גוף-תאורה-צמוד-תקרה-דקורטיבי-melrose-צבע-גוף-לבן-fetaya",
+    "title": "גוף תאורה צמוד תקרה דקורטיבי MELROSE צבע גוף לבן FETAYA",
+    "vendor": "פתיה",
+    "status": "ACTIVE",
+    "featuredImage": {
+      "url": "https://cdn.shopify.com/s/files/1/0581/1024/6991/files/a6025add5126c5448d982626bf2129ba.jpg?v=1723309661"
+    },
+    "media": {
+      "nodes": [
+        {
+          "id": "gid://shopify/MediaImage/30553702006863"
+        }
+      ]
+    },
+    "priceRangeV2": {
+      "maxVariantPrice": {
+        "amount": "0.0"
+      }
+    },
+    "variants": {
+      "nodes": [
+        {
+          "id": "gid://shopify/ProductVariant/42079675351119",
+          "sku": "9054",
+          "price": "0.00"
+        }
+      ]
+    }
+  },
+  {
+    "id": "gid://shopify/Product/7563960287311",
+    "handle": "פרוזקטור-לד-מקצועי-600w-כולל-זרוע-תלייה-מתכוננת-ip-65-גוון-אור-לבן-fetaya-1",
+    "title": "פרוז'קטור לד מקצועי 600W כולל זרוע תלייה מתכוננת IP-65 גוון אור לבן FETAYA",
+    "vendor": "פתיה",
+    "status": "ACTIVE",
+    "featuredImage": {
+      "url": "https://cdn.shopify.com/s/files/1/0581/1024/6991/files/aa83df6a6abfee5893bf20aa38894c9e_2.jpg?v=1723309967"
+    },
+    "media": {
+      "nodes": [
+        {
+          "id": "gid://shopify/MediaImage/30553709838415"
+        }
+      ]
+    },
+    "priceRangeV2": {
+      "maxVariantPrice": {
+        "amount": "0.0"
+      }
+    },
+    "variants": {
+      "nodes": [
+        {
+          "id": "gid://shopify/ProductVariant/42079687049295",
+          "sku": "9169",
+          "price": "0.00"
+        }
+      ]
+    }
+  },
+  {
+    "id": "gid://shopify/Product/7563960451151",
+    "handle": "פרוזקטור-לד-מקצועי-400w-כולל-זרוע-תלייה-מתכוננת-ip-65-גוון-אור-לבן-fetaya-1",
+    "title": "פרוז'קטור לד מקצועי 400W כולל זרוע תלייה מתכוננת IP-65 גוון אור לבן FETAYA",
+    "vendor": "פתיה",
+    "status": "ACTIVE",
+    "featuredImage": {
+      "url": "https://cdn.shopify.com/s/files/1/0581/1024/6991/files/67d84d4e8516e7c355562745d2a8dded_1.jpg?v=1723309994"
+    },
+    "media": {
+      "nodes": [
+        {
+          "id": "gid://shopify/MediaImage/30553710428239"
+        }
+      ]
+    },
+    "priceRangeV2": {
+      "maxVariantPrice": {
+        "amount": "0.0"
+      }
+    },
+    "variants": {
+      "nodes": [
+        {
+          "id": "gid://shopify/ProductVariant/42079687311439",
+          "sku": "9168",
+          "price": "0.00"
+        }
+      ]
+    }
+  },
+  {
+    "id": "gid://shopify/Product/7563960614991",
+    "handle": "תושבת-לגוף-תאורה-שלט-יציאת-חירום-neptune-לתקרה-חלולה-fetaya",
+    "title": "תושבת לגוף תאורה שלט יציאת חירום NEPTUNE לתקרה חלולה FETAYA",
+    "vendor": "פתיה",
+    "status": "ACTIVE",
+    "featuredImage": {
+      "url": "https://cdn.shopify.com/s/files/1/0581/1024/6991/files/02630ef581d215b779067738ca92525f.jpg?v=1723310022"
+    },
+    "media": {
+      "nodes": [
+        {
+          "id": "gid://shopify/MediaImage/30553710886991"
+        }
+      ]
+    },
+    "priceRangeV2": {
+      "maxVariantPrice": {
+        "amount": "0.0"
+      }
+    },
+    "variants": {
+      "nodes": [
+        {
+          "id": "gid://shopify/ProductVariant/42079687934031",
+          "sku": "9243",
+          "price": "0.00"
+        }
+      ]
+    }
+  },
+  {
+    "id": "gid://shopify/Product/7563960844367",
+    "handle": "גוף-תאורה-שלט-יציאת-חירום-neptune-הספק-3w-גוון-אור-קר-כבל-1-5-מטר-fetaya",
+    "title": "גוף תאורה שלט יציאת חירום NEPTUNE הספק 3W גוון אור קר + כבל 1.5 מטר FETAYA",
+    "vendor": "פתיה",
+    "status": "ACTIVE",
+    "featuredImage": {
+      "url": "https://cdn.shopify.com/s/files/1/0581/1024/6991/files/6e2bf157c80ae22c25c5c63dad58370f.jpg?v=1723310051"
+    },
+    "media": {
+      "nodes": [
+        {
+          "id": "gid://shopify/MediaImage/30553711280207"
+        }
+      ]
+    },
+    "priceRangeV2": {
+      "maxVariantPrice": {
+        "amount": "0.0"
+      }
+    },
+    "variants": {
+      "nodes": [
+        {
+          "id": "gid://shopify/ProductVariant/42079688458319",
+          "sku": "9241",
+          "price": "0.00"
+        }
+      ]
+    }
+  },
+  {
+    "id": "gid://shopify/Product/7563961368655",
+    "handle": "סט-4-יחידותפקטוגרמה-לשלט-יציאה-neptune-אגלית-fetaya",
+    "title": "סט 4 יחידות'פקטוגרמה לשלט יציאה NEPTUNE - אגלית FETAYA",
+    "vendor": "פתיה",
+    "status": "ACTIVE",
+    "featuredImage": null,
+    "media": {
+      "nodes": []
+    },
+    "priceRangeV2": {
+      "maxVariantPrice": {
+        "amount": "0.0"
+      }
+    },
+    "variants": {
+      "nodes": [
+        {
+          "id": "gid://shopify/ProductVariant/42079689867343",
+          "sku": "9242",
+          "price": "0.00"
+        }
+      ]
+    }
+  },
+  {
+    "id": "gid://shopify/Product/7563961598031",
+    "handle": "גוף-תאורה-פעמון-לד-200w-mor-גוון-50k-fetaya",
+    "title": "גוף תאורה פעמון לד 200W MOR גוון 50K FETAYA",
+    "vendor": "פתיה",
+    "status": "ACTIVE",
+    "featuredImage": null,
+    "media": {
+      "nodes": []
+    },
+    "priceRangeV2": {
+      "maxVariantPrice": {
+        "amount": "0.0"
+      }
+    },
+    "variants": {
+      "nodes": [
+        {
+          "id": "gid://shopify/ProductVariant/42079690588239",
+          "sku": "9134",
+          "price": "0.00"
+        }
+      ]
+    }
+  },
+  {
+    "id": "gid://shopify/Product/7563961827407",
+    "handle": "גוף-תאורה-פעמון-לד-libbi-200w-fetaya",
+    "title": "גוף תאורה פעמון לד LIBBI 200W FETAYA",
+    "vendor": "פתיה",
+    "status": "ACTIVE",
+    "featuredImage": null,
+    "media": {
+      "nodes": []
+    },
+    "priceRangeV2": {
+      "maxVariantPrice": {
+        "amount": "0.0"
+      }
+    },
+    "variants": {
+      "nodes": [
+        {
+          "id": "gid://shopify/ProductVariant/42079691309135",
+          "sku": "9163",
+          "price": "0.00"
+        }
+      ]
+    }
+  },
+  {
+    "id": "gid://shopify/Product/7563962056783",
+    "handle": "גוף-תאורה-כפתור-חרום-עגול-חד-תכליתי-הספק-2x3w-גוון-אור-קר-מוגן-ip20-fetaya",
+    "title": "גוף תאורה כפתור חרום עגול חד תכליתי הספק 2X3W גוון אור קר, מוגן IP20 FETAYA",
+    "vendor": "פתיה",
+    "status": "ACTIVE",
+    "featuredImage": null,
+    "media": {
+      "nodes": []
+    },
+    "priceRangeV2": {
+      "maxVariantPrice": {
+        "amount": "0.0"
+      }
+    },
+    "variants": {
+      "nodes": [
+        {
+          "id": "gid://shopify/ProductVariant/42079691702351",
+          "sku": "9191",
+          "price": "0.00"
+        }
+      ]
+    }
+  },
+  {
+    "id": "gid://shopify/Product/7563962417231",
+    "handle": "גוף-תאורה-כפתור-חרום-מרובע-speedy-הספק-2x3w-גוון-אור-קר-מוגן-ip40-fetaya",
+    "title": "גוף תאורה כפתור חרום מרובע SPEEDY הספק 2X3W גוון אור קר מוגן IP40 FETAYA",
+    "vendor": "פתיה",
+    "status": "ACTIVE",
+    "featuredImage": null,
+    "media": {
+      "nodes": []
+    },
+    "priceRangeV2": {
+      "maxVariantPrice": {
+        "amount": "0.0"
+      }
+    },
+    "variants": {
+      "nodes": [
+        {
+          "id": "gid://shopify/ProductVariant/42079693897807",
+          "sku": "9187",
+          "price": "0.00"
+        }
+      ]
+    }
+  },
+  {
+    "id": "gid://shopify/Product/7563963859023",
+    "handle": "מנורת-לילה-לד-פוטוצל-הספק-1wצבע-עדשה-שקוף-גוון-אור-קר-fetaya",
+    "title": "מנורת לילה לד פוטוצל הספק 1Wצבע עדשה שקוף גוון אור קר FETAYA",
+    "vendor": "פתיה",
+    "status": "ACTIVE",
+    "featuredImage": {
+      "url": "https://cdn.shopify.com/s/files/1/0581/1024/6991/files/d0b64460d7c1e2c63847f01b639222e8.jpg?v=1723311019"
+    },
+    "media": {
+      "nodes": [
+        {
+          "id": "gid://shopify/MediaImage/30553726943311"
+        }
+      ]
+    },
+    "priceRangeV2": {
+      "maxVariantPrice": {
+        "amount": "0.0"
+      }
+    },
+    "variants": {
+      "nodes": [
+        {
+          "id": "gid://shopify/ProductVariant/42079697141839",
+          "sku": "9158",
+          "price": "0.00"
+        }
+      ]
+    }
+  },
+  {
+    "id": "gid://shopify/Product/8333005160527",
+    "handle": "דבק-קרמיקה-800-טמבור",
+    "title": "דבק קרמיקה 800 - טמבור",
+    "vendor": "א.נ. שילו בע\"מ - חנות חומרי בניין ואספקה טכנית",
+    "status": "ACTIVE",
+    "featuredImage": {
+      "url": "https://cdn.shopify.com/s/files/1/0581/1024/6991/files/493AE08B-AAB8-404B-B770-9BDD002AD4B5.jpg?v=1773480766"
+    },
+    "media": {
+      "nodes": [
+        {
+          "id": "gid://shopify/MediaImage/34279386579023"
+        }
+      ]
+    },
+    "priceRangeV2": {
+      "maxVariantPrice": {
+        "amount": "0.0"
+      }
+    },
+    "variants": {
+      "nodes": [
+        {
+          "id": "gid://shopify/ProductVariant/44752697229391",
+          "sku": null,
+          "price": "0.00"
+        }
+      ]
+    }
+  },
+  {
+    "id": "gid://shopify/Product/8333245972559",
+    "handle": "דבק-קרמיקה-808-טמבור",
+    "title": "דבק קרמיקה 808 - טמבור",
+    "vendor": "א.נ. שילו בע\"מ - חנות חומרי בניין ואספקה טכנית",
+    "status": "ACTIVE",
+    "featuredImage": {
+      "url": "https://cdn.shopify.com/s/files/1/0581/1024/6991/files/57EF726F-49D1-4490-9A55-8E652B0FB387.jpg?v=1773480981"
+    },
+    "media": {
+      "nodes": [
+        {
+          "id": "gid://shopify/MediaImage/34279438745679"
+        }
+      ]
+    },
+    "priceRangeV2": {
+      "maxVariantPrice": {
+        "amount": "0.0"
+      }
+    },
+    "variants": {
+      "nodes": [
+        {
+          "id": "gid://shopify/ProductVariant/44752942628943",
+          "sku": null,
+          "price": "0.00"
+        }
+      ]
+    }
+  },
+  {
+    "id": "gid://shopify/Product/8333406044239",
+    "handle": "דבק-קרמיקה-834-טמבור",
+    "title": "דבק קרמיקה 834 - טמבור",
+    "vendor": "א.נ. שילו בע\"מ - חנות חומרי בניין ואספקה טכנית",
+    "status": "ACTIVE",
+    "featuredImage": {
+      "url": "https://cdn.shopify.com/s/files/1/0581/1024/6991/files/A65A5F61-1CEC-45D1-A28F-B471046EEB9F.jpg?v=1773481005"
+    },
+    "media": {
+      "nodes": [
+        {
+          "id": "gid://shopify/MediaImage/34279444971599"
+        }
+      ]
+    },
+    "priceRangeV2": {
+      "maxVariantPrice": {
+        "amount": "0.0"
+      }
+    },
+    "variants": {
+      "nodes": [
+        {
+          "id": "gid://shopify/ProductVariant/44753103749199",
+          "sku": null,
+          "price": "0.00"
+        }
+      ]
+    }
+  },
+  {
+    "id": "gid://shopify/Product/8333435830351",
+    "handle": "דבק-קרמיקה-סיקה-135-sika",
+    "title": "דבק קרמיקה סיקה 135 - sika",
+    "vendor": "א.נ. שילו בע\"מ - חנות חומרי בניין ואספקה טכנית",
+    "status": "ACTIVE",
+    "featuredImage": {
+      "url": "https://cdn.shopify.com/s/files/1/0581/1024/6991/files/IMG-8322.webp?v=1773480496"
+    },
+    "media": {
+      "nodes": [
+        {
+          "id": "gid://shopify/MediaImage/34279293943887"
+        }
+      ]
+    },
+    "priceRangeV2": {
+      "maxVariantPrice": {
+        "amount": "0.0"
+      }
+    },
+    "variants": {
+      "nodes": [
+        {
+          "id": "gid://shopify/ProductVariant/44753134321743",
+          "sku": "100",
+          "price": "0.00"
+        }
+      ]
+    }
+  },
+  {
+    "id": "gid://shopify/Product/8333445693519",
+    "handle": "דבק-קרמיקה-מיקה-253-sika",
+    "title": "דבק קרמיקה סיקה 235 - sika",
+    "vendor": "א.נ. שילו בע\"מ - חנות חומרי בניין ואספקה טכנית",
+    "status": "ACTIVE",
+    "featuredImage": {
+      "url": "https://cdn.shopify.com/s/files/1/0581/1024/6991/files/IMG-8321.png?v=1773480447"
+    },
+    "media": {
+      "nodes": [
+        {
+          "id": "gid://shopify/MediaImage/34279279886415"
+        }
+      ]
+    },
+    "priceRangeV2": {
+      "maxVariantPrice": {
+        "amount": "0.0"
+      }
+    },
+    "variants": {
+      "nodes": [
+        {
+          "id": "gid://shopify/ProductVariant/44753144774735",
+          "sku": null,
+          "price": "0.00"
+        }
+      ]
+    }
+  },
+  {
+    "id": "gid://shopify/Product/8333505200207",
+    "handle": "דבק-קרמיקה-מיקה-255-sika",
+    "title": "דבק קרמיקה סיקה 255 - sika",
+    "vendor": "א.נ. שילו בע\"מ - חנות חומרי בניין ואספקה טכנית",
+    "status": "ACTIVE",
+    "featuredImage": {
+      "url": "https://cdn.shopify.com/s/files/1/0581/1024/6991/files/IMG-8320.jpg?v=1773480390"
+    },
+    "media": {
+      "nodes": [
+        {
+          "id": "gid://shopify/MediaImage/34279267172431"
+        }
+      ]
+    },
+    "priceRangeV2": {
+      "maxVariantPrice": {
+        "amount": "0.0"
+      }
+    },
+    "variants": {
+      "nodes": [
+        {
+          "id": "gid://shopify/ProductVariant/44753204641871",
+          "sku": null,
+          "price": "0.00"
+        }
+      ]
+    }
+  },
+  {
+    "id": "gid://shopify/Product/8350364663887",
+    "handle": "דבק-קרמיקה-831-טמבור",
+    "title": "דבק קרמיקה 831 - טמבור",
+    "vendor": "א.נ. שילו בע\"מ - חנות חומרי בניין ואספקה טכנית",
+    "status": "ACTIVE",
+    "featuredImage": {
+      "url": "https://cdn.shopify.com/s/files/1/0581/1024/6991/files/7563216B-126E-4571-B3D1-B517E7AADA10.jpg?v=1773481357"
+    },
+    "media": {
+      "nodes": [
+        {
+          "id": "gid://shopify/MediaImage/34279544258639"
+        }
+      ]
+    },
+    "priceRangeV2": {
+      "maxVariantPrice": {
+        "amount": "0.0"
+      }
+    },
+    "variants": {
+      "nodes": [
+        {
+          "id": "gid://shopify/ProductVariant/44771891052623",
+          "sku": null,
+          "price": "0.00"
+        }
+      ]
+    }
+  }
+]
