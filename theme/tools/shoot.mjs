@@ -14,7 +14,12 @@ import { chromium } from 'playwright';
 import { mkdir } from 'node:fs/promises';
 import path from 'node:path';
 
-const THEME_ID = process.argv[2] || '148357644367';
+/* No default theme id any more. It used to be '148357644367' ("עותק של שמירה 1"),
+   which is now one of several unpublished backups — so the tool silently
+   screenshotted the wrong theme. `shilov8theme` is published, so with no argument
+   the live storefront is exactly what we want; pass a theme id to preview an
+   unpublished one. */
+const THEME_ID = process.argv[2] || '';
 const OUT = process.argv[3] || '/tmp/shilo-shots';
 const ORIGIN = 'https://anshilo.com';
 
@@ -39,6 +44,7 @@ const VIEWPORTS = [
 ];
 
 function withPreview(p) {
+  if (!THEME_ID) return `${ORIGIN}${p}`;
   const joiner = p.includes('?') ? '&' : '?';
   return `${ORIGIN}${p}${joiner}preview_theme_id=${THEME_ID}`;
 }

@@ -46,9 +46,13 @@ export const STORE_INFO = {
   website: 'https://anshilo.com',
   /** שנת ההקמה - מופיעה בשורת ה-eyebrow של ההירו */
   since: 1990,
+  /* Friday closes at 14:00, not 13:00. The published theme's own
+     settings_data.json (store_hours, saved by the owner in the theme editor) is
+     the authority here, and the app was showing an hour that does not match the
+     website or the door. */
   hours: [
     { days: "א'-ה'", hours: '07:00-17:00' },
-    { days: "ו'", hours: '07:00-13:00' },
+    { days: "ו'", hours: '07:00-14:00' },
   ],
   social: {
     facebook:

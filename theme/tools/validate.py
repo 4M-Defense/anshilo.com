@@ -59,9 +59,13 @@ SNIPPETS = {
 }
 SECTION_FILES = walk("sections", (".liquid",))
 SECTION_TYPES = {os.path.splitext(os.path.basename(p))[0] for p in SECTION_FILES}
-ASSETS = {os.path.basename(p) for p in walk("assets", tuple(""))} | {
-    os.path.basename(p) for p in walk("assets", (".css", ".js", ".liquid", ".txt", ".json"))
-}
+# There was an ASSETS inventory here. Two things were wrong with it: it was built
+# with `walk("assets", tuple(""))`, and `tuple("")` is `()` while
+# `str.endswith(())` is always False — so half of it was empty — and nothing in
+# the file ever read the name. The real check is the os.path.exists lookup further
+# down, which validates the actual on-disk path rather than a set of basenames.
+# Removed rather than repaired: a populated-looking inventory that matches nothing
+# is how a missing asset passes validation and 404s on the storefront.
 
 ICON_NAMES: set[str] = set()
 icon_path = os.path.join(ROOT, "snippets", "icon.liquid")
@@ -185,12 +189,61 @@ BLOCK_TAGS = [
     ("tablerow", "endtablerow"),
 ]
 
-BANNED_HEX = re.compile(r"#(?!fff\b|ffffff\b|000\b|000000\b)[0-9a-fA-F]{3,8}\b")
+COMMENT_RE = re.compile(r"{%-?\s*comment\s*-?%}.*?{%-?\s*endcomment\s*-?%}", re.S)
+# `{%- # inline comment -%}` — Liquid's shorthand comment tag.
+INLINE_COMMENT_RE = re.compile(r"{%-?\s*#.*?-?%}", re.S)
+LIQUID_TAG_RE = re.compile(r"{%-?\s*liquid\b(.*?)-?%}", re.S)
+
+
+def strip_comments(src: str) -> str:
+    """Blank out comment bodies, keeping newlines so line numbers survive."""
+
+    def blank(match: re.Match) -> str:
+        return re.sub(r"[^\n]", " ", match.group(0))
+
+    return INLINE_COMMENT_RE.sub(blank, COMMENT_RE.sub(blank, src))
+
+
+def strip_liquid_comments(body: str) -> str:
+    """Inside a {% liquid %} tag, comments are `comment`/`endcomment` lines and
+    `#` lines. Both can contain prose about tag syntax."""
+    body = re.sub(r"(?ms)^\s*comment\b.*?^\s*endcomment\s*$", "", body)
+    return re.sub(r"(?m)^\s*#.*$", "", body)
+
+
+# Balanced inside a {% liquid %} body. `raw`, `schema`, `style` and friends cannot
+# appear there at all, so the list is only the control-flow tags.
+LIQUID_BODY_TAGS = [
+    ("if", "endif"),
+    ("unless", "endunless"),
+    ("case", "endcase"),
+    ("for", "endfor"),
+    ("capture", "endcapture"),
+    ("tablerow", "endtablerow"),
+]
+
+# (A BANNED_HEX pattern used to be compiled here and never referenced — the
+# colour checks below use ALLOWED_HEX against an inline literal.)
+# Colours that deliberately are NOT tokens. Everything here has a reason a CSS
+# custom property cannot serve, so --strict can be a CI gate: a genuinely new
+# hardcoded colour still fails the build.
 ALLOWED_HEX = {
     "#25d366",  # WhatsApp
     "#1877f2",  # Facebook
     "#ff0000",  # YouTube
     "#3d2600",  # readable text on the amber offer badge
+    # layout/theme.liquid and layout/password.liquid are where the tokens are
+    # DEFINED, so these two are the fallbacks behind --color-on-ink and
+    # --color-tile-bg. Referencing the property there would be circular.
+    "#eef1f6",  # --color-on-ink fallback
+    "#efe9df",  # --color-tile-bg fallback (settings.color_tile_bg default)
+    # The high-contrast link colour in the accessibility widget must be the
+    # universally recognised link blue, not the brand accent — the whole point of
+    # a11y-contrast is to override the theme's palette.
+    "#0000ee",
+    # Print stylesheet: paper has no theme, and the tokens resolve to screen
+    # colours that do not survive a monochrome printer.
+    "#ccc",
 }
 
 LIQUID_FILES = (
@@ -210,11 +263,45 @@ for path in LIQUID_FILES:
     src = read(path)
 
     # -- balanced block tags
+    #
+    # Two things had to be carved out of this check before it meant anything.
+    #
+    # 1. {% comment %} bodies. A comment that WRITES ABOUT tag syntax — this file
+    #    is full of comments explaining why a {% capture %} or a {% form %} is
+    #    shaped the way it is — was counted as an opening tag, so documenting the
+    #    code broke the build. Prose is not code.
+    #
+    # 2. {% liquid %} bodies. Inside a {% liquid %} tag, control flow is written
+    #    WITHOUT the {% %} delimiters, so neither regex matched any of it and this
+    #    check was blind to the majority of the theme's branching: snippets/
+    #    facets.liquid has 14 if/endif pairs in markup and 17 more inside liquid
+    #    tags, and for case/endcase the check was a total no-op in five files.
+    #    Merging the two tallies would be worse than the blind spot — an unclosed
+    #    markup `if` could cancel against an `endif` inside a liquid tag and turn a
+    #    real error invisible — so each liquid body is balanced as its own scope.
+    markup = strip_comments(src)
+    liquid_bodies = [m.group(1) for m in LIQUID_TAG_RE.finditer(markup)]
+    markup_only = LIQUID_TAG_RE.sub("", markup)
+
     for open_tag, close_tag in BLOCK_TAGS:
-        opens = len(re.findall(r"{%-?\s*" + open_tag + r"[\s%-]", src))
-        closes = len(re.findall(r"{%-?\s*" + close_tag + r"\s*-?%}", src))
+        opens = len(re.findall(r"{%-?\s*" + open_tag + r"[\s%-]", markup_only))
+        closes = len(re.findall(r"{%-?\s*" + close_tag + r"\s*-?%}", markup_only))
         if opens != closes:
             err(name, f"unbalanced {{% {open_tag} %}} ({opens}) vs {{% {close_tag} %}} ({closes})")
+
+    for index, body in enumerate(liquid_bodies, start=1):
+        # Inside a {% liquid %} tag every statement is on its own line, so the
+        # keyword is anchored to the start of a (stripped) line.
+        bare = strip_liquid_comments(body)
+        for open_tag, close_tag in LIQUID_BODY_TAGS:
+            opens = len(re.findall(r"(?m)^\s*" + open_tag + r"\b", bare))
+            closes = len(re.findall(r"(?m)^\s*" + close_tag + r"\s*$", bare))
+            if opens != closes:
+                err(
+                    name,
+                    f"unbalanced `{open_tag}` ({opens}) vs `{close_tag}` ({closes}) "
+                    f"inside {{% liquid %}} block #{index}",
+                )
 
     # -- output tag inside a logic tag is always a bug
     if re.search(r"{%[^%]*{{", src):
@@ -255,7 +342,13 @@ for path in LIQUID_FILES:
                     if s.get("id"):
                         block_ids.add(s["id"])
             for ref in set(re.findall(r"block\.settings\.([a-zA-Z0-9_]+)", src)):
-                if ref not in block_ids and block.get if False else ref not in block_ids:
+                # Was `if ref not in block_ids and block.get if False else ref not
+                # in block_ids:` — a conditional expression whose left operand is
+                # unreachable, and which referenced the loop variable `block`, so
+                # "fixing" the odd `if False` would have raised NameError on the
+                # first section that declares no blocks and aborted the deploy
+                # under set -e.
+                if ref not in block_ids:
                     warn(name, f"block.settings.{ref} used but not declared in any block schema")
     elif path in SECTION_FILES:
         err(name, "section is missing a {% schema %} block")

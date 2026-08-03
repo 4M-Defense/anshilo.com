@@ -1,0 +1,70 @@
+# CI for anshilo.com.
+#
+# Why this exists: pushing to `shopify-live` IS the deploy — Shopify's GitHub
+# integration redeploys the connected live theme on every push to that branch.
+# Before this workflow, nothing ran the two checks the README claims are green.
+# They ran only if a human remembered, and `theme/tools/sync-shopify-live.sh` was
+# the sole caller of the validator, so `git push origin HEAD:shopify-live` or a
+# merge straight into that branch deployed an unvalidated theme to a storefront
+# serving real shoppers, with a broken page as the first signal.
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+      - shopify-live
+
+# A superseded run has nothing useful left to say.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  theme:
+    name: Theme
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      # --strict fails on warnings too. The five outstanding ones are deliberate
+      # (documented at the top of validate.py's ALLOWED_HEX), so they are
+      # allowlisted rather than silenced — a NEW hardcoded colour still fails.
+      - name: Static checks and design-system rules
+        run: python3 theme/tools/validate.py --strict
+
+      - name: Shopify theme-check
+        run: |
+          npm install --no-save --no-audit --no-fund @shopify/cli@3
+          npx shopify theme check --path theme --fail-level error
+
+  app:
+    name: Mobile app
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: mobile-app
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+          cache-dependency-path: mobile-app/package-lock.json
+
+      # `ci`, not `install`: the lockfile is committed and a deploy must not pick
+      # up a version nobody tested.
+      - name: Install
+        run: npm ci
+
+      - name: Typecheck
+        run: npx tsc --noEmit

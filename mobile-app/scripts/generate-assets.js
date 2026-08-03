@@ -10,8 +10,21 @@
  *   assets/splash-icon.png     512×512   סמל מסך הפתיחה (רקע שקוף)
  *   assets/favicon.png           48×48   favicon לגרסת הווב (סמל מפושט)
  *
- * הסמל: שלושה פסים כתומים "מוערמים" בהיסט קל (כמו לוחות עץ במחסן) מעל
- * פס אזהרה אלכסוני כתום/כהה — מוטיב המותג של ת'ים "Shilo Pro" באתר.
+ * הסמל: שלושה פסים "מוערמים" בהיסט קל (כמו לוחות עץ במחסן) באדום שילו, על
+ * רקע נייבי, מעל מרשתת שרטוט טכני עדינה.
+ *
+ * שימו לב מה השתנה ולמה: התיאור כאן דיבר על "פסים כתומים" מעל "פס אזהרה
+ * אלכסוני", וזו הזהות של v1 שנזנחה. שני חלקים ממנה אסורים בפועל —
+ * theme/tools/validate.py נכשל בשגיאה על #F97316 ועל כל אזכור של hazard בכל
+ * קובץ בת'ים, ו-brand/DESIGN-LANGUAGE.md כותב במפורש "אין פסי אזהרה אלכסוניים"
+ * ומגדיר את המוטיב כמרשתת שרטוט על משטחים כהים בלבד. הקבועים בקוד כבר היו
+ * האדום הנכון, אבל ארבעת ה-PNG שנשלחים בבילד נוצרו לפני המעבר ונשארו כתומים עם
+ * פסי אזהרה — כלומר האפליקציה בחנויות והאתר היו שני מותגים שונים.
+ *
+ * הערה למי שממשיך: הפסים האלה הם סמל של האפליקציה, לא הלוגו של החברה.
+ * brand/logo/LOGO-USAGE.md אוסר להשתמש בסמל הגג לבד כאייקון ומפנה ללוגו
+ * הריבועי (`settings.logo_square` בחנות) לשימוש קטן ועצמאי. אם רוצים שהאייקון
+ * יהיה הלוגו האמיתי — זו החלטת מיתוג של הבעלים, וזה הקובץ שצריך לקרוא אותו.
  *
  * הרצה:   node scripts/generate-assets.js   (או: npm run generate-assets)
  * תלות:   pngjs (מותקן כ-devDependency)
@@ -82,23 +95,30 @@ function fillRoundedRect(c, x, y, wd, ht, r, rgb) {
  * פס אזהרה: מלבן שממולא בפסים אלכסוניים (45°) לסירוגין כתום/כהה.
  * stripeW — רוחב כל פס (בפיקסלים של קובץ היעד). r — עיגול פינות הרצועה.
  */
-function fillHazard(c, x, y, wd, ht, stripeW, r) {
+/**
+ * מרשתת שרטוט טכני — המוטיב שהחליף את פסי האזהרה האלכסוניים.
+ * brand/DESIGN-LANGUAGE.md: `rgba(ink, 0.06)`, על משטחים כהים בלבד. כאן היא
+ * מצוירת כתערובת מוכנה מעל הנייבי (הקנבס לא תומך אלפא חלקי), ולכן היא נמתחת רק
+ * על השטח שנמסר לה ולא מעל הפסים.
+ */
+const GRID_LINE = [
+  Math.round(INK[0] + (0xff - INK[0]) * 0.14),
+  Math.round(INK[1] + (0xff - INK[1]) * 0.14),
+  Math.round(INK[2] + (0xff - INK[2]) * 0.14),
+];
+
+function fillGrid(c, x, y, wd, ht, cell) {
   const x0 = Math.max(0, Math.round(x * SS));
   const y0 = Math.max(0, Math.round(y * SS));
   const x1 = Math.min(c.w, Math.round((x + wd) * SS));
   const y1 = Math.min(c.w, Math.round((y + ht) * SS));
-  const rr = Math.min(r * SS, (x1 - x0) / 2, (y1 - y0) / 2);
-  const rr2 = rr * rr;
-  const period = Math.max(1, Math.round(stripeW * SS));
+  const period = Math.max(2, Math.round(cell * SS));
+  const stroke = Math.max(1, Math.round(SS * 0.75));
   for (let py = y0; py < y1; py++) {
+    const onRow = (py - y0) % period < stroke;
     for (let px = x0; px < x1; px++) {
-      if (rr > 0) {
-        const dx = px < x0 + rr ? x0 + rr - px - 0.5 : px + 0.5 - (x1 - rr);
-        const dy = py < y0 + rr ? y0 + rr - py - 0.5 : py + 0.5 - (y1 - rr);
-        if (dx > 0 && dy > 0 && dx * dx + dy * dy > rr2) continue;
-      }
-      const band = Math.floor((px + py) / period) % 2;
-      putPixel(c, px, py, band === 0 ? ACCENT : INK);
+      const onCol = (px - x0) % period < stroke;
+      if (onRow || onCol) putPixel(c, px, py, GRID_LINE);
     }
   }
 }
@@ -121,17 +141,17 @@ const MARK = {
     { x: 0, w: 600 }, // אמצעי — רוחב מלא
     { x: 60, w: 440 }, // תחתון — מוסט שמאלה
   ],
-  hazardTop: 420,
-  hazardH: 52,
-  stripeW: 46,
+  gridTop: 420,
+  gridH: 52,
+  gridCell: 26,
 };
 
 /**
  * מצייר את הסמל. ox/oy — פינה שמאלית-עליונה, s — קנה מידה.
- * withHazard=false מצייר את הפסים בלבד (לאייקון הראשי, שם רצועת
- * האזהרה נמתחת לכל רוחב הקנבס בנפרד).
+ * withGrid=false מצייר את הפסים בלבד (לאייקון הראשי, שם המרשתת נמתחת לכל רוחב
+ * הקנבס בנפרד).
  */
-function drawMark(c, ox, oy, s, withHazard) {
+function drawMark(c, ox, oy, s, withGrid) {
   MARK.bars.forEach((bar, i) => {
     fillRoundedRect(
       c,
@@ -143,16 +163,8 @@ function drawMark(c, ox, oy, s, withHazard) {
       ACCENT
     );
   });
-  if (withHazard) {
-    fillHazard(
-      c,
-      ox,
-      oy + MARK.hazardTop * s,
-      MARK.width * s,
-      MARK.hazardH * s,
-      MARK.stripeW * s,
-      12 * s
-    );
+  if (withGrid) {
+    fillGrid(c, ox, oy + MARK.gridTop * s, MARK.width * s, MARK.gridH * s, MARK.gridCell * s);
   }
 }
 
@@ -210,8 +222,8 @@ function buildIcon() {
   drawMark(c, (1024 - MARK.width * s) / 2, 230, s, false);
   void barsH; // 396px — הפסים מסתיימים ב-y=626
 
-  // רצועת אזהרה מקיר לקיר ברבע התחתון של האייקון
-  fillHazard(c, 0, 796, 1024, 58, 50, 0);
+  // מרשתת שרטוט מקיר לקיר ברבע התחתון של האייקון
+  fillGrid(c, 0, 780, 1024, 96, 32);
 
   writePng(c, 'icon.png');
 }

@@ -199,11 +199,14 @@ only be created in the Shopify admin by the owner — an agent cannot mint it,
 because the Storefront API access scopes are granted to a custom app, not through
 the Admin API this session holds.
 
-Exact steps are in `docs/INSTALL-APP.md` §1. Summary: Settings → Apps and sales
-channels → Develop apps → create app → Configuration → Storefront API → tick
-`unauthenticated_read_product_listings`, `_product_inventory`, `_product_tags`,
-`_write_checkouts`, `_read_checkouts`, `_read_selling_plans` → Save → API
-credentials → Install app → copy the **Storefront API access token**.
+Exact steps are in `docs/INSTALL-APP.md` §1 — that file is the single source, and
+this section deliberately no longer restates them. The **Develop apps** path
+summarised here previously is CLOSED: Shopify retired legacy custom apps on
+1 January 2026, the menu no longer exists in the admin, and the
+`unauthenticated_*` scope checkboxes listed with it belong to that retired flow.
+The working route is the **Headless channel** (install it, create a custom
+storefront, copy the PUBLIC access token, and publish the catalog to the new
+publication — that last step is what the scope checkboxes used to do).
 
 That token is public by design (client-side, cannot read orders or customers), so
 it is safe to commit — but **ask the owner before committing it**, and never
@@ -588,6 +591,32 @@ REPO's settings_data and would silently drop them. Therefore:
 3. Merge the badge refs into the repo's `config/settings_data.json` so future
    zip deploys carry them; delete `shilo-v8-theme.zip` from the repo root;
    commit + push; update this section.
+
+**RESOLVED — verified against the live store via the Admin API.** Steps 1 and 3
+are done; step 2 turned out to be moot:
+
+- `shilov8theme` (`148378648655`) is now `role: MAIN` — the owner uploaded and
+  **published** the v8 zip. v7 (`148377370703`) and `שמירה 1` are unpublished
+  backups. The whole "deploy onto v7" plan above is therefore historical.
+- The published theme's `config/settings_data.json` **does** carry the seals:
+  `importer_badge_1` = `makita-argentolas-stamp.png`,
+  `importer_badge_2` = `delco-milwaukee-stamp.png`. They survived because the
+  owner re-uploaded them in the v8 editor. Both refs are now merged into the
+  repo's copy, so a future zip build or a fresh install carries them too.
+- `color_tile_bg` **is** materialized as `#FFFFFF` in the live theme, exactly as
+  step 1 feared. The cream schema default (`#EFE9DF`) therefore does NOT take
+  effect on the live storefront. This is left as the owner's call: it is a visual
+  decision, not a defect, and changing a published theme's palette from a script
+  is not something to do unasked. To apply it: theme editor → צבעים → "רקע אריחי
+  המחלקות" → `#EFE9DF`.
+- One real data drift found while comparing: the live theme's `store_hours` says
+  Friday closes at **14:00**; the repo, the schema default, `docs/INSTALL-THEME.md`
+  and the mobile app all said 13:00. The live value is the owner's own save, so it
+  won. All four are corrected.
+- `store_whatsapp` also differs — live holds a bare international number
+  (`972545070202`), the repo holds `https://wa.link/sp55tw`. Both work: the theme
+  accepts either shape, and the app's `whatsappUrl()` now normalises both. Left
+  alone deliberately, since the live value is the owner's.
 
 If a v8 theme already exists in the admin (the owner uploaded the zip
 manually), the badge settings must be re-applied there — either re-uploaded in

@@ -15,7 +15,14 @@ mobile-app/web-build/
 *.orig.*
 
 # Build output
-shilo-pro-theme.zip
+# A built theme zip is a deploy artifact, never source. `shilo-pro-theme.zip` was
+# ignored by exact name, so its successor `shilo-v8-theme.zip` was committed by
+# omission — 413 KB of duplicated theme/, at the most discoverable path in the
+# repo, carrying a config/settings_data.json that had none of the importer-seal
+# uploads the owner made in the theme editor. Anyone importing it as a new theme
+# would have silently dropped the Makita and Milwaukee official-importer badges.
+# Glob it, so the next name is covered too.
+*-theme.zip
 *.tgz
 
 # Local environment

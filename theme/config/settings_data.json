@@ -43,6 +43,9 @@
     "low_stock_threshold": 5,
     "products_per_page": 24,
 
+    "importer_badge_1": "shopify://shop_images/makita-argentolas-stamp.png",
+    "importer_badge_2": "shopify://shop_images/delco-milwaukee-stamp.png",
+
     "cart_type": "drawer",
     "cart_show_note": true,
     "free_shipping_threshold": "399",
@@ -53,7 +56,7 @@
     "store_whatsapp": "https://wa.link/sp55tw",
     "store_email": "info@anshilo.com",
     "store_address": "קיבוץ קרית ענבים",
-    "store_hours": "א'-ה' 07:00-17:00\nו' 07:00-13:00",
+    "store_hours": "א'-ה' 07:00-17:00\nו' 07:00-14:00",
     "store_google": "https://share.google/RZnNkj7nDmReGLfy1",
     "show_contact_dock": true,
 
