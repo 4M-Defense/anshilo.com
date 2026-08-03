@@ -129,11 +129,25 @@
           {%- if product.description != blank -%}
             "description": {{ product.description | strip_html | truncate: 900 | json }},
           {%- endif -%}
+          {%- comment -%}
+            The comma used to be driven by forloop.last while the value was only
+            emitted for images, so the two went out of sync: media = [image,
+            image, video] printed image1+',' image2+',' and then skipped the video
+            (which WAS forloop.last), leaving ["…","…",]. That is invalid JSON, and
+            because the whole document is a single @graph the parse failure
+            discarded the Organization/LocalBusiness node, the WebSite
+            SearchAction and the BreadcrumbList along with the Product. Count what
+            was actually emitted instead — the idiom
+            templates/search.quick-order.liquid already uses.
+          {%- endcomment -%}
           {%- if product.featured_media -%}
+            {%- assign images_emitted = 0 -%}
             "image": [
               {%- for media in product.media limit: 5 -%}
                 {%- if media.media_type == 'image' -%}
-                  {{ media | image_url: width: 1200 | prepend: 'https:' | json }}{%- unless forloop.last -%},{%- endunless -%}
+                  {%- if images_emitted > 0 -%},{%- endif -%}
+                  {{ media | image_url: width: 1200 | prepend: 'https:' | json }}
+                  {%- assign images_emitted = images_emitted | plus: 1 -%}
                 {%- endif -%}
               {%- endfor -%}
             ],
@@ -151,32 +165,63 @@
           {%- if first_variant.barcode != blank -%}
             "gtin": {{ first_variant.barcode | json }},
           {%- endif -%}
-          {%- if product.variants.size > 1 -%}
-            "offers": {
-              "@type": "AggregateOffer",
-              "offerCount": {{ product.variants.size }},
-              "lowPrice": {{ product.price_min | divided_by: 100.0 | json }},
-              "highPrice": {{ product.price_max | divided_by: 100.0 | json }},
-              "priceCurrency": {{ cart.currency.iso_code | json }},
-              "availability": {% if product.available %}"https://schema.org/InStock"{% else %}"https://schema.org/OutOfStock"{% endif %},
-              "url": {{ shop.url | append: product.url | json }},
-              "seller": { "@id": {{ shop.url | append: '#organization' | json }} }
-            }
-          {%- else -%}
-            "offers": {
-              "@type": "Offer",
-              "price": {{ product.price | divided_by: 100.0 | json }},
-              "priceCurrency": {{ cart.currency.iso_code | json }},
-              "availability": {% if product.available %}"https://schema.org/InStock"{% else %}"https://schema.org/OutOfStock"{% endif %},
-              "itemCondition": "https://schema.org/NewCondition",
-              "url": {{ shop.url | append: product.url | json }},
-              {%- assign price_valid_until = 'now' | date: '%Y' | plus: 1 -%}
-              "priceValidUntil": {{ price_valid_until | append: '-12-31' | json }},
-              "seller": { "@id": {{ shop.url | append: '#organization' | json }} }
-            }
+          {%- comment -%}
+            An unpriced product must not emit an offer. snippets/price.liquid
+            renders "מחיר בטלפון" for a ₪0 item and the page has no buy button, so
+            asserting "price": 0.0 with InStock availability and a priceValidUntil
+            a year out contradicts the page: Google rejects offers whose price does
+            not match, and where it accepts them the SERP advertises the item at
+            ₪0.00. A Product node without offers is valid schema.org, which is the
+            honest representation of "ask us".
+
+            The same applies to the range: lowPrice must be a real price, so it
+            falls back the way price.liquid's visible "from" price does.
+          {%- endcomment -%}
+          {%- liquid
+            assign low_price = product.price_min
+            if low_price == 0
+              assign low_price = 0
+              for candidate in product.variants
+                if candidate.price > 0
+                  if low_price == 0 or candidate.price < low_price
+                    assign low_price = candidate.price
+                  endif
+                endif
+              endfor
+            endif
+            assign has_offer = false
+            if low_price > 0
+              assign has_offer = true
+            endif
+          -%}
+          {%- if has_offer -%}
+            {%- if product.variants.size > 1 -%}
+              "offers": {
+                "@type": "AggregateOffer",
+                "offerCount": {{ product.variants.size }},
+                "lowPrice": {{ low_price | divided_by: 100.0 | json }},
+                "highPrice": {{ product.price_max | divided_by: 100.0 | json }},
+                "priceCurrency": {{ cart.currency.iso_code | json }},
+                "availability": {% if product.available %}"https://schema.org/InStock"{% else %}"https://schema.org/OutOfStock"{% endif %},
+                "url": {{ shop.url | append: product.url | json }},
+                "seller": { "@id": {{ shop.url | append: '#organization' | json }} }
+              },
+            {%- else -%}
+              "offers": {
+                "@type": "Offer",
+                "price": {{ product.price | divided_by: 100.0 | json }},
+                "priceCurrency": {{ cart.currency.iso_code | json }},
+                "availability": {% if product.available %}"https://schema.org/InStock"{% else %}"https://schema.org/OutOfStock"{% endif %},
+                "itemCondition": "https://schema.org/NewCondition",
+                "url": {{ shop.url | append: product.url | json }},
+                {%- assign price_valid_until = 'now' | date: '%Y' | plus: 1 -%}
+                "priceValidUntil": {{ price_valid_until | append: '-12-31' | json }},
+                "seller": { "@id": {{ shop.url | append: '#organization' | json }} }
+              },
+            {%- endif -%}
           {%- endif -%}
           {%- comment -%} Trailing key with no comma keeps the object valid either way. {%- endcomment -%}
-          ,"inLanguage": "he-IL"
+          "inLanguage": "he-IL"
         }
         ,{
           "@type": "BreadcrumbList",

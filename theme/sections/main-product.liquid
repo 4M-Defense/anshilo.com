@@ -130,15 +130,25 @@
             {%- if section.settings.show_sku -%}
               <p class="product-info__sku" data-sku-wrap {% if current_variant.sku == blank %}hidden{% endif %}>
                 {{ 'products.product.sku' | t }}:
-                <span class="product-info__sku-value" dir="ltr" data-sku>{{ current_variant.sku }}</span>
+                <span class="product-info__sku-value" dir="ltr" data-sku>{{ current_variant.sku | escape }}</span>
               </p>
             {%- endif -%}
           </div>
 
           <div class="product-info__pricing">
             <div class="product-info__price-row">
+              {%- comment -%}
+                hide_save: the section owns the badge below, and
+                section-main-product.js maintains it on every variant change.
+                `price` emits its own pill from the same locale key but as a
+                PERCENTAGE, so the row read "חיסכון של 20%  חיסכון של ₪50.00" —
+                the same claim twice in two units — and renderPrice rebuilds this
+                node from a string that has no .price__save in it, so the
+                percentage pill vanished for good the moment any variant was
+                picked.
+              {%- endcomment -%}
               <div id="ProductPrice-{{ section.id }}" role="status">
-                {% render 'price', product: product, variant: current_variant, large: true %}
+                {% render 'price', product: product, variant: current_variant, large: true, hide_save: true %}
               </div>
               <span class="price__save" data-save-badge {% unless on_sale %}hidden{% endunless %}>
                 {{ 'products.product.save_amount' | t: amount: saved_amount }}

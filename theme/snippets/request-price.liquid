@@ -54,21 +54,33 @@
     {%- endif -%}
   </div>
 
-  <details class="request-price__form-wrap">
-    <summary class="request-price__toggle">
-      <span>או שלחו בקשה להצעת מחיר</span>
-      {% render 'icon', name: 'chevron-down', size: 18, class: 'icon-chevron' %}
-    </summary>
+  {%- comment -%}
+    The form is captured so its posted/error state can be read from OUTSIDE the
+    disclosure. It used to live entirely inside a <details> with no `open`
+    attribute, and the confirmation was the form body's first child — so
+    Shopify's post-redirect returned the shopper to a page that looked exactly as
+    it had before they filled anything in. People concluded the form was broken
+    and submitted again, filling the shop inbox with duplicate quote requests.
 
+    The acknowledgement is hoisted out of the disclosure entirely, and the
+    disclosure only reopens when the submit failed, so the shopper lands on the
+    errors. Note that form.posted_successfully? on a {% form 'contact' %} is
+    page-scoped rather than per-form-id, and back-in-stock.liquid opens a second
+    contact form on the same product page whenever the variant is sold out — so
+    the wording stays generic enough to be true for either.
+  {%- endcomment -%}
+  {%- assign quote_posted = false -%}
+  {%- assign quote_failed = false -%}
+  {%- capture quote_form -%}
     {%- form 'contact', id: form_id, class: 'request-price__form' -%}
       {%- if form.posted_successfully? -%}
-        <p class="form__success" role="status">
-          {% render 'icon', name: 'check-circle', size: 18 %}
-          קיבלנו את הבקשה - נחזור אליכם עם הצעת מחיר בהקדם.
-        </p>
+        {%- assign quote_posted = true -%}
       {%- else -%}
         {%- if form.errors -%}
-          <div class="errors" role="alert">{{ form.errors | default_errors }}</div>
+          {%- assign quote_failed = true -%}
+        {%- endif -%}
+        {%- if form.errors -%}
+          <div class="errors" role="alert" tabindex="-1">{{ form.errors | default_errors }}</div>
         {%- endif -%}
 
         <input type="hidden" name="contact[נושא]" value="בקשת הצעת מחיר">
@@ -107,5 +119,20 @@
         </button>
       {%- endif -%}
     {%- endform -%}
+  {%- endcapture -%}
+
+  {%- if quote_posted -%}
+    <p class="form__success" role="status">
+      {% render 'icon', name: 'check-circle', size: 18 %}
+      קיבלנו את הבקשה - נחזור אליכם בהקדם.
+    </p>
+  {%- endif -%}
+
+  <details class="request-price__form-wrap" {% if quote_failed %}open{% endif %}>
+    <summary class="request-price__toggle">
+      <span>או שלחו בקשה להצעת מחיר</span>
+      {% render 'icon', name: 'chevron-down', size: 18, class: 'icon-chevron' %}
+    </summary>
+    {{ quote_form }}
   </details>
 </div>

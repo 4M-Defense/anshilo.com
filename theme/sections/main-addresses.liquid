@@ -7,6 +7,13 @@
   toggled by section-customers.js via data-address-toggle; the country/province
   pair keeps Shopify's AddressCountry_/AddressProvince_/AddressProvinceContainer_
   id contract so shopify_common.js can drive it.
+
+  A panel must NOT be collapsed when its form came back with errors. Shopify
+  re-renders /account/addresses after a rejected save with form.errors populated,
+  and the role="alert" list explaining what went wrong sat inside a `hidden`
+  subtree — neither visible nor announced. The customer saw a page that looked
+  like nothing had happened, with the typed values gone, and retried blindly.
+  section-customers.js also focuses the first .errors node on load.
 {%- endcomment -%}
 
 <section class="section account-section">
@@ -50,12 +57,18 @@
     </header>
 
     {%- # ---------- New address form ---------- -%}
-    <div class="panel addresses-form" id="AddressFormNew" hidden>
-      <h2 class="addresses-form__title h3" id="AddressNewHeading">{{ 'customer.addresses.add_new' | t }}</h2>
-
+    {%- comment -%}
+      Captured first, exactly as sections/main-login.liquid captures its recover
+      form, so the panel's collapsed state can depend on whether the save was
+      rejected. An {% assign %} inside a {% capture %} persists to the outer
+      scope, which is what makes this work.
+    {%- endcomment -%}
+    {%- assign new_address_has_errors = false -%}
+    {%- capture new_address_form -%}
       {%- form 'customer_address', customer.new_address, class: 'customer-form', aria-labelledby: 'AddressNewHeading' -%}
         {%- if form.errors -%}
-          <div class="errors" role="alert" tabindex="-1">
+          {%- assign new_address_has_errors = true -%}
+          <div class="errors" role="alert" tabindex="-1" data-address-errors>
             <ul>
               {%- for field in form.errors -%}
                 <li>{{ form.errors.translated_fields[field] }} - {{ form.errors.messages[field] }}</li>
@@ -192,6 +205,11 @@
           </button>
         </div>
       {%- endform -%}
+    {%- endcapture -%}
+
+    <div class="panel addresses-form" id="AddressFormNew" {% unless new_address_has_errors %}hidden{% endunless %}>
+      <h2 class="addresses-form__title h3" id="AddressNewHeading">{{ 'customer.addresses.add_new' | t }}</h2>
+      {{ new_address_form }}
     </div>
 
     {%- # ---------- Address cards ---------- -%}
@@ -239,14 +257,17 @@
 
             {%- # ---------- Edit form ---------- -%}
             {%- assign edit_heading_id = 'EditAddressHeading_' | append: address.id -%}
-            <div class="address-card__edit" id="EditAddress_{{ address.id }}" hidden>
-              <h3 class="address-card__edit-title h5" id="{{ edit_heading_id }}">
-                {{ 'customer.addresses.edit_address' | t }}
-              </h3>
-
+            {%- comment -%}
+              Same capture-then-decide as the new-address panel above: a rejected
+              update must not come back with its own error list inside a
+              display:none subtree.
+            {%- endcomment -%}
+            {%- assign edit_has_errors = false -%}
+            {%- capture edit_address_form -%}
               {%- form 'customer_address', address, class: 'customer-form', aria-labelledby: edit_heading_id -%}
                 {%- if form.errors -%}
-                  <div class="errors" role="alert" tabindex="-1">
+                  {%- assign edit_has_errors = true -%}
+                  <div class="errors" role="alert" tabindex="-1" data-address-errors>
                     <ul>
                       {%- for field in form.errors -%}
                         <li>{{ form.errors.translated_fields[field] }} - {{ form.errors.messages[field] }}</li>
@@ -376,6 +397,13 @@
                   </button>
                 </div>
               {%- endform -%}
+            {%- endcapture -%}
+
+            <div class="address-card__edit" id="EditAddress_{{ address.id }}" {% unless edit_has_errors %}hidden{% endunless %}>
+              <h3 class="address-card__edit-title h5" id="{{ edit_heading_id }}">
+                {{ 'customer.addresses.edit_address' | t }}
+              </h3>
+              {{ edit_address_form }}
             </div>
           </li>
         {%- endfor -%}

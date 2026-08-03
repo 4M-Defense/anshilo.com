@@ -137,9 +137,33 @@
     });
   }
 
+  /* ---------- Address form error state ----------
+     main-addresses.liquid now leaves a panel expanded when its save was
+     rejected, which fixes the invisible-error case. Two things still have to
+     happen on load: the toggle buttons that point at that panel must report the
+     open state, and focus must land on the error list so the reason is actually
+     announced. The .errors node already carries tabindex="-1" for this. */
+  function revealAddressErrors() {
+    const errors = document.querySelectorAll('[data-address-errors]');
+    if (!errors.length) return;
+
+    document.querySelectorAll('.addresses-form, .address-card__edit').forEach((panel) => {
+      if (!panel.id) return;
+      const open = !panel.hasAttribute('hidden');
+      document.querySelectorAll('[data-address-toggle="' + panel.id + '"]').forEach((btn) => {
+        btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+      });
+    });
+
+    const first = errors[0];
+    first.focus({ preventScroll: true });
+    first.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
+
   function init() {
     applyAuthHash();
     initCountrySelects();
+    revealAddressErrors();
   }
 
   if (document.readyState === 'loading') {

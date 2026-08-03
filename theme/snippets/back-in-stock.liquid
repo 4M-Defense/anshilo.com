@@ -71,6 +71,21 @@
           </button>
         </div>
 
+        {%- comment -%}
+          A collection notice at the point of collection. This form takes an email
+          address and files it, with the product and SKU, in the shop inbox for
+          later outreach — and said nothing about who holds it, why, that giving it
+          is voluntary, or how to have it removed. Israel's Privacy Protection Law
+          as amended by Amendment 13 (in force August 2025) expects that notice
+          where the data is collected. The policy URL comes from the shop's own
+          policy so it cannot drift.
+        {%- endcomment -%}
+        {%- if shop.privacy_policy.url != blank -%}
+          <p class="back-in-stock__privacy text-meta">
+            {{- 'general.privacy.collection_notice_html' | t | replace: '[url]', shop.privacy_policy.url -}}
+          </p>
+        {%- endif -%}
+
         {%- if settings.store_whatsapp != blank -%}
           {%- liquid
             assign wa = settings.store_whatsapp
@@ -83,10 +98,22 @@
               assign wa_message = wa_message | append: ' (מקט ' | append: target.sku | append: ')'
             endif
             assign wa_message = wa_message | append: ' - יש במחסן?'
+            comment
+              url_encode has to be applied to the MESSAGE, not to the finished
+              URL. Liquid pipes left to right, so
+              `wa | append: '?text=' | append: wa_message | url_encode` encoded
+              the whole thing — scheme and slashes included — producing
+              "https%3A%2F%2Fwa.me%2F972…", which the browser then resolved as a
+              relative path against the product URL and served a 404. Every
+              sold-out product had a dead WhatsApp link.
+              sections/main-product.liquid:44 and sections/footer.liquid:203 both
+              get the order right; this was the one slip.
+            endcomment
+            assign wa_query = wa_message | url_encode
             if wa contains '?'
-              assign wa_link = wa
+              assign wa_link = wa | append: '&text=' | append: wa_query
             else
-              assign wa_link = wa | append: '?text=' | append: wa_message | url_encode
+              assign wa_link = wa | append: '?text=' | append: wa_query
             endif
           -%}
           <p class="back-in-stock__alt text-meta">

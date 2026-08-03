@@ -4,7 +4,12 @@
 {%- liquid
   assign base_url = collection.url | default: routes.all_products_collection_url
   assign sort_by = collection.sort_by | default: collection.default_sort_by
-  assign per_page = section.settings.products_per_page | default: 24
+  # The global theme setting of the same name was declared in
+  # config/settings_schema.json and read by nothing, so a merchant who changed
+  # "מוצרים בעמוד קטגוריה" under theme settings saw no effect anywhere and had no
+  # way to discover that the real control lives inside this section. It is a
+  # fallback now, so both saved values keep meaning.
+  assign per_page = section.settings.products_per_page | default: settings.products_per_page | default: 24
   assign results_url = base_url | append: '?sort_by=' | append: sort_by
 
   assign has_filters = false

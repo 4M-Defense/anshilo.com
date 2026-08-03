@@ -358,6 +358,10 @@
       "twitter": "Twitter",
       "whatsapp": "WhatsApp",
       "youtube": "YouTube"
+    },
+    "privacy": {
+      "collection_notice_html": "Your address is held by A.N. Shilo Ltd for this enquiry only, providing it is voluntary, and you may ask us to remove it at any time. See our <a href=\"[url]\" class=\"link\">privacy policy</a>.",
+      "marketing_consent": "I agree to receive news and offers by email from A.N. Shilo Ltd."
     }
   },
   "gift_cards": {

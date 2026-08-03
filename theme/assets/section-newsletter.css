@@ -98,3 +98,14 @@
   flex-shrink: 0;
   color: rgba(255, 255, 255, 0.75);
 }
+
+/* The collection notice, on the same dark panel. Kept at the same weight as the
+   anti-spam line above it, with the policy link underlined so it reads as one. */
+.newsletter__privacy {
+  margin-block-start: 0.4rem;
+  color: rgba(255, 255, 255, 0.6);
+}
+.newsletter__privacy .link {
+  color: #ffffff;
+  text-decoration: underline;
+}

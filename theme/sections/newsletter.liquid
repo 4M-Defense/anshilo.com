@@ -68,10 +68,24 @@
             </div>
           {%- endif -%}
 
+          {%- comment -%}
+            general.newsletter.privacy_note is an anti-spam promise ("no spam,
+            unsubscribe any time"), not a collection notice: it does not say who
+            holds the address, for what, that giving it is voluntary, or how to
+            have it removed, and it links to nothing. Both now render — the promise
+            keeps its reassuring tone, and the notice below it does the legal work
+            and links to the shop's own privacy policy.
+          {%- endcomment -%}
           {%- if section.settings.show_privacy_note -%}
             <p class="text-meta newsletter__note">
               {% render 'icon', name: 'shield-check', size: 15 %}
               <span>{{ 'general.newsletter.privacy_note' | t }}</span>
+            </p>
+          {%- endif -%}
+
+          {%- if shop.privacy_policy.url != blank -%}
+            <p class="text-meta newsletter__privacy">
+              {{- 'general.privacy.collection_notice_html' | t | replace: '[url]', shop.privacy_policy.url -}}
             </p>
           {%- endif -%}
         {%- endform -%}

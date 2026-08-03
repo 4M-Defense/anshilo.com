@@ -1613,6 +1613,7 @@ body.scroll-locked { overflow: hidden; }
   margin: 0;
 }
 .back-in-stock__text { margin: 0.15rem 0 0; }
+.back-in-stock__privacy { margin: 0; }
 
 .back-in-stock__form { display: flex; flex-direction: column; gap: 0.6rem; }
 
