@@ -31,7 +31,24 @@ const args = process.argv.slice(2);
 const APPLY = args.includes('--apply');
 const onlyIdx = args.indexOf('--only');
 const ONLY = onlyIdx >= 0 ? args[onlyIdx + 1] : null; /* 'price' | 'image' */
-/* התאמה לפי שם כשאין מקט — ראו ההערה הארוכה למטה על מה שהופך אותה לבטוחה */
+/*
+ * התאמה לפי שם — **לא בטוחה, כבויה, ואינה מומלצת.**
+ *
+ * נבדקה בשלוש צורות ונכשלה בכל אחת. הדגימות אמיתיות מהקטלוג הזה:
+ *
+ *   "שקע TV-FM ANAIS בצבע לבן"   →  "קופסה 55 עגולה"  ₪2
+ *   "לחצן מדרגות לא מואר SHOVAL" →  "לחצן מדרגות מואר ANAIS"
+ *   "גוף תאורה עגול לד ליאהל'ה"  →  "גוף תאורה עגול לד SHOVAL"
+ *   "שקע דו-פיני ANAIS"          →  "שקע כח ANAIS"
+ *
+ * מה שמבדיל בין המוצרים כאן הוא **מילה בודדת** — שם הסדרה, או מואר מול
+ * לא מואר, או דו-פיני מול כח — ואין סף חפיפה שמפריד אותה מרעש. הדרישה
+ * שכל המספרים יהיו זהים לא עוזרת, כי המבדיל אינו מספר. גם תיקון הבחירה
+ * (איכות לפני מחיר) לא הספיק.
+ *
+ * נשאר בקוד כי הוא מתעד מה נבדק, ומאחורי דגל מפורש. מי שמדליק אותו מקבל
+ * אזהרה ומחירים שגויים.
+ */
 const BY_NAME = args.includes('--by-name');
 const limIdx = args.indexOf('--limit');
 const LIMIT = limIdx >= 0 ? Number(args[limIdx + 1]) : null;
@@ -249,14 +266,37 @@ function matchByName(title) {
   const nums = numbersOf(title);
   /* שם בלי שום מספר אינו מזוהה מספיק כדי להסתמך עליו */
   if (nums === '') return null;
-  let best = null;
+
+  const passed = [];
   for (const cand of NAME_POOL) {
     if (cand.nums !== nums) continue;
     const ov = tokenOverlap(title, cand.name);
     if (ov < NAME_OVERLAP_MIN) continue;
-    if (!best || cand.price > best.price) best = { ...cand, overlap: Number(ov.toFixed(2)) };
+    passed.push({ ...cand, overlap: Number(ov.toFixed(2)) });
   }
-  return best;
+  if (passed.length === 0) return null;
+
+  /*
+   * איכות ההתאמה קודמת למחיר, והמחיר מוכרע רק בין התאמות באותה איכות.
+   *
+   * הגרסה הראשונה בחרה את המחיר הגבוה מבין כל מי שעבר את הסף, וזה היה
+   * הפוך: "גוף תאורה לאמבטיה AGAM 15W" הותאם ל-BARBUR ב-₪269.77 במקום
+   * ל-AGAM עצמו ב-₪131, פשוט מפני ש-BARBUR יקר יותר וגם הוא עבר את הסף.
+   * ההוראה "המחיר הגבוה" נכונה כשמדובר באותו מוצר אצל מקורות שונים, לא
+   * כשהיא מכריעה בין מוצרים שונים.
+   *
+   * ומעבר לזה: התאמה הטובה ביותר נדחית אם יש אחריה מועמדת קרובה באיכות
+   * עם מחיר שונה מהותית. שתי התאמות טובות כמעט באותה מידה עם מחירים
+   * רחוקים אינן "בחירה" אלא סימן שהשם אינו מבדיל — ואז עדיף לא לתמחר.
+   */
+  passed.sort((a, b) => b.overlap - a.overlap || b.price - a.price);
+  const top = passed[0];
+  const rivals = passed.filter((c) => top.overlap - c.overlap <= 0.05);
+  const spread = Math.max(...rivals.map((c) => c.price)) / Math.min(...rivals.map((c) => c.price));
+  if (rivals.length > 1 && spread > 1.25) return null;
+
+  /* בין המתמודדות באותה איכות — הגבוה, לפי ההנחיה */
+  return rivals.reduce((m, c) => (c.price > m.price ? c : m), rivals[0]);
 }
 
 async function main() {
@@ -271,6 +311,7 @@ async function main() {
   if (BY_NAME) {
     NAME_POOL = buildNamePool();
     console.log(`  מאגר להתאמת שם: ${NAME_POOL.length} שורות מתומחרות`);
+    console.log('  ⚠ התאמה לפי שם נמדדה כלא-בטוחה בקטלוג הזה. ראו ההערה בראש הקובץ.');
   }
   console.log('');
 
