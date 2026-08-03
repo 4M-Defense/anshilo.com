@@ -100,6 +100,34 @@
 
         <div class="quick-order__status" role="status" aria-live="polite" data-quick-order-status></div>
 
+        {%- comment -%}
+          Localized strings for assets/quick-order.js. They used to be Hebrew
+          literals inside the JS, which put the only bulk-ordering flow in the
+          store outside the locale files entirely.
+        {%- endcomment -%}
+        <script type="application/json" data-quick-order-strings>
+          {
+            "notFound": {{ 'products.quick_order.not_found' | t | json }},
+            "freeSearch": {{ 'products.quick_order.free_search' | t | json }},
+            "lookupFailed": {{ 'products.quick_order.lookup_failed' | t | json }},
+            "retry": {{ 'products.quick_order.retry' | t | json }},
+            "noExactMatch": {{ 'products.quick_order.no_exact_match' | t | json }},
+            "skusWord": {{ 'products.quick_order.skus_word' | t | json }},
+            "unitsWord": {{ 'products.quick_order.units_word' | t | json }},
+            "pasteEmpty": {{ 'products.quick_order.paste_empty' | t | json }},
+            "working": {{ 'products.quick_order.working' | t | json }},
+            "skipped": {{ 'products.quick_order.skipped' | t | json }},
+            "batchFound": {{ 'products.quick_order.batch_found' | t | json }},
+            "batchMissing": {{ 'products.quick_order.batch_missing' | t | json }},
+            "batchFailed": {{ 'products.quick_order.batch_failed' | t | json }},
+            "addedToCart": {{ 'products.quick_order.added_to_cart' | t | json }},
+            "addFailed": {{ 'products.quick_order.add_failed' | t | json }},
+            "inStock": {{ 'products.product.in_stock' | t | json }},
+            "soldOut": {{ 'products.product.sold_out' | t | json }},
+            "callForPrice": {{ 'products.price.call_for_price' | t | json }}
+          }
+        </script>
+
         <footer class="quick-order__footer">
           <div class="quick-order__summary">
             <span class="text-meta" data-quick-order-count>{{ section.settings.empty_summary }}</span>

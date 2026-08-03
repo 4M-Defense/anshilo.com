@@ -185,8 +185,19 @@
             A slice of this catalogue is published without a price. Offering
             "add to cart" on a ₪0 item hands it over for free, so unpriced
             products get a quote request instead of a buy button.
+
+            The branch used to test `current_variant.price == 0`, i.e. one
+            variant, which broke both ways on a mixed-price product. If the first
+            available variant happened to be the ₪0 one, the whole buy block
+            disappeared and the ₪120 and ₪240 variants could not be bought at
+            all; and if it happened to be a priced one, switching to the ₪0
+            variant left a live add-to-cart button (the JS never re-checked
+            price). So: replace the buy block only when NOTHING in the product is
+            priced, and otherwise keep it — buy-buttons and
+            section-main-product.js both refuse an unpriced variant — with the
+            quote form riding along, shown only while such a variant is selected.
           {%- endcomment -%}
-          {%- if current_variant.price == 0 -%}
+          {%- if product.price_max == 0 -%}
             {% render 'request-price', product: product, variant: current_variant %}
           {%- else -%}
             {% render 'buy-buttons',
@@ -194,6 +205,11 @@
               section_id: section.id,
               sticky: section.settings.enable_sticky_atc
             %}
+            {%- if product.price_min == 0 -%}
+              <div data-request-price-wrap {% if current_variant.price > 0 %}hidden{% endif %}>
+                {% render 'request-price', product: product, variant: current_variant %}
+              </div>
+            {%- endif -%}
           {%- endif -%}
 
           {% render 'back-in-stock', product: product, variant: current_variant %}
@@ -313,9 +329,18 @@
             "saveAmount": {{ 'products.product.save_amount' | t: amount: '[amount]' | json }},
             "inCartOne": {{ 'products.product.quantity_in_cart' | t: count: 1 | json }},
             "inCartOther": {{ 'products.product.quantity_in_cart' | t: count: 987 | replace: '987', '[count]' | json }},
-            "copied": {{ 'general.share.copied' | t | json }}
+            "copied": {{ 'general.share.copied' | t | json }},
+            "callForPrice": {{ 'products.price.call_for_price' | t | json }}
           }
         </script>
+
+        {%- comment -%}
+          The call-for-price block, ready for section-main-product.js to clone
+          when a variant change lands on an unpriced (₪0) variant. Kept in Liquid
+          so the phone number, the icon and the localization stay on this side —
+          the same reason the predictive-search empty state lives in a template.
+        {%- endcomment -%}
+        <template data-price-call-template>{% render 'price-call', large: true %}</template>
       </div>
     </div>
   </div>

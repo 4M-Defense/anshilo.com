@@ -82,7 +82,7 @@
                   data-label="{{ value | escape }}"
                   {% if option.selected_value == value %}selected{% endif %}
                 >
-                  {{- value -}}
+                  {{- value | escape -}}
                 </option>
               {%- endfor -%}
             </select>
@@ -107,7 +107,7 @@
                   data-option-position="{{ option.position }}"
                   {% if option.selected_value == value %}checked{% endif %}
                 >
-                <span>{{ value }}</span>
+                <span>{{ value | escape }}</span>
               </label>
             {%- endfor -%}
           </div>

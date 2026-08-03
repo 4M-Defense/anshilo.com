@@ -47,32 +47,54 @@
     reads as broken and - worse - lets the item be bought for nothing, so an
     unpriced item asks the customer to call instead. Range products where only
     the cheapest variant is unpriced keep their real "from" price.
+
+    That "from" price used to be product.price_max - the WRONG end of the range.
+    On a ₪0 / ₪120 / ₪500 product it advertised "מ- ₪500.00" while the cheapest
+    purchasable variant was ₪120, a 4x overstatement of the entry price. Walk the
+    variants for the lowest price that is actually greater than zero instead, and
+    prefer one that is in stock so the advertised entry price can be bought. The
+    loop is inside the price == 0 branch, so ordinary products never pay for it.
   endcomment
   assign call_for_price = false
   if price == 0
     assign call_for_price = true
-    if show_from and product.price_max > 0
-      assign call_for_price = false
-      assign show_from = true
-      assign money_price = product.price_max | money
+    if show_from
+      assign lowest_real = 0
+      assign lowest_available = 0
+      for candidate in product.variants
+        if candidate.price > 0
+          if lowest_real == 0
+            assign lowest_real = candidate.price
+          elsif candidate.price < lowest_real
+            assign lowest_real = candidate.price
+          endif
+          if candidate.available
+            if lowest_available == 0
+              assign lowest_available = candidate.price
+            elsif candidate.price < lowest_available
+              assign lowest_available = candidate.price
+            endif
+          endif
+        endif
+      endfor
+      comment
+        Liquid's `default` filter does not treat 0 as empty, so the fallback has
+        to be an explicit branch rather than `lowest_available | default: ...`.
+      endcomment
+      assign from_price = lowest_available
+      if from_price == 0
+        assign from_price = lowest_real
+      endif
+      if from_price > 0
+        assign call_for_price = false
+        assign money_price = from_price | money
+      endif
     endif
   endif
 -%}
 {%- if target != blank -%}
   {%- if call_for_price -%}
-    {%- liquid
-      assign tel_href = settings.store_phone | remove: '-' | remove: ' ' | remove: '(' | remove: ')'
-    -%}
-    <div class="price price--call{% if large %} price--large{% endif %}{% if class %} {{ class }}{% endif %}">
-      {%- if settings.store_phone != blank -%}
-        <a class="price__call" href="tel:{{ tel_href }}">
-          {% render 'icon', name: 'phone', size: 15 %}
-          <span>{{ 'products.price.call_for_price' | t }}</span>
-        </a>
-      {%- else -%}
-        <span class="price__call">{{ 'products.price.call_for_price' | t }}</span>
-      {%- endif -%}
-    </div>
+    {% render 'price-call', large: large, class: class %}
   {%- else -%}
   <div class="price{% if on_sale %} price--on-sale{% endif %}{% if large %} price--large{% endif %}{% if class %} {{ class }}{% endif %}">
     {%- if show_from -%}

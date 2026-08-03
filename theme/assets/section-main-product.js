@@ -190,6 +190,8 @@
     const stickyBtn = root.querySelector('[data-sticky-add]');
     const stickyBtnText = root.querySelector('[data-sticky-add-text]');
     const stickyImage = root.querySelector('[data-sticky-image]');
+    const priceCallTpl = root.querySelector('[data-price-call-template]');
+    const requestPriceWrap = root.querySelector('[data-request-price-wrap]');
 
     const gallery = initGallery(root);
 
@@ -361,7 +363,43 @@
       });
     }
 
+    /* A slice of this catalogue is published at ₪0 and must be quoted by phone,
+       never sold. The server render honours that (snippets/price.liquid swaps in
+       price-call, and the section renders request-price instead of buy-buttons),
+       but the guard was evaluated once against
+       product.selected_or_first_available_variant. Every later variant change is
+       handled here, and this function used to print formatMoney(0) — "₪0.00" —
+       over a still-live add-to-cart button. On a ₪120 / ₪240 / ₪0 product that
+       was a route to taking the ₪0 variant home for free. */
+    function isCallForPrice(variant) {
+      return !!variant && variant.price === 0;
+    }
+
+    function renderPriceCall() {
+      if (!priceEl) return;
+      priceEl.innerHTML = '';
+      if (priceCallTpl) {
+        priceEl.appendChild(priceCallTpl.content.cloneNode(true));
+      } else {
+        /* No template on the page (an older section render) — still never show
+           a price for an unpriced variant. */
+        const fallback = document.createElement('div');
+        fallback.className = 'price price--call price--large';
+        const label = document.createElement('span');
+        label.className = 'price__call';
+        label.textContent = strings.callForPrice || '';
+        fallback.appendChild(label);
+        priceEl.appendChild(fallback);
+      }
+      if (saveBadge) saveBadge.hidden = true;
+      if (stickyPrice) stickyPrice.textContent = strings.callForPrice || '';
+    }
+
     function renderPrice(variant) {
+      if (isCallForPrice(variant)) {
+        renderPriceCall();
+        return;
+      }
       if (!priceEl || typeof window.formatMoney !== 'function') return;
       const onSale =
         typeof variant.compare_at_price === 'number' &&
@@ -497,6 +535,7 @@
         if (stockEl) stockEl.innerHTML = '';
         if (saveBadge) saveBadge.hidden = true;
         if (inCartWrap) inCartWrap.hidden = true;
+        if (requestPriceWrap) requestPriceWrap.hidden = true;
         return;
       }
 
@@ -504,8 +543,16 @@
       renderPrice(variant);
       renderStock(variant);
       renderSku(variant);
-      setButtonState(addBtn, addBtnText, variant.available, strings.soldOut || '');
-      setButtonState(stickyBtn, stickyBtnText, variant.available, strings.soldOut || '');
+      /* An unpriced variant is never purchasable, whatever its stock says. */
+      const buyable = variant.available && !isCallForPrice(variant);
+      const blockedLabel = isCallForPrice(variant)
+        ? strings.callForPrice || ''
+        : strings.soldOut || '';
+      setButtonState(addBtn, addBtnText, buyable, blockedLabel);
+      setButtonState(stickyBtn, stickyBtnText, buyable, blockedLabel);
+      /* Mixed-price product: the quote form is on the page but only belongs on
+         screen while an unpriced variant is selected. */
+      if (requestPriceWrap) requestPriceWrap.hidden = !isCallForPrice(variant);
       updateUrl(variant);
       updateStickyImage(variant);
       if (inCartWrap) {

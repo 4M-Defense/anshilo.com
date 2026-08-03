@@ -19,30 +19,47 @@
      the two disagree. layout/theme.liquid already passes shop.money_format in;
      the tag strip is there because a merchant's format can carry markup
      (`<span class=money>…</span>`) and callers insert this into textContent.
-     Same implementation as quick-order.js:13 — keep the two in step. */
+
+     This is the single implementation in the theme: assets/quick-order.js used to
+     carry a copy, and the two were kept in step by comment. They are not any
+     more — quick-order.js calls this one.
+
+     Each of Shopify's six placeholders names its own grouping AND decimal
+     symbol, so the mapping has to be explicit. An earlier version read the name
+     only to decide whether decimals were wanted and then always formatted with
+     toLocaleString('he-IL'), which yields comma grouping and a period decimal.
+     That is right for {{amount}} and {{amount_no_decimals}} and wrong for the
+     other four: a shop on {{amount_with_comma_separator}} rendered ₪1.134,65
+     from Liquid and ₪1,134.65 from JS on the same screen, and on the
+     no-decimals comma format 1.135 became 1,135 — which reads as a thousand
+     times the price. */
+  const MONEY_FORMATS = {
+    amount: { group: ',', decimal: '.', decimals: 2 },
+    amount_no_decimals: { group: ',', decimal: '', decimals: 0 },
+    amount_with_comma_separator: { group: '.', decimal: ',', decimals: 2 },
+    amount_no_decimals_with_comma_separator: { group: '.', decimal: '', decimals: 0 },
+    amount_with_apostrophe_separator: { group: "'", decimal: '.', decimals: 2 },
+    amount_with_period_and_space_separator: { group: ' ', decimal: '.', decimals: 2 }
+  };
+
   window.formatMoney = function (cents) {
     const format = (window.themeSettings && window.themeSettings.moneyFormat) || '₪{{amount}}';
-    /* Match the placeholder rather than testing for the two we happen to know.
-       Shopify also ships {{amount_with_comma_separator}},
-       {{amount_no_decimals_with_comma_separator}} and
-       {{amount_with_period_separator}}; checking only for {{amount}} and
-       {{amount_no_decimals}} left the format string UNSUBSTITUTED for the rest,
-       so a shop on any of them would render the literal
-       "₪{{amount_with_comma_separator}}" into textContent on every variant
-       change. The separator variants only differ in grouping, which
-       toLocaleString('he-IL') already produces, so the name is consulted for one
-       thing: whether decimals are wanted.
-       If no placeholder matches at all, fall back to a formatted number instead
+    const match = format.match(/\{\{\s*(amount[a-z_]*)\s*\}\}/);
+    const spec = (match && MONEY_FORMATS[match[1]]) || MONEY_FORMATS.amount;
+
+    const value = Number(cents) || 0;
+    const negative = value < 0;
+    const units = Math.abs(value) / 100;
+    const fixed = spec.decimals === 0 ? String(Math.round(units)) : units.toFixed(2);
+    const parts = fixed.split('.');
+
+    let amount = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, spec.group);
+    if (spec.decimals > 0) amount += spec.decimal + parts[1];
+    if (negative) amount = '-' + amount;
+
+    /* If no placeholder matches at all, fall back to a formatted number instead
        of returning the raw format — a wrong separator is a blemish, echoing
        template syntax at the customer is a bug. */
-    const match = format.match(/\{\{\s*(amount[a-z_]*)\s*\}\}/);
-    const noDecimals = match ? match[1].indexOf('no_decimals') > -1 : false;
-    const amount = noDecimals
-      ? Math.round(cents / 100).toLocaleString('he-IL')
-      : (cents / 100).toLocaleString('he-IL', {
-          minimumFractionDigits: 2,
-          maximumFractionDigits: 2
-        });
     if (!match) return '₪' + amount;
     /* Strip markup last: a merchant format can carry a wrapper such as
        <span class=money>…</span>, and every caller writes this into textContent. */
@@ -50,19 +67,41 @@
   };
 
   const trapFocusHandlers = {};
+  const FOCUSABLE_SELECTOR =
+    'a[href], button:not([disabled]), input:not([type="hidden"]):not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
+
+  window.focusableIn = function (container) {
+    return container ? Array.prototype.slice.call(container.querySelectorAll(FOCUSABLE_SELECTOR)) : [];
+  };
+
+  /* The trapped container is held as state and its focusable list is recomputed
+     on every Tab, rather than captured once at open time. Cart.afterChange
+     replaces the cart drawer's entire innerHTML on each line change, so a list
+     captured at open time pointed at detached nodes: the
+     `activeElement === last` test could never be true again and the trap
+     silently stopped trapping, letting Tab walk the page behind an
+     aria-modal dialog. */
+  let trapContainer = null;
 
   window.trapFocus = function (container) {
-    const focusable = container.querySelectorAll(
-      'a[href], button:not([disabled]), input:not([type="hidden"]):not([disabled]), select, textarea, [tabindex]:not([tabindex="-1"])'
-    );
-    if (!focusable.length) return;
-    const first = focusable[0];
-    const last = focusable[focusable.length - 1];
-
+    if (!container) return;
     removeTrapFocus();
+    trapContainer = container;
 
     trapFocusHandlers.keydown = function (e) {
-      if (e.key !== 'Tab') return;
+      if (e.key !== 'Tab' || !trapContainer) return;
+      const items = window.focusableIn(trapContainer);
+      if (!items.length) return;
+      const first = items[0];
+      const last = items[items.length - 1];
+
+      /* A re-render can leave focus on <body>. Pull it back in rather than
+         letting the next Tab start at the top of the document. */
+      if (!trapContainer.contains(document.activeElement)) {
+        e.preventDefault();
+        first.focus({ preventScroll: true });
+        return;
+      }
       if (e.shiftKey && document.activeElement === first) {
         e.preventDefault();
         last.focus();
@@ -72,10 +111,13 @@
       }
     };
     document.addEventListener('keydown', trapFocusHandlers.keydown);
-    (container.querySelector('[autofocus]') || first).focus({ preventScroll: true });
+
+    const initial = container.querySelector('[autofocus]') || window.focusableIn(container)[0];
+    if (initial) initial.focus({ preventScroll: true });
   };
 
   window.removeTrapFocus = function () {
+    trapContainer = null;
     if (trapFocusHandlers.keydown) {
       document.removeEventListener('keydown', trapFocusHandlers.keydown);
       trapFocusHandlers.keydown = null;
@@ -101,6 +143,12 @@
   const Drawers = {
     activeDrawer: null,
     overlay: null,
+    /* The element, not its id. Storing `opener.id || ''` never worked: not one of
+       the theme's drawer triggers carries an id (the burger, the cart button and
+       the collection filter button are all plain buttons), so the lookup resolved
+       to getElementById('') === null and focus was dropped to <body> on every
+       close — the next Tab restarted at the skip link. */
+    lastOpener: null,
 
     ensureOverlay() {
       if (!this.overlay) {
@@ -112,15 +160,37 @@
       return this.overlay;
     },
 
+    /* #FacetsDrawer is one node with two presentations: a modal drawer on mobile
+       and a static sidebar on desktop (assets/section-collection.css un-hides it
+       there). It used to carry role="dialog" aria-modal="true" aria-hidden="true"
+       straight from the Liquid, so on desktop the whole filter sidebar was
+       missing from the accessibility tree while its checkboxes stayed focusable —
+       on a ~1,900-SKU catalogue that blocks the primary way to find a product.
+       The dialog semantics now belong to the open state and nothing else, and
+       facets.js calls clearDialogState() after every AJAX swap re-injects the
+       server markup. */
+    applyDialogState(drawer) {
+      drawer.setAttribute('role', 'dialog');
+      drawer.setAttribute('aria-modal', 'true');
+      drawer.setAttribute('aria-hidden', 'false');
+    },
+
+    clearDialogState(drawer) {
+      if (!drawer || drawer === this.activeDrawer) return;
+      drawer.removeAttribute('role');
+      drawer.removeAttribute('aria-modal');
+      drawer.removeAttribute('aria-hidden');
+    },
+
     open(id, opener) {
       const drawer = document.getElementById(id);
       if (!drawer) return;
       if (this.activeDrawer && this.activeDrawer !== drawer) this.close(true);
 
       this.activeDrawer = drawer;
+      if (opener) this.lastOpener = opener;
       drawer.classList.add('is-open');
-      drawer.setAttribute('aria-hidden', 'false');
-      if (opener) drawer.dataset.openerId = opener.id || '';
+      this.applyDialogState(drawer);
       this.ensureOverlay().classList.add('is-open');
       document.body.classList.add('scroll-locked');
       window.trapFocus(drawer);
@@ -132,16 +202,23 @@
       if (!this.activeDrawer) return;
       const drawer = this.activeDrawer;
       drawer.classList.remove('is-open');
-      drawer.setAttribute('aria-hidden', 'true');
       this.activeDrawer = null;
+      this.clearDialogState(drawer);
       window.removeTrapFocus();
       document.removeEventListener('keydown', this.onKeydown);
       if (!keepOverlay) {
         if (this.overlay) this.overlay.classList.remove('is-open');
         document.body.classList.remove('scroll-locked');
       }
-      const opener = drawer.dataset.openerId && document.getElementById(drawer.dataset.openerId);
+      /* An AJAX swap can replace the opener (the filters button lives inside the
+         re-rendered grid container), so fall back to whatever now answers to the
+         same [data-drawer-open] before giving up. */
+      let opener = this.lastOpener;
+      if (!opener || !document.contains(opener)) {
+        opener = document.querySelector('[data-drawer-open="' + drawer.id + '"]');
+      }
       if (opener) opener.focus({ preventScroll: true });
+      this.lastOpener = null;
       drawer.dispatchEvent(new CustomEvent('drawer:close', { bubbles: true }));
     },
 
@@ -268,8 +345,44 @@
       });
     },
 
+    /* Re-render the cart from the server without mutating it. The failure paths
+       below used to call afterChange() with no argument, and its whole re-render
+       block is gated on that argument — so a rejected change updated the header
+       bubble from the true cart while leaving the quantity the server refused, the
+       old line total and the stale subtotal on screen. A shopper who typed 10
+       against a stock cap of 3 saw "10" and a bubble saying 3, and went to
+       checkout believing they had ordered 10. */
+    async refresh() {
+      const ids = this.sectionsToRender();
+      if (!ids.length) return this.afterChange();
+      try {
+        const res = await fetch(
+          window.location.pathname + '?sections=' + encodeURIComponent(ids.join(','))
+        );
+        if (!res.ok) return this.afterChange();
+        return this.afterChange(await res.json());
+      } catch (e) {
+        return this.afterChange();
+      }
+    },
+
     async afterChange(sections) {
       if (sections) {
+        /* The swap destroys whatever the shopper was on — inside an open drawer
+           that means focus lands on <body> mid-interaction. Note it first. */
+        const active = document.activeElement;
+        const host = active && active.closest ? active.closest('[data-line]') : null;
+        const memo = host
+          ? {
+              line: host.dataset.line || '',
+              /* <cart-line-qty> and <cart-remove-button> both carry data-line, so
+                 the host's tag name is what distinguishes the stepper from the
+                 trash button on the same row. */
+              host: host.tagName.toLowerCase(),
+              inDrawer: !!(Drawers.activeDrawer && Drawers.activeDrawer.contains(active))
+            }
+          : null;
+
         Object.entries(sections).forEach(([id, html]) => {
           if (!html) return;
           document.querySelectorAll('[data-cart-section="' + id + '"]').forEach((el) => {
@@ -278,11 +391,28 @@
             if (replacement) el.innerHTML = replacement.innerHTML;
           });
         });
+
+        this.restoreFocus(memo);
       }
       const cart = await this.getState();
       this.updateBubbles(cart.item_count);
       document.dispatchEvent(new CustomEvent('cart:updated', { detail: { cart } }));
       return cart;
+    },
+
+    /* Re-arm the focus trap on the swapped subtree and put focus back on the
+       equivalent control, the way facets.js already does for the filters drawer. */
+    restoreFocus(memo) {
+      const drawer = Drawers.activeDrawer;
+      if (drawer) window.trapFocus(drawer);
+      if (!memo) return;
+
+      const scope = drawer && memo.inDrawer ? drawer : document;
+      if (!memo.line || !memo.host) return;
+      const host = scope.querySelector(memo.host + '[data-line="' + memo.line + '"]');
+      if (!host) return;
+      const target = window.focusableIn(host)[0];
+      if (target) target.focus({ preventScroll: true });
     },
 
     updateBubbles(count) {
@@ -312,9 +442,24 @@
       async onSubmit(e) {
         e.preventDefault();
         if (!this.submitBtn || this.submitBtn.hasAttribute('aria-disabled')) return;
+        /* aria-disabled only marks a sold-out variant, and .btn--loading is purely
+           cosmetic (it makes the label transparent) — so the button stayed
+           clickable for the whole round trip and an impatient second tap on
+           mobile, or a click on the sticky bar's duplicate submit button, added
+           the item twice. Guard the in-flight state explicitly. */
+        if (this.loading) return;
+        this.loading = true;
 
         this.submitBtn.classList.add('btn--loading');
         this.submitBtn.setAttribute('aria-busy', 'true');
+        this.submitBtn.disabled = true;
+        /* The sticky bar's button submits this same form from outside it. */
+        const linked = this.form.id
+          ? document.querySelectorAll('[type="submit"][form="' + this.form.id + '"]')
+          : [];
+        linked.forEach((btn) => {
+          btn.disabled = true;
+        });
 
         const formData = new FormData(this.form);
         const item = {
@@ -336,8 +481,15 @@
         } catch (err) {
           window.ShiloToast(window.cartErrorText(err), 'error');
         } finally {
+          this.loading = false;
           this.submitBtn.classList.remove('btn--loading');
           this.submitBtn.removeAttribute('aria-busy');
+          /* Re-enable only what this handler disabled: a variant that is genuinely
+             unavailable keeps aria-disabled and must stay disabled. */
+          if (!this.submitBtn.hasAttribute('aria-disabled')) this.submitBtn.disabled = false;
+          linked.forEach((btn) => {
+            if (!btn.hasAttribute('aria-disabled')) btn.disabled = false;
+          });
         }
       }
     }
@@ -372,8 +524,19 @@
         this.addEventListener('click', (e) => {
           e.preventDefault();
           const line = parseInt(this.dataset.line, 10);
-          this.closest('[data-cart-line]')?.classList.add('is-removing');
-          Cart.change(line, 0).catch((err) => window.ShiloToast(window.cartErrorText(err), 'error'));
+          const row = this.closest('[data-cart-line]');
+          /* .is-removing is not cosmetic: section-cart.css and cart-drawer.css both
+             give it pointer-events: none. It used to be added before the request
+             and never taken back, so a request that failed on flaky mobile data
+             left the line greyed out and completely dead — trash button, stepper
+             and product link all inert — with the item still in the cart and no
+             way to touch it short of a page reload. */
+          row?.classList.add('is-removing');
+          Cart.change(line, 0).catch((err) => {
+            row?.classList.remove('is-removing');
+            window.ShiloToast(window.cartErrorText(err), 'error');
+            Cart.refresh();
+          });
         });
       }
     }
@@ -391,9 +554,31 @@
             if (!input.matches('input')) return;
             const line = parseInt(this.dataset.line, 10);
             const qty = parseInt(input.value, 10);
-            Cart.change(line, qty).catch((err) => {
+
+            /* An emptied number input yields '', parseInt('') is NaN, and
+               JSON.stringify(NaN) is null — so backspacing a quantity and
+               clicking away used to POST {"quantity":null}, which the Ajax Cart
+               API either coerces to 0 (silently deleting the line) or rejects.
+               <product-form> already guards the same input; this path did not.
+               Restore the last server-rendered value and send nothing. */
+            if (!Number.isFinite(qty) || qty < 0) {
+              input.value = input.defaultValue || '1';
+              return;
+            }
+
+            /* Respect the input's own bounds before asking the server. */
+            const max = parseInt(input.getAttribute('max'), 10);
+            const min = parseInt(input.getAttribute('min'), 10);
+            let next = qty;
+            if (Number.isFinite(min) && next < min) next = min;
+            if (Number.isFinite(max) && next > max) next = max;
+            if (next !== qty) input.value = next;
+
+            Cart.change(line, next).catch((err) => {
               window.ShiloToast(window.cartErrorText(err), 'error');
-              Cart.afterChange();
+              /* refresh(), not afterChange() — see Cart.refresh. Without the
+                 sections payload the rejected quantity stayed on screen. */
+              Cart.refresh();
             });
           }, 350)
         );

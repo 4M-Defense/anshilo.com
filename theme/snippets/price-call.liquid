@@ -1,0 +1,26 @@
+{%- comment -%}
+  The "מחיר בטלפון" block shown instead of a price for an unpriced (₪0) item.
+
+  Extracted into its own snippet so the two renders of it cannot drift: the
+  server render inside snippets/price.liquid, and the <template> that
+  sections/main-product.liquid hands to assets/section-main-product.js for the
+  client-side re-render when the shopper picks a different variant. The JS used
+  to have no call-for-price branch at all, so selecting a ₪0 variant printed
+  "₪0.00" over a live add-to-cart button — contradicting the server render and
+  handing the item over for free.
+
+  Params:
+    large {Boolean} product-page typography (.price--large)
+    class {String}  extra classes
+{%- endcomment -%}
+{%- assign tel_href = settings.store_phone | remove: '-' | remove: ' ' | remove: '(' | remove: ')' -%}
+<div class="price price--call{% if large %} price--large{% endif %}{% if class %} {{ class }}{% endif %}">
+  {%- if settings.store_phone != blank -%}
+    <a class="price__call" href="tel:{{ tel_href }}">
+      {% render 'icon', name: 'phone', size: 15 %}
+      <span>{{ 'products.price.call_for_price' | t }}</span>
+    </a>
+  {%- else -%}
+    <span class="price__call">{{ 'products.price.call_for_price' | t }}</span>
+  {%- endif -%}
+</div>

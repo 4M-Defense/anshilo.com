@@ -41,6 +41,25 @@
   endfor
 
   assign sticky_media = current_variant.featured_media | default: product.featured_media
+
+  comment
+    An unpriced (₪0) variant is quoted by phone, never sold — see
+    snippets/price.liquid. A mixed-price product still renders this whole block
+    so its priced variants stay purchasable, so the block itself has to refuse
+    the unpriced ones: `buyable` gates the button, and the label borrows the
+    price block's own "מחיר בטלפון" wording instead of saying "sold out", which
+    would be untrue. assets/section-main-product.js applies the same rule on
+    every later variant change.
+  endcomment
+  assign buyable = false
+  if current_variant.available and current_variant.price > 0
+    assign buyable = true
+  endif
+
+  assign blocked_label = 'products.product.sold_out' | t
+  if current_variant.price == 0
+    assign blocked_label = 'products.price.call_for_price' | t
+  endif
 -%}
 
 <product-form class="product-buy" data-buy-buttons-anchor>
@@ -59,14 +78,14 @@
           name="add"
           class="btn btn--lg btn--full product-form__submit"
           data-add-button
-          {% if current_variant.available == false %}disabled aria-disabled="true"{% endif %}
+          {% unless buyable %}disabled aria-disabled="true"{% endunless %}
         >
           {% render 'icon', name: 'cart-add', size: 20 %}
           <span data-add-button-text>
-            {%- if current_variant.available -%}
+            {%- if buyable -%}
               {{ 'products.product.add_to_cart' | t }}
             {%- else -%}
-              {{ 'products.product.sold_out' | t }}
+              {{ blocked_label }}
             {%- endif -%}
           </span>
         </button>
@@ -116,8 +135,12 @@
           re-applied by JS because section-main-product.js updates this node with
           textContent on every variant change, which keeps the attribute.
         {%- endcomment -%}
-        <span class="product-sticky-bar__price" dir="ltr" data-sticky-price>
-          {{- current_variant.price | money -}}
+        <span class="product-sticky-bar__price"{% if current_variant.price > 0 %} dir="ltr"{% endif %} data-sticky-price>
+          {%- if current_variant.price > 0 -%}
+            {{- current_variant.price | money -}}
+          {%- else -%}
+            {{- 'products.price.call_for_price' | t -}}
+          {%- endif -%}
         </span>
       </div>
 
@@ -126,14 +149,14 @@
         form="{{ product_form_id }}"
         class="btn product-sticky-bar__btn"
         data-sticky-add
-        {% if current_variant.available == false %}disabled aria-disabled="true"{% endif %}
+        {% unless buyable %}disabled aria-disabled="true"{% endunless %}
       >
         {% render 'icon', name: 'cart-add', size: 18 %}
         <span data-sticky-add-text>
-          {%- if current_variant.available -%}
+          {%- if buyable -%}
             {{ 'products.product.add_to_cart' | t }}
           {%- else -%}
-            {{ 'products.product.sold_out' | t }}
+            {{ blocked_label }}
           {%- endif -%}
         </span>
       </button>

@@ -146,9 +146,18 @@
 
       {% render 'vendor-badge', product: product, size: 52, class: 'product-card__importer' %}
 
+      {%- comment -%}
+        The one-tap add is only legitimate for a variant that carries a price.
+        `price` above this line renders the "מחיר בטלפון" block for a ₪0 variant
+        precisely so the item cannot be bought for nothing - but the quick-add
+        form used to be gated on availability alone, so the same card offered a
+        working add-to-cart right underneath that call-for-price label. An
+        unpriced variant now falls through to the product page, where
+        `request-price` collects the enquiry.
+      {%- endcomment -%}
       {%- if quick_add_enabled and product.available -%}
         <div class="product-card__quick-add">
-          {%- if product.variants.size == 1 and product.selling_plan_groups.size == 0 -%}
+          {%- if product.variants.size == 1 and product.selling_plan_groups.size == 0 and card_variant.price > 0 -%}
             <product-form>
               <form method="post" action="{{ routes.cart_add_url }}" accept-charset="UTF-8" enctype="multipart/form-data">
                 <input type="hidden" name="form_type" value="product">
@@ -163,7 +172,16 @@
             </product-form>
           {%- else -%}
             <a href="{{ product.url }}" class="btn btn--secondary btn--sm btn--full">
-              {{ 'products.product.choose_options' | t }}
+              {%- comment -%}
+                "בחרו אפשרויות" is only true when there is something to choose. A
+                product with no priced variant at all is a quote enquiry, so it
+                borrows the price block's own label instead.
+              {%- endcomment -%}
+              {%- if product.price_max == 0 -%}
+                {{ 'products.price.call_for_price' | t }}
+              {%- else -%}
+                {{ 'products.product.choose_options' | t }}
+              {%- endif -%}
             </a>
           {%- endif -%}
         </div>
@@ -172,7 +190,7 @@
 
     <div class="product-card__content">
       {%- if vendor_enabled and product.vendor != blank -%}
-        <span class="product-card__vendor">{{ product.vendor }}</span>
+        <span class="product-card__vendor">{{ product.vendor | escape }}</span>
       {%- endif -%}
 
       <h3 class="product-card__title">

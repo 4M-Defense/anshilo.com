@@ -131,6 +131,13 @@
 
 .quick-order__row.is-resolved .quick-order__sku { border-color: var(--color-success); }
 .quick-order__row.is-missing .quick-order__sku { border-color: var(--color-danger); }
+/* A lookup that never completed (throttled or dropped) and a catalogue number
+   that carries no price are both "not addable", but neither is "not found" —
+   the buyer needs to be able to tell them apart from a real miss. */
+.quick-order__row.is-failed .quick-order__sku { border-color: var(--color-warning); }
+.quick-order__row.is-quote .quick-order__sku { border-color: var(--color-warning); }
+
+.quick-order__row.is-failed .quick-order__miss-title { color: var(--color-warning); }
 
 /* ---------- Match cell ---------- */
 .quick-order__cell--match {

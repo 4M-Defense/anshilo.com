@@ -503,6 +503,23 @@
       "unavailable": "לא זמין",
       "vendor": "מותג",
       "view_details": "לפרטי המוצר"
+    },
+    "quick_order": {
+      "not_found": "מקט לא נמצא בקטלוג",
+      "free_search": "חיפוש חופשי",
+      "lookup_failed": "הבדיקה נכשלה",
+      "retry": "נסו שוב",
+      "no_exact_match": "אין התאמה מדויקת - התכוונתם ל:",
+      "skus_word": "מקטים",
+      "units_word": "יחידות",
+      "paste_empty": "הדביקו רשימת מקטים ואז לחצו על \"אתרו את המוצרים\".",
+      "working": "עובד על [n] שורות…",
+      "skipped": "([n] שורות מעל המקסימום דולגו)",
+      "batch_found": "[n] נמצאו",
+      "batch_missing": "[n] לא נמצאו",
+      "batch_failed": "[n] נכשלו - נסו שוב",
+      "added_to_cart": "[n] מקטים נוספו לעגלה בהצלחה.",
+      "add_failed": "לא הצלחנו להוסיף את הפריטים. נסו שוב."
     }
   },
   "sections": {

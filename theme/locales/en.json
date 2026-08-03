@@ -503,6 +503,23 @@
       "unavailable": "Unavailable",
       "vendor": "Brand",
       "view_details": "View details"
+    },
+    "quick_order": {
+      "not_found": "Catalogue number not found",
+      "free_search": "Search the store",
+      "lookup_failed": "Lookup failed",
+      "retry": "Try again",
+      "no_exact_match": "No exact match - did you mean:",
+      "skus_word": "items",
+      "units_word": "units",
+      "paste_empty": "Paste a list of catalogue numbers, then press \"Find the products\".",
+      "working": "Working on [n] rows…",
+      "skipped": "([n] rows over the maximum were skipped)",
+      "batch_found": "[n] found",
+      "batch_missing": "[n] not found",
+      "batch_failed": "[n] failed - try again",
+      "added_to_cart": "[n] items added to the cart.",
+      "add_failed": "We could not add the items. Please try again."
     }
   },
   "sections": {

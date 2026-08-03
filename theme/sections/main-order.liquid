@@ -162,19 +162,19 @@
                       </div>
                       <div class="order-line__info">
                         {%- if line_item.url != blank -%}
-                          <a class="order-line__title" href="{{ line_item.url }}">{{ line_item.title }}</a>
+                          <a class="order-line__title" href="{{ line_item.url }}">{{ line_item.title | escape }}</a>
                         {%- else -%}
-                          <span class="order-line__title">{{ line_item.title }}</span>
+                          <span class="order-line__title">{{ line_item.title | escape }}</span>
                         {%- endif -%}
 
                         {%- if line_item.variant.title != blank and line_item.variant.title != 'Default Title' -%}
-                          <span class="text-muted fs-sm">{{ line_item.variant.title }}</span>
+                          <span class="text-muted fs-sm">{{ line_item.variant.title | escape }}</span>
                         {%- endif -%}
 
                         {%- for discount_allocation in line_item.line_level_discount_allocations -%}
                           <span class="order-line__discount">
                             {% render 'icon', name: 'tag', size: 14 %}
-                            {{ discount_allocation.discount_application.title }}
+                            {{ discount_allocation.discount_application.title | escape }}
                             (-{{ discount_allocation.amount | money }})
                           </span>
                         {%- endfor -%}
@@ -206,7 +206,7 @@
                               <span class="order-line__tracking-row text-muted">
                                 {{ carrier_label | escape }}
                                 {%- if line_item.fulfillment.tracking_number != blank %}
-                                  <bdi dir="ltr">{{ line_item.fulfillment.tracking_number }}</bdi>
+                                  <bdi dir="ltr">{{ line_item.fulfillment.tracking_number | escape }}</bdi>
                                 {%- endif -%}
                               </span>
                             {%- endif -%}
@@ -228,7 +228,7 @@
                   </td>
                   <td data-label="{{ 'customer.order.sku' | t }}" class="order-line__sku">
                     {%- if line_item.sku != blank -%}
-                      <bdi dir="ltr">{{ line_item.sku }}</bdi>
+                      <bdi dir="ltr">{{ line_item.sku | escape }}</bdi>
                     {%- else -%}
                       <span aria-hidden="true">-</span>
                     {%- endif -%}

@@ -6,7 +6,10 @@
   phones. Status cells reuse .badge with local state modifiers.
 {%- endcomment -%}
 {%- liquid
-  assign customer_name = customer.first_name | default: customer.name
+  # Escaped at the source: `| t` does not escape interpolated values, so the
+  # welcome heading injected a shopper-supplied first name as live HTML. The
+  # neighbouring outputs in this file all escape; these did not.
+  assign customer_name = customer.first_name | default: customer.name | escape
   assign phone_href = settings.store_phone | remove: '-' | remove: ' ' | remove: '(' | remove: ')'
 
   assign wa_raw = settings.store_whatsapp | strip
@@ -182,16 +185,16 @@
             <dl class="account-dl">
               <div class="account-dl__row">
                 <dt class="account-dl__label">{{ 'general.contact.name' | t }}</dt>
-                <dd class="account-dl__value">{{ customer.name }}</dd>
+                <dd class="account-dl__value">{{ customer.name | escape }}</dd>
               </div>
               <div class="account-dl__row">
                 <dt class="account-dl__label">{{ 'customer.login_page.email' | t }}</dt>
-                <dd class="account-dl__value account-dl__value--ltr">{{ customer.email }}</dd>
+                <dd class="account-dl__value account-dl__value--ltr">{{ customer.email | escape }}</dd>
               </div>
               {%- if customer.phone != blank -%}
                 <div class="account-dl__row">
                   <dt class="account-dl__label">{{ 'general.contact.phone' | t }}</dt>
-                  <dd class="account-dl__value account-dl__value--ltr">{{ customer.phone }}</dd>
+                  <dd class="account-dl__value account-dl__value--ltr">{{ customer.phone | escape }}</dd>
                 </div>
               {%- endif -%}
             </dl>
