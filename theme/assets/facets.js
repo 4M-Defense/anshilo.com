@@ -136,6 +136,17 @@
         name: active.getAttribute('name') || '',
         value: active.value
       };
+      /* A control that is being TYPED into needs its own value and caret carried
+         across, not the server's. The price fields are the case that bit: a
+         debounced re-render landing mid-entry rewrote "1" to Liquid's "1.00" with
+         the caret at the end, so finishing "150" produced "1.0050" and filtered
+         the grid from ₪1.005 — a value the shopper never entered, pushed into
+         history. */
+      if (active.matches && active.matches('[data-price-input], input[type="search"]')) {
+        focusMemo.typed = true;
+        focusMemo.start = active.selectionStart;
+        focusMemo.end = active.selectionEnd;
+      }
     }
 
     container.innerHTML = fresh.innerHTML;
@@ -152,18 +163,23 @@
 
     initFacetLists(container);
 
-    // Keep the filters drawer open across re-renders (mobile).
-    if (drawerWasOpen) {
-      var freshDrawer = document.getElementById(DRAWER_ID);
-      if (freshDrawer) {
-        freshDrawer.style.transition = 'none';
-        freshDrawer.classList.add('is-open');
-        freshDrawer.setAttribute('aria-hidden', 'false');
-        void freshDrawer.offsetWidth;
-        freshDrawer.style.transition = '';
-        if (window.ShiloDrawers) window.ShiloDrawers.activeDrawer = freshDrawer;
-        if (window.trapFocus) window.trapFocus(freshDrawer);
+    /* Keep the filters drawer open across re-renders (mobile), and keep its
+       dialog semantics matched to that state. The markup no longer ships
+       role="dialog" aria-modal="true" aria-hidden="true" — those belong to the
+       open state, because the very same node is the static desktop sidebar. */
+    var freshDrawer = document.getElementById(DRAWER_ID);
+    if (drawerWasOpen && freshDrawer) {
+      freshDrawer.style.transition = 'none';
+      freshDrawer.classList.add('is-open');
+      void freshDrawer.offsetWidth;
+      freshDrawer.style.transition = '';
+      if (window.ShiloDrawers) {
+        window.ShiloDrawers.activeDrawer = freshDrawer;
+        window.ShiloDrawers.applyDialogState(freshDrawer);
       }
+      if (window.trapFocus) window.trapFocus(freshDrawer);
+    } else if (freshDrawer && window.ShiloDrawers) {
+      window.ShiloDrawers.clearDialogState(freshDrawer);
     }
 
     // Restore focus to the control the user was interacting with.
@@ -179,7 +195,17 @@
         });
         if (!target && candidates.length) target = candidates[0];
       }
-      if (target) target.focus({ preventScroll: true });
+      if (target) {
+        if (focusMemo.typed) {
+          target.value = focusMemo.value;
+          try {
+            target.setSelectionRange(focusMemo.start, focusMemo.end);
+          } catch (e) {
+            /* number inputs refuse setSelectionRange in some browsers */
+          }
+        }
+        target.focus({ preventScroll: true });
+      }
     }
 
     // Reveal-on-scroll elements arrive without the observer — show them.
@@ -210,8 +236,13 @@
   }
 
   /* ---------- Event wiring (delegated — content gets replaced) ---------- */
+  /* 900ms, not 500. A price is typed digit by digit, and a swap landing between
+     two keystrokes destroys the field being typed into. updateDom now carries the
+     typed value and caret across, so the value is no longer corrupted either way
+     — but a longer pause means most shoppers finish the number before the grid
+     moves under them. The `change` listener below still catches the blur. */
   var debouncedPriceUpdate = window.debounce
-    ? window.debounce(function () { renderPage(buildParams()); }, 500)
+    ? window.debounce(function () { renderPage(buildParams()); }, 900)
     : function () { renderPage(buildParams()); };
 
   document.addEventListener('change', function (event) {

@@ -11,7 +11,15 @@
   accessibility statement page — the content itself is the owner's).
 {%- endcomment -%}
 
-{{ 'accessibility.css' | asset_url | stylesheet_tag }}
+{%- comment -%}
+  accessibility.css and the before-paint script that stamps the saved
+  preferences onto <html> now load from layout/theme.liquid's <head>. They used
+  to be emitted here, sixteen lines before </body>: a `defer` script cannot run
+  until parsing completes and the stylesheet was discovered at the same point,
+  so a returning low-vision visitor with inverted colours and 125% text got a
+  full paint at 100% in the normal palette, and only then the snap. On every
+  navigation. accessibility.js is still deferred — it only wires the panel up.
+{%- endcomment -%}
 <script src="{{ 'accessibility.js' | asset_url }}" defer="defer"></script>
 
 <div class="a11y-widget" data-a11y-widget>

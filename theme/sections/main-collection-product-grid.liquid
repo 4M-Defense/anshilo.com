@@ -239,8 +239,18 @@
                 {%- for product in collection.products -%}
                   {%- liquid
                     assign lazy_flag = true
+                    assign reveal_class = 'reveal'
                     if forloop.index <= columns
+                      # The first row is the LCP row on the highest-traffic
+                      # template in the store. It is already eager +
+                      # fetchpriority=high, so parking it at opacity 0 until the
+                      # IntersectionObserver fires threw that away — Chrome will
+                      # not accept an opacity-0 node as an LCP candidate, so the
+                      # metric was reported at reveal time, not paint time. These
+                      # cards are in the viewport on load; there is nothing to
+                      # reveal.
                       assign lazy_flag = false
+                      assign reveal_class = ''
                     endif
                   -%}
                   <li class="collection-products__item">
@@ -248,7 +258,7 @@
                       product: product,
                       lazy: lazy_flag,
                       sizes: card_sizes,
-                      class: 'reveal'
+                      class: reveal_class
                     %}
                   </li>
                 {%- endfor -%}

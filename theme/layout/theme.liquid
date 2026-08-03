@@ -243,6 +243,9 @@
     </style>
 
     {{ 'base.css' | asset_url | stylesheet_tag }}
+    {%- if settings.a11y_enabled -%}
+      {{ 'accessibility.css' | asset_url | stylesheet_tag }}
+    {%- endif -%}
     <script src="{{ 'global.js' | asset_url }}" defer="defer"></script>
     <script src="{{ 'recently-viewed.js' | asset_url }}" defer="defer"></script>
 
@@ -251,6 +254,36 @@
       document.documentElement.classList.replace('no-js', 'js');
       {%- if settings.enable_animations == false -%}
       document.documentElement.classList.add('no-animations');
+      {%- endif -%}
+      {%- if settings.a11y_enabled -%}
+      /* Saved accessibility preferences, stamped before first paint. The widget's
+         own deferred script cannot run until the document has parsed, so a
+         returning visitor with inverted colours and 125% text used to get a full
+         paint in the default presentation and then a snap — every navigation.
+         Class names here must match CLASS_MAP in assets/accessibility.js. */
+      (function () {
+        try {
+          var saved = JSON.parse(window.localStorage.getItem('shilo.a11y.v1') || '{}');
+          if (!saved || typeof saved !== 'object') return;
+          var map = {
+            contrast: 'a11y-contrast',
+            grayscale: 'a11y-grayscale',
+            invert: 'a11y-invert',
+            links: 'a11y-links',
+            font: 'a11y-font',
+            motion: 'a11y-motion',
+            cursor: 'a11y-cursor'
+          };
+          var root = document.documentElement;
+          Object.keys(map).forEach(function (key) {
+            if (saved[key]) root.classList.add(map[key]);
+          });
+          if (saved.fontsize === 110) root.classList.add('a11y-fs-110');
+          if (saved.fontsize === 125) root.classList.add('a11y-fs-125');
+        } catch (e) {
+          /* private mode, or storage disabled — accessibility.js re-applies later */
+        }
+      })();
       {%- endif -%}
       window.shopUrl = '{{ request.origin }}';
       window.routes = {

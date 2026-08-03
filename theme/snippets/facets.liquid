@@ -21,12 +21,27 @@
 {%- endcomment -%}
 {%- assign visible_limit = 10 -%}
 
+{%- comment -%}
+  This one node has two presentations: a modal drawer on mobile, and a static
+  sidebar on desktop, where assets/section-collection.css un-hides it inside
+  <aside class="collection-layout__sidebar">.
+
+  It used to hardcode aria-hidden="true" role="dialog" aria-modal="true" here.
+  Nothing ever removed them on desktop, so the entire filter sidebar was missing
+  from the accessibility tree while its checkboxes stayed focusable — Tab landed
+  on controls a screen reader reported as nothing at all — and aria-modal told AT
+  the rest of the collection page was inert. On a ~1,900-SKU catalogue where
+  filtering is the primary way to find a product, that blocks the core task
+  (WCAG 1.3.1, 4.1.2).
+
+  The dialog semantics now belong to the open state alone: global.js's
+  Drawers.open/close add and remove them, and facets.js re-normalises after each
+  AJAX swap re-injects this markup. aria-label stays — it names the sidebar on
+  desktop and the dialog on mobile.
+{%- endcomment -%}
 <div
   id="FacetsDrawer"
   class="drawer drawer--end facets-drawer"
-  aria-hidden="true"
-  role="dialog"
-  aria-modal="true"
   aria-label="{{ 'products.facets.filter_button' | t }}"
 >
   <div class="drawer__header">

@@ -143,6 +143,20 @@
               <span class="header-search__icon" aria-hidden="true">
                 {% render 'icon', name: 'search', size: 19 %}
               </span>
+              {%- comment -%}
+                Not a combobox. It used to declare role="combobox"
+                aria-autocomplete="list" aria-expanded, and the element it
+                controls is a plain <div> holding headings, product rows,
+                collection links and a "view all" button — none of which are valid
+                listbox children, and no role="option" or aria-activedescendant
+                exists anywhere in the theme. A screen reader announced "combobox,
+                expanded", went looking for options to report, and found none;
+                aria-expanded also flipped to true for the popular-searches chips
+                and the empty state, when there were no results at all. It is a
+                search field, so it says so (role="search" is on the form) and the
+                results are announced by the [data-search-status] live region that
+                section-header.js already writes to.
+              {%- endcomment -%}
               <input
                 id="HeaderSearchInput-desktop-{{ section.id }}"
                 class="header-search__input"
@@ -150,10 +164,7 @@
                 name="q"
                 value="{{ search.terms | escape }}"
                 placeholder="{{ 'general.search.placeholder' | t }}"
-                role="combobox"
-                aria-expanded="false"
                 aria-controls="HeaderSearchPanel-desktop-{{ section.id }}"
-                aria-autocomplete="list"
                 aria-label="{{ 'general.search.title' | t }}"
                 autocomplete="off"
                 autocorrect="off"
@@ -261,10 +272,7 @@
               name="q"
               value="{{ search.terms | escape }}"
               placeholder="{{ 'general.search.placeholder' | t }}"
-              role="combobox"
-              aria-expanded="false"
               aria-controls="HeaderSearchPanel-mobile-{{ section.id }}"
-              aria-autocomplete="list"
               aria-label="{{ 'general.search.title' | t }}"
               autocomplete="off"
               autocorrect="off"

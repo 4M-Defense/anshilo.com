@@ -205,10 +205,14 @@
       if (status) status.textContent = text || '';
     }
 
+    /* aria-expanded belonged to the combobox role the input no longer claims — see
+       the comment on the input in sections/header.liquid. It was also set to true
+       for the popular-searches chips and the empty state, i.e. when there was
+       nothing to expand into. The panel's visibility is conveyed by the
+       [data-search-status] live region instead. */
     function openPanel() {
       panel.hidden = false;
       form.classList.add('is-open');
-      input.setAttribute('aria-expanded', 'true');
     }
 
     function hideSkeleton() {
@@ -225,7 +229,6 @@
       announce('');
       panel.hidden = true;
       form.classList.remove('is-open');
-      input.setAttribute('aria-expanded', 'false');
     }
 
     function showPopular() {

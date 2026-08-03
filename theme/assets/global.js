@@ -610,6 +610,10 @@
       elements.forEach((el) => el.classList.add('reveal--visible'));
       return;
     }
+    /* base.css only hides .reveal once this class is on <html>, so a slow or
+       failed global.js can never leave content invisible — it just arrives
+       without the animation. */
+    document.documentElement.classList.add('reveal-ready');
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry, i) => {

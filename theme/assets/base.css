@@ -103,6 +103,13 @@ summary::-webkit-details-marker { display: none; }
 
 [hidden] { display: none !important; }
 
+/* global.js toggles this on <body> whenever a drawer opens. It had no rule
+   behind it anywhere in the theme, so the page kept scrolling under an
+   aria-modal="true" dialog — flick the scrim on mobile and the catalogue moved,
+   and closing the filters drawer left the shopper at a different scroll
+   position than where they started. */
+body.scroll-locked { overflow: hidden; }
+
 :focus-visible {
   outline: 2px solid var(--color-accent);
   outline-offset: 2px;
@@ -450,7 +457,12 @@ summary::-webkit-details-marker { display: none; }
   box-shadow: none !important;
 }
 
-.btn--loading { position: relative; color: transparent !important; }
+/* pointer-events matters here: the label going transparent is the only cue that
+   a request is running, and without this the button — and the sticky bar's
+   duplicate submit button for the same form — stayed clickable, so a second
+   impatient tap added the item twice. <product-form> also sets .disabled now;
+   this covers the buttons it does not own. */
+.btn--loading { position: relative; color: transparent !important; pointer-events: none; }
 .btn--loading::after {
   content: "";
   position: absolute;
@@ -964,15 +976,27 @@ summary::-webkit-details-marker { display: none; }
 .field__input:hover, .field__textarea:hover, .field__select:hover,
 .input:hover, .select:hover { border-color: var(--color-text-muted); }
 
+/* The focus ring has to be perceivable, and --color-border-strong going to
+   --color-accent is not: mid-grey to a similarly dark red is a 1.5:1 change, far
+   under the 3:1 WCAG 2.4.11 wants, and this selector's specificity also beat the
+   global :focus-visible outline so keyboard focus lost that too. Go to
+   --color-ink instead (a ~4.3:1 change), thicken the border, and raise the ring's
+   alpha — the same approach .header-search__box:focus-within already takes. */
 .field__input:focus, .field__textarea:focus, .field__select:focus,
 .input:focus, .select:focus {
   outline: none;
-  border-color: var(--color-accent);
-  box-shadow: 0 0 0 3px rgba(var(--color-accent-rgb), 0.14);
+  border-color: var(--color-ink);
+  border-width: 2px;
+  box-shadow: 0 0 0 3px rgba(var(--color-accent-rgb), 0.4);
 }
 
+/* --color-text-muted is a compliant 5.6:1 on white on its own. The opacity: 0.8
+   composited it to a lighter grey — 3.7:1 on --color-surface and 3.5:1 on
+   --color-page, both under the 4.5:1 AA floor — and the facet price fields use
+   their placeholder as the only visible hint, since their labels are
+   .visually-hidden. Drop the opacity. */
 .field__input::placeholder, .field__textarea::placeholder,
-.input::placeholder { color: var(--color-text-muted); opacity: 0.8; }
+.input::placeholder { color: var(--color-text-muted); }
 
 .select-wrap { position: relative; }
 .select-wrap .icon-chevron {
@@ -1070,7 +1094,16 @@ summary::-webkit-details-marker { display: none; }
   -moz-appearance: textfield;
 }
 .qty__input::-webkit-outer-spin-button, .qty__input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+/* The bare `outline: none` here silenced keyboard focus with no replacement,
+   and at (0,2,0) it also outranked the global :focus-visible rule. On a cart
+   page with several identical centred quantity fields there was no way to tell
+   which one would receive typing. Indicate on the wrapper, which is where the
+   border lives. */
 .qty__input:focus { outline: none; }
+.qty:focus-within {
+  border-color: var(--color-ink);
+  box-shadow: 0 0 0 3px rgba(var(--color-accent-rgb), 0.35);
+}
 
 .qty--sm .qty__btn { inline-size: 34px; }
 .qty--sm .qty__input { inline-size: 38px; min-block-size: 36px; font-size: 0.9rem; }
@@ -1215,12 +1248,19 @@ summary::-webkit-details-marker { display: none; }
 @keyframes shimmer { to { transform: translateX(100%); } }
 
 /* ---------- Reveal on scroll ---------- */
-.js:not(.no-animations) .reveal {
+/* Opt-in, not opt-out. This used to park every .reveal at opacity 0 the moment
+   the inline head script swapped no-js -> js, so content was invisible until
+   global.js had been fetched, parsed and run — Chrome refuses an opacity-0 node
+   as an LCP candidate, so the collection grid's LCP was reported at the reveal
+   time rather than the paint, and a failed global.js left the whole product grid
+   blank forever. global.js adds .reveal-ready to <html> only once its observer
+   is actually wired up. */
+.js:not(.no-animations).reveal-ready .reveal {
   opacity: 0;
   transform: translateY(14px);
   transition: opacity 0.55s var(--ease-out), transform 0.55s var(--ease-out);
 }
-.js:not(.no-animations) .reveal.reveal--visible { opacity: 1; transform: translateY(0); }
+.js:not(.no-animations).reveal-ready .reveal.reveal--visible { opacity: 1; transform: translateY(0); }
 
 @media (prefers-reduced-motion: reduce) {
   .js .reveal { opacity: 1 !important; transform: none !important; }
