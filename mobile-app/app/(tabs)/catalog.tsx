@@ -16,7 +16,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { getCollections } from '@/api/client';
 import type { Collection, PageInfo } from '@/api/types';
 import { CollectionImage, EmptyState, ErrorView, Icon, Skeleton, StoreLogo } from '@/components';
-import { alignEnd, colors, radius, rtlText, shadows, spacing, typography } from '@/theme';
+import { alignEnd, colors, radius, rtlText, shadows, gridColumns, gridItemWidth, spacing, typography } from '@/theme';
 
 const PAGE_SIZE = 24;
 /** יחס גובה-רוחב של אריח קטגוריה */
@@ -78,7 +78,8 @@ export default function CatalogScreen() {
   const router = useRouter();
   const { width } = useWindowDimensions();
 
-  const tileWidth = (width - spacing.lg * 2 - spacing.md) / 2;
+  const columns = gridColumns(width);
+  const tileWidth = gridItemWidth(width, columns);
   const tileHeight = Math.round(tileWidth * TILE_RATIO);
 
   const [collections, setCollections] = useState<Collection[]>([]);
@@ -206,7 +207,8 @@ export default function CatalogScreen() {
         <FlatList
           data={collections}
           keyExtractor={(item) => item.id}
-          numColumns={2}
+          numColumns={columns}
+          key={`grid-${columns}`}
           renderItem={renderTile}
           columnWrapperStyle={styles.columnWrapper}
           contentContainerStyle={styles.listContent}

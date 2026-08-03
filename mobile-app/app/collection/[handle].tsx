@@ -27,7 +27,7 @@ import {
   toFilterInputs,
   type AppliedFilters,
 } from '@/components';
-import { alignEnd, colors, radius, rtlText, spacing, typography } from '@/theme';
+import { alignEnd, colors, radius, rtlText, gridColumns, gridItemWidth, spacing, typography } from '@/theme';
 
 const PAGE_SIZE = 24;
 /** תיאור ארוך מזה מקבל "קרא עוד" */
@@ -56,7 +56,8 @@ export default function CollectionScreen() {
   const handle = typeof params.handle === 'string' ? params.handle : '';
   const router = useRouter();
   const { width } = useWindowDimensions();
-  const cardWidth = (width - spacing.lg * 2 - spacing.md) / 2;
+  const columns = gridColumns(width);
+  const cardWidth = gridItemWidth(width, columns);
 
   const [meta, setMeta] = useState<Collection | null>(null);
   const [screenState, setScreenState] = useState<ScreenState>('loading');
@@ -418,7 +419,8 @@ export default function CollectionScreen() {
           ref={listRef}
           data={listLoading ? [] : products}
           keyExtractor={(item) => item.id}
-          numColumns={2}
+          numColumns={columns}
+          key={`grid-${columns}`}
           renderItem={renderProduct}
           columnWrapperStyle={styles.columnWrapper}
           contentContainerStyle={styles.listContent}

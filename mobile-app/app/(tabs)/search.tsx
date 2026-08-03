@@ -25,7 +25,7 @@ import {
   StoreLogo,
 } from '@/components';
 import { useSettings } from '@/state/SettingsContext';
-import { alignEnd, colors, inputAlign, radius, rtlText, spacing, typography } from '@/theme';
+import { alignEnd, colors, inputAlign, radius, rtlText, gridColumns, gridItemWidth, spacing, typography } from '@/theme';
 
 const PAGE_SIZE = 24;
 const DEBOUNCE_MS = 350;
@@ -88,7 +88,8 @@ function SearchChip({
 export default function SearchScreen() {
   const insets = useSafeAreaInsets();
   const { width } = useWindowDimensions();
-  const cardWidth = (width - spacing.lg * 2 - spacing.md) / 2;
+  const columns = gridColumns(width);
+  const cardWidth = gridItemWidth(width, columns);
   const { popularSearches } = useSettings();
 
   const [text, setText] = useState('');
@@ -387,7 +388,8 @@ export default function SearchScreen() {
           <FlatList
             data={results}
             keyExtractor={(item) => item.id}
-            numColumns={2}
+            numColumns={columns}
+            key={`grid-${columns}`}
             renderItem={renderCard}
             columnWrapperStyle={styles.columnWrapper}
             contentContainerStyle={styles.listContent}
