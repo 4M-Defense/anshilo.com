@@ -154,7 +154,19 @@ function extract(html, url) {
    * המקט אינו ב-JSON-LD אלא בגוף העמוד, בתוך div.cataloge_number.
    * למוצרי פתיה בחנות יש מקט מספרי, כך שזה מפתח מדויק לשני הכיוונים.
    */
-  const skuBlock = html.match(/class="cataloge_number"[\s\S]{0,400}?<span>([^<]{1,20})<\/span>/);
+  /*
+   * שתי תבניות, לא אחת.
+   *
+   * `cataloge_number` נתן מקט ב-279 עמודים מתוך 910, ונראה כאילו לשאר פשוט
+   * אין מספר קטלוגי. אין — הם פשוט משתמשים בתבנית אחרת, `code_item`, שבה
+   * המספר יושב ישירות בתוך ה-div ובלי span עוטף:
+   *   <div class="code_item col-xs-4"> 6101 </div>
+   * בלי הצורה השנייה 631 מוצרים נספרו כחסרי מקט, וזה בדיוק המידע שנדרש
+   * כדי להצליב מול המקטים שבחנות.
+   */
+  const skuBlock =
+    html.match(/class="cataloge_number"[\s\S]{0,400}?<span>([^<]{1,20})<\/span>/) ||
+    html.match(/class="[^"]*\bcode_item\b[^"]*"[^>]*>\s*([^<\s][^<]{0,22}?)\s*<\/div>/);
   const sku = skuBlock ? skuBlock[1].trim() : null;
   /*
    * השם ב-JSON-LD נגמר בשם האתר — " | FETAYA" אצל פתיה, וכיוצא בזה אצל
