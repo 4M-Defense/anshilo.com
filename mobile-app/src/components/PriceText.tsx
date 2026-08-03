@@ -22,6 +22,10 @@ const SIZE_MAP: Record<PriceSize, { price: number; compare: number }> = {
 /**
  * מחיר מעוצב — מודגש בדיו; במבצע המחיר עובר לאדום המותג והמחיר הקודם
  * מוצג בקו חוצה. המספר עצמו תמיד בכיווניות LTR כדי ש-₪ יישב לפני הסכום.
+ *
+ * פריט ב-₪0 לא מקבל מחיר אלא "מחיר בטלפון", בדיוק כמו snippets/price.liquid
+ * באתר: חלק מהקטלוג מפורסם בלי מחיר, ו-"₪0" נראה כמו תקלה — וגרוע מזה, נתן
+ * לחשוב שהפריט חינם. זו נקודה אחת שמכסה את הכרטיסים, מסך המוצר והעגלה.
  */
 export function PriceText({ price, compareAt, size = 'md', showSave = false }: PriceTextProps) {
   const s = SIZE_MAP[size];
@@ -29,6 +33,14 @@ export function PriceText({ price, compareAt, size = 'md', showSave = false }: P
   const previous = compareAt != null ? parseFloat(compareAt.amount) : 0;
   const onSale = compareAt != null && previous > current;
   const savePercent = onSale ? Math.round(((previous - current) / previous) * 100) : 0;
+
+  if (!Number.isFinite(current) || current === 0) {
+    return (
+      <View style={styles.row}>
+        <Text style={[styles.callForPrice, { fontSize: s.compare + 2 }]}>מחיר בטלפון</Text>
+      </View>
+    );
+  }
 
   return (
     <View style={styles.row}>
@@ -76,6 +88,13 @@ const styles = StyleSheet.create({
     fontWeight: '500',
     textDecorationLine: 'line-through',
     writingDirection: 'ltr',
+  },
+  callForPrice: {
+    ...type.metaSmall,
+    color: colors.accent,
+    fontWeight: '800',
+    textAlign: 'right',
+    writingDirection: 'rtl',
   },
   save: {
     ...type.metaSmall,

@@ -121,7 +121,7 @@ export interface Cart {
     subtotalAmount: MoneyV2;
     totalAmount: MoneyV2;
   };
-  lines: { nodes: CartLine[] };
+  lines: { nodes: CartLine[]; pageInfo?: PageInfo };
 }
 
 export interface ShopInfo {

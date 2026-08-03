@@ -17,6 +17,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { searchProducts } from '@/api/client';
 import type { PageInfo, ProductCardData } from '@/api/types';
 import { EmptyState, ErrorView, Icon, ProductCard, SkeletonProductCard } from '@/components';
+import { POPULAR_SEARCHES } from '@/config';
 import { colors, radius, spacing, typography } from '@/theme';
 
 const PAGE_SIZE = 24;
@@ -24,8 +25,9 @@ const DEBOUNCE_MS = 350;
 const RECENT_KEY = 'shilo.recentSearches';
 const MAX_RECENT = 8;
 
-/** הצעות חיפוש קבועות — מונחים נפוצים בחנות חומרי בניין */
-const POPULAR_SEARCHES = ['מקדחה', 'מברגה', 'טמבור', 'סולם', 'דיסק השחזה', 'ברגים'] as const;
+/* הצעות החיפוש נשאבות מ-src/config.ts, שם הן מתועדות כזהות ל-popular_searches
+   של הת'ים. הרשימה כאן הייתה רשימה שנייה, שונה, שהצילה את הראשונה — כך שהצ'יפים
+   באפליקציה ובאתר הציעו מונחים אחרים. */
 
 function errorText(err: unknown): string {
   return err instanceof Error && err.message !== ''

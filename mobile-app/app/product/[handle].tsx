@@ -4,6 +4,7 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   FlatList,
+  Linking,
   Pressable,
   ScrollView,
   Share,
@@ -33,7 +34,7 @@ import {
   SectionHeader,
   Skeleton,
 } from '@/components';
-import { STORE_INFO } from '@/config';
+import { STORE_INFO, whatsappUrl } from '@/config';
 import { useCart } from '@/state/CartContext';
 import { useFavorites } from '@/state/FavoritesContext';
 import { colors, radius, shadows, spacing, typography } from '@/theme';
@@ -119,7 +120,13 @@ function ProductSkeleton({ galleryHeight }: { galleryHeight: number }) {
 /* ==================== מסך המוצר ==================== */
 
 export default function ProductScreen() {
-  const { handle } = useLocalSearchParams<{ handle: string }>();
+  /* useLocalSearchParams merges path params with query params, so a duplicated
+     key yields string[] at runtime. The app declares scheme "anshilo", which makes
+     anshilo://product/abc?handle=x&handle=y something anyone can put in a message.
+     collection/[handle].tsx already normalises this; this screen did not, and the
+     array went straight into a String! GraphQL variable and into the share URL. */
+  const params = useLocalSearchParams<{ handle: string }>();
+  const handle = typeof params.handle === 'string' ? params.handle : '';
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { width } = useWindowDimensions();
@@ -311,6 +318,15 @@ export default function ProductScreen() {
 
   const price = selectedVariant?.price ?? product?.priceRange.minVariantPrice ?? null;
   const compareAt = selectedVariant?.compareAtPrice ?? null;
+
+  /* A slice of this catalogue is published at ₪0 and is quoted by phone, never
+     sold — the rule snippets/price.liquid, snippets/product-card.liquid and
+     sections/main-product.liquid all enforce on the website. The app talks to the
+     same catalogue and had no equivalent anywhere: the screen showed "₪0", the
+     add-to-cart button was enabled because availableForSale was true, and the
+     shopper checked out and received real stock for nothing. */
+  const callForPrice =
+    selectedVariant != null && parseFloat(selectedVariant.price.amount) === 0;
   const salePercent =
     price != null && compareAt != null && parseFloat(compareAt.amount) > parseFloat(price.amount)
       ? Math.round(
@@ -345,7 +361,7 @@ export default function ProductScreen() {
   }, [handle, toggleFavorite]);
 
   const handleAddToCart = useCallback(async () => {
-    if (!selectedVariant || soldOut) return;
+    if (!selectedVariant || soldOut || callForPrice) return;
     setAddError(null);
     setAdding(true);
     try {
@@ -359,7 +375,7 @@ export default function ProductScreen() {
     } finally {
       setAdding(false);
     }
-  }, [selectedVariant, soldOut, qty, addItem]);
+  }, [selectedVariant, soldOut, callForPrice, qty, addItem]);
 
   const description = useMemo(
     () => (product ? htmlToText(product.descriptionHtml || '') : ''),
@@ -456,14 +472,43 @@ export default function ProductScreen() {
 
           <Text style={styles.title}>{product.title}</Text>
 
-          {price != null && (
-            <View style={styles.priceRow}>
-              <PriceText price={price} compareAt={compareAt} size="lg" />
-              {salePercent > 0 && (
-                /* ‎ — סימן LTR כדי שהמינוס יוצג לפני המספר גם ב-RTL */
-                <Badge label={`‎-${salePercent}%`} variant="sale" />
-              )}
+          {callForPrice ? (
+            /* Mirrors snippets/request-price.liquid on the website: no price, and
+               the two ways to actually get one. */
+            <View style={styles.quoteBox}>
+              <Text style={styles.quoteTitle}>מחיר בטלפון</Text>
+              <Text style={styles.quoteText}>
+                המחיר של הפריט הזה נקבע לפי כמות ודגם. התקשרו או שלחו הודעה ונחזור אליכם
+                עם הצעת מחיר.
+              </Text>
+              <View style={styles.quoteActions}>
+                <Button
+                  title={STORE_INFO.phone}
+                  onPress={() => Linking.openURL(`tel:${STORE_INFO.phoneDial}`).catch(() => {})}
+                  icon={<Icon name="call-outline" size={18} color={colors.onAccent} />}
+                  style={styles.quoteButton}
+                />
+                {whatsappUrl() !== '' && (
+                  <Button
+                    title="וואטסאפ"
+                    variant="outline"
+                    onPress={() => Linking.openURL(whatsappUrl()).catch(() => {})}
+                    icon={<Icon name="logo-whatsapp" size={18} color={colors.accent} />}
+                    style={styles.quoteButton}
+                  />
+                )}
+              </View>
             </View>
+          ) : (
+            price != null && (
+              <View style={styles.priceRow}>
+                <PriceText price={price} compareAt={compareAt} size="lg" />
+                {salePercent > 0 && (
+                  /* ‎ — סימן LTR כדי שהמינוס יוצג לפני המספר גם ב-RTL */
+                  <Badge label={`‎-${salePercent}%`} variant="sale" />
+                )}
+              </View>
+            )
           )}
 
           {selectedVariant?.sku != null && selectedVariant.sku !== '' && (
@@ -590,15 +635,15 @@ export default function ProductScreen() {
               value={qty}
               onChange={setQty}
               max={maxQty}
-              disabled={soldOut || adding || busy}
+              disabled={soldOut || callForPrice || adding || busy}
             />
             <Button
-              title={soldOut ? 'אזל מהמלאי' : 'הוספה לעגלה'}
+              title={callForPrice ? 'מחיר בטלפון' : soldOut ? 'אזל מהמלאי' : 'הוספה לעגלה'}
               onPress={handleAddToCart}
               loading={adding || busy}
-              disabled={soldOut}
+              disabled={soldOut || callForPrice}
               icon={
-                soldOut ? undefined : (
+                soldOut || callForPrice ? undefined : (
                   <Icon name="cart-outline" size={18} color={colors.onAccent} />
                 )
               }
@@ -776,6 +821,37 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.md,
+  },
+  /* ----- call-for-price (₪0 items) ----- */
+  quoteBox: {
+    backgroundColor: colors.surfaceAlt,
+    borderRadius: radius.md,
+    borderWidth: 1,
+    borderColor: colors.border,
+    padding: spacing.md,
+    gap: spacing.xs,
+  },
+  quoteTitle: {
+    fontSize: typography.h3,
+    fontWeight: '800',
+    color: colors.accent,
+    textAlign: 'right',
+    writingDirection: 'rtl',
+  },
+  quoteText: {
+    fontSize: typography.small,
+    lineHeight: typography.small * 1.5,
+    color: colors.textMuted,
+    textAlign: 'right',
+    writingDirection: 'rtl',
+  },
+  quoteActions: {
+    flexDirection: 'row',
+    gap: spacing.sm,
+    marginTop: spacing.xs,
+  },
+  quoteButton: {
+    flex: 1,
   },
   sku: {
     fontSize: typography.tiny,

@@ -161,8 +161,17 @@ function SkeletonCartLine() {
 export default function CartScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const { cart, initializing, busy, itemCount, updateLine, removeLine, setNote, refresh } =
-    useCart();
+  const {
+    cart,
+    initializing,
+    busy,
+    itemCount,
+    linesTruncated,
+    updateLine,
+    removeLine,
+    setNote,
+    refresh,
+  } = useCart();
 
   const [refreshing, setRefreshing] = useState(false);
   const [checkingOut, setCheckingOut] = useState(false);
@@ -259,10 +268,23 @@ export default function CartScreen() {
           // לא חוסם את התשלום
         }
       }
+      /* Only openBrowserAsync belongs in this try. The refresh below used to share
+         it, so losing connectivity for a moment right after returning from a
+         payment redirect — which is exactly when it happens — popped
+         "אין חיבור לאינטרנט" or "לא ניתן לפתוח את עמוד התשלום. נסו שוב." at a
+         shopper whose order had just gone through, inviting them to pay again.
+         The cart reconciles on next boot or pull-to-refresh either way. */
       await WebBrowser.openBrowserAsync(cart.checkoutUrl);
-      await refresh();
     } catch (e) {
       Alert.alert('שגיאה', errorMessage(e, 'לא ניתן לפתוח את עמוד התשלום. נסו שוב.'));
+      setCheckingOut(false);
+      return;
+    }
+
+    try {
+      await refresh();
+    } catch {
+      /* silent — see above */
     } finally {
       setCheckingOut(false);
     }
@@ -429,6 +451,21 @@ export default function CartScreen() {
         )}
         contentContainerStyle={styles.listContent}
         ItemSeparatorComponent={() => <View style={styles.separator} />}
+        ListHeaderComponent={
+          /* getCart pages through every line, so this only fires against the 20-page
+             safety cap. Saying so is still better than a total that does not add up
+             to the rows on screen — the totals are computed server-side over the
+             WHOLE cart, so a truncated list silently disagreed with "סה״כ לתשלום". */
+          linesTruncated ? (
+            <View style={styles.truncatedNotice}>
+              <Icon name="alert-circle-outline" size={17} color={colors.warning} />
+              <Text style={styles.truncatedText}>
+                העגלה גדולה במיוחד ולא כל השורות מוצגות כאן. הסכום למטה כולל את כל הפריטים —
+                להזמנה כזו כדאי להתקשר אלינו.
+              </Text>
+            </View>
+          ) : null
+        }
         ListFooterComponent={footer}
         showsVerticalScrollIndicator={false}
         refreshControl={
@@ -488,6 +525,25 @@ const styles = StyleSheet.create({
   listContent: {
     padding: spacing.lg,
     paddingBottom: spacing.xxl,
+  },
+  truncatedNotice: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: spacing.sm,
+    backgroundColor: colors.surfaceAlt,
+    borderRadius: radius.md,
+    borderWidth: 1,
+    borderColor: colors.warning,
+    padding: spacing.md,
+    marginBottom: spacing.md,
+  },
+  truncatedText: {
+    flex: 1,
+    fontSize: typography.small,
+    lineHeight: typography.small * 1.5,
+    color: colors.ink,
+    textAlign: 'right',
+    writingDirection: 'rtl',
   },
   separator: {
     height: spacing.md,

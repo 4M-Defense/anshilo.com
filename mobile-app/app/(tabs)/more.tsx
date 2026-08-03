@@ -12,11 +12,13 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Icon, Rule, SectionHeader } from '@/components';
-import { STORE_INFO } from '@/config';
+import { STORE_INFO, whatsappUrl } from '@/config';
 import { colors, radius, shadows, spacing, typography } from '@/theme';
 
-/** מרחיבים לטיפוס string — בקונפיג הערך מוצר כליטרל (as const) */
-const WHATSAPP_NUMBER: string = STORE_INFO.whatsapp;
+/* whatsappUrl() normalises the config value — see its comment in src/config.ts.
+   This screen used to build `https://wa.me/${STORE_INFO.whatsapp}` from a value
+   that is already a full wa.link URL. */
+const WHATSAPP_HREF = whatsappUrl();
 const WEBSITE_LABEL = STORE_INFO.website.replace(/^https?:\/\//, '');
 
 /** שורת פעולה בכרטיס — אייקון בבועה, תווית, ושברון "קדימה" (מוטה שמאלה ב-RTL) */
@@ -120,14 +122,14 @@ export default function MoreScreen() {
           icon="call-outline"
           label="התקשרו אלינו"
           sublabel={STORE_INFO.phone}
-          onPress={() => openLink(`tel:${STORE_INFO.phone}`)}
+          onPress={() => openLink(`tel:${STORE_INFO.phoneDial}`)}
         />
-        {WHATSAPP_NUMBER !== '' && (
+        {WHATSAPP_HREF !== '' && (
           <ActionRow
             icon="logo-whatsapp"
             label="וואטסאפ"
             sublabel="מענה מהיר בצ'אט"
-            onPress={() => openLink(`https://wa.me/${WHATSAPP_NUMBER}`)}
+            onPress={() => openLink(WHATSAPP_HREF)}
           />
         )}
         <ActionRow
@@ -167,6 +169,33 @@ export default function MoreScreen() {
           כל מוצר על המדף וישמח לעזור לכם למצוא בדיוק את מה שאתם צריכים, בין אם אתם בונים בית
           ובין אם מחליפים ברז. מוזמנים לבקר, להתקשר או לכתוב לנו — אצלנו תמיד יש מי שמקשיב.
         </Text>
+      </View>
+
+      {/* מידע ומשפטי */}
+      {/* האפליקציה שומרת מזהה עגלה, מועדפים והיסטוריית חיפוש על המכשיר, ולא היה
+          בה שום מסלול למדיניות הפרטיות או לתקנון. Google Play דורש קישור למדיניות
+          פרטיות מכל אפליקציה, ובדיקת App Store מוודאת שאפליקציה שאוגרת נתונים
+          חושפת אותה — כלומר בלי זה גם טופס Data safety לא ניתן למלא נכון. הכתובות
+          הן מדיניות החנות עצמה, כדי שהאתר והאפליקציה לא יתפצלו. */}
+      <SectionHeader title="מידע ומשפטי" />
+      <View style={styles.card}>
+        <ActionRow
+          first
+          icon="shield-checkmark-outline"
+          label="מדיניות פרטיות"
+          sublabel="איזה מידע נשמר ולמה"
+          onPress={() => openLink(`${STORE_INFO.website}/policies/privacy-policy`)}
+        />
+        <ActionRow
+          icon="document-text-outline"
+          label="תקנון ותנאי שימוש"
+          onPress={() => openLink(`${STORE_INFO.website}/policies/terms-of-service`)}
+        />
+        <ActionRow
+          icon="accessibility-outline"
+          label="הצהרת נגישות"
+          onPress={() => openLink(`${STORE_INFO.website}/pages/accessibility`)}
+        />
       </View>
 
       {/* פוטר גרסה */}

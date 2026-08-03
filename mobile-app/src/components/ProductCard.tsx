@@ -32,6 +32,16 @@ export function ProductCard({ product, width, showStock = true }: ProductCardPro
   const onSale = !soldOut && compareMin > minPrice && minPrice > 0;
   const salePercent = onSale ? Math.round(((compareMin - minPrice) / compareMin) * 100) : 0;
   const hasRange = maxPrice > minPrice;
+  /* A product whose cheapest variant is unpriced still has a real entry price, and
+     "החל מ־ ₪0" is not it. Fall back to the top of the range, which is the only
+     other price the card has — the same trade snippets/price.liquid makes. When
+     NOTHING is priced, PriceText renders "מחיר בטלפון" for the ₪0 and the "החל מ־"
+     label would be nonsense, so it is suppressed. */
+  const displayPrice =
+    minPrice === 0 && maxPrice > 0
+      ? product.priceRange.maxVariantPrice
+      : product.priceRange.minVariantPrice;
+  const showFrom = hasRange && maxPrice > 0 && minPrice > 0;
 
   const pressIn = () => {
     Animated.spring(scale, {
@@ -97,9 +107,9 @@ export function ProductCard({ product, width, showStock = true }: ProductCardPro
             {product.title}
           </Text>
           <View style={styles.priceRow}>
-            {hasRange && <Text style={styles.fromLabel}>החל מ־</Text>}
+            {showFrom && <Text style={styles.fromLabel}>החל מ־</Text>}
             <PriceText
-              price={product.priceRange.minVariantPrice}
+              price={displayPrice}
               compareAt={onSale ? product.compareAtPriceRange.minVariantPrice : null}
               size="md"
             />

@@ -5,6 +5,7 @@ import {
   CART_LINES_REMOVE_MUTATION,
   CART_LINES_UPDATE_MUTATION,
   CART_NOTE_UPDATE_MUTATION,
+  CART_LINES_PAGE_QUERY,
   CART_QUERY,
   COLLECTION_PRODUCTS_QUERY,
   COLLECTIONS_QUERY,
@@ -19,6 +20,7 @@ import {
 } from './queries';
 import type {
   Cart,
+  CartLine,
   Collection,
   CollectionWithProducts,
   PageInfo,
@@ -61,13 +63,25 @@ export async function storefrontFetch<T>(
     throw new StorefrontError('אין חיבור לאינטרנט. בדקו את החיבור ונסו שוב.', err);
   }
 
+  /* מה שהקונה רואה הוא תמיד עברית קבועה; הטקסט של השרת נשמר ב-details בלבד.
+     קודם 401/403 החזירו לקונה את ההוראה "עדכנו את src/config.ts" - שם קובץ מתוך
+     קוד המקור - וכל שגיאת GraphQL הוצגה כמו שהיא, כלומר טקסט אנגלי כמו
+     "Throttled" או "Field 'x' doesn't exist on type 'ProductVariant'" בתוך ממשק
+     עברי מימין לשמאל, שגם חושף את מבנה השאילתות וגם משאיר את הקונה בלי מה לעשות. */
   if (!response.ok) {
     if (response.status === 401 || response.status === 403) {
-      throw new StorefrontError(
-        'טוקן ה-Storefront API שגוי או חסר. עדכנו את src/config.ts.'
-      );
+      throw new StorefrontError('החנות אינה זמינה כרגע. נסו שוב בהמשך.', {
+        status: response.status,
+      });
     }
-    throw new StorefrontError(`שגיאת שרת (${response.status}). נסו שוב מאוחר יותר.`);
+    if (response.status === 429 || response.status === 430) {
+      throw new StorefrontError('החנות עמוסה כרגע. נסו שוב בעוד רגע.', {
+        status: response.status,
+      });
+    }
+    throw new StorefrontError('שגיאה בטעינת הנתונים. נסו שוב מאוחר יותר.', {
+      status: response.status,
+    });
   }
 
   const json = (await response.json()) as {
@@ -76,17 +90,20 @@ export async function storefrontFetch<T>(
   };
 
   if (json.errors?.length) {
-    throw new StorefrontError(json.errors[0].message, json.errors);
+    throw new StorefrontError('שגיאה בטעינת הנתונים. נסו שוב מאוחר יותר.', json.errors);
   }
   if (!json.data) {
-    throw new StorefrontError('תשובה ריקה מהשרת');
+    throw new StorefrontError('שגיאה בטעינת הנתונים. נסו שוב מאוחר יותר.');
   }
   return json.data;
 }
 
+/* userErrors של Shopify הן באנגלית ("The cart does not exist") ולכן הן נשמרות
+   ב-details בלבד: המסכים מציגים את message לקונה. CartContext בודק את details
+   כדי לזהות עגלה שנעלמה ולהתאושש ממנה. */
 function assertNoUserErrors(errors: UserError[] | undefined, fallback: string) {
   if (errors && errors.length > 0) {
-    throw new StorefrontError(errors[0].message || fallback, errors);
+    throw new StorefrontError(fallback, errors);
   }
 }
 
@@ -239,9 +256,30 @@ export async function cartCreate(
   return data.cartCreate.cart;
 }
 
+/**
+ * מביא את כל שורות העגלה, לא רק את המאה הראשונות. ה-cost וה-totalQuantity
+ * מחושבים בשרת על כל העגלה, ולכן עגלה חתוכה הציגה סה"כ שלא מסתכם עם השורות
+ * שעל המסך - ואת השורות שמעל המאה לא היה אפשר לשנות או להסיר בכלל.
+ */
+async function withAllCartLines(cart: Cart): Promise<Cart> {
+  let pageInfo = cart.lines.pageInfo;
+  const nodes = [...cart.lines.nodes];
+  /* תקרה של 20 דפים (2,000 שורות) כדי שתשובה חריגה לא תיצור לופ אינסופי. */
+  for (let page = 0; page < 20 && pageInfo?.hasNextPage && pageInfo.endCursor; page += 1) {
+    const next = await storefrontFetch<{
+      cart: { lines: { nodes: CartLine[]; pageInfo: PageInfo } } | null;
+    }>(CART_LINES_PAGE_QUERY, { cartId: cart.id, after: pageInfo.endCursor });
+    if (!next.cart) break;
+    nodes.push(...next.cart.lines.nodes);
+    pageInfo = next.cart.lines.pageInfo;
+  }
+  return { ...cart, lines: { nodes, pageInfo } };
+}
+
 export async function getCart(cartId: string): Promise<Cart | null> {
   const data = await storefrontFetch<{ cart: Cart | null }>(CART_QUERY, { cartId });
-  return data.cart;
+  if (!data.cart) return null;
+  return withAllCartLines(data.cart);
 }
 
 export async function cartLinesAdd(
@@ -290,8 +328,14 @@ export async function cartNoteUpdate(cartId: string, note: string): Promise<Cart
 
 export function formatMoney(money: { amount: string; currencyCode: string }): string {
   const amount = parseFloat(money.amount);
+  /* אגורות שלמות בלבד נשארות בלי שברי אגורה - "₪1,234" ולא "₪1,234.00" - אבל
+     כשיש שברים חייבים להציג שתי ספרות. minimumFractionDigits: 0 השמיט את האפס
+     הסופי, ולכן 19.90 הופיע כ-"₪19.9" ו-1234.50 כ-"₪1,234.5": מחיר שלא תואם את
+     anshilo.com ולא את עמוד התשלום של Shopify, בחנות שבה מרבית המחירים נגמרים
+     ב-.90. */
+  const whole = Number.isInteger(amount);
   const formatted = amount.toLocaleString('he-IL', {
-    minimumFractionDigits: 0,
+    minimumFractionDigits: whole ? 0 : 2,
     maximumFractionDigits: 2,
   });
   const symbol = money.currencyCode === 'ILS' ? '₪' : money.currencyCode + ' ';

@@ -57,6 +57,23 @@ export const STORE_INFO = {
   },
 } as const;
 
+/**
+ * קישור וואטסאפ מוכן לפתיחה.
+ *
+ * STORE_INFO.whatsapp הוא קישור קצר מלא (`https://wa.link/…`), אבל שני מסכים
+ * התייחסו אליו כאילו הוא מספר טלפון והרכיבו `https://wa.me/${...}` - כלומר
+ * `https://wa.me/https://wa.link/sp55tw`. זה URL תקין תחבירית, ולכן
+ * Linking.openURL הצליח ולא הפעיל שום catch: שני מסלולי הוואטסאפ של האפליקציה
+ * הובילו לדף "מספר לא תקין" בשקט מוחלט. הפונקציה הזו מקבלת את שתי הצורות, כך
+ * שאם הערך יוחלף בעתיד במספר בינלאומי הוא ימשיך לעבוד.
+ */
+export function whatsappUrl(): string {
+  const raw = STORE_INFO.whatsapp.trim();
+  if (raw === '') return '';
+  if (/^https?:\/\//i.test(raw)) return raw;
+  return `https://wa.me/${raw.replace(/[^\d]/g, '')}`;
+}
+
 /** מספרי הקטלוג שמוצגים באפליקציה - תואמים לחנות בפועל */
 export const CATALOG_STATS = {
   products: 1918,

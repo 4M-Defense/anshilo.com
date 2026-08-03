@@ -56,6 +56,7 @@ export const CART_FRAGMENT = `#graphql
       totalAmount { ...MoneyFields }
     }
     lines(first: 100) {
+      pageInfo { hasNextPage endCursor }
       nodes {
         id
         quantity
@@ -77,6 +78,49 @@ export const CART_FRAGMENT = `#graphql
               handle
               title
               vendor
+            }
+          }
+        }
+      }
+    }
+  }
+  ${IMAGE_FRAGMENT}
+  ${MONEY_FRAGMENT}
+`;
+
+/**
+ * דף נוסף של שורות עגלה. ה-fragment למעלה מביא 100 שורות ללא המשך, בעוד
+ * ה-cost וה-totalQuantity מחושבים בשרת על *כל* העגלה - כך שקבלן שהרכיב הזמנה
+ * מעל 100 מקטים ראה סה"כ שלא מסתכם עם השורות שעל המסך, ולא יכול היה לשנות או
+ * להסיר את השורות שמעל המאה. getCart ממשיך לדפדף עד הסוף.
+ */
+export const CART_LINES_PAGE_QUERY = `#graphql
+  query CartLinesPage($cartId: ID!, $after: String!) {
+    cart(id: $cartId) {
+      lines(first: 100, after: $after) {
+        pageInfo { hasNextPage endCursor }
+        nodes {
+          id
+          quantity
+          cost {
+            totalAmount { ...MoneyFields }
+            compareAtAmountPerQuantity { ...MoneyFields }
+          }
+          merchandise {
+            ... on ProductVariant {
+              id
+              title
+              availableForSale
+              price { ...MoneyFields }
+              compareAtPrice { ...MoneyFields }
+              image { ...ImageFields }
+              selectedOptions { name value }
+              product {
+                id
+                handle
+                title
+                vendor
+              }
             }
           }
         }

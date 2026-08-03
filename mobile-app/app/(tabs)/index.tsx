@@ -12,7 +12,7 @@ import {
   useWindowDimensions,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { getCollections, getProducts } from '@/api/client';
+import { getCollections, getCollectionsByHandle, getProducts } from '@/api/client';
 import type { Collection, ProductCardData } from '@/api/types';
 import {
   Button,
@@ -23,7 +23,7 @@ import {
   Skeleton,
   SkeletonProductCard,
 } from '@/components';
-import { STORE_INFO } from '@/config';
+import { HOME_FEED, STORE_INFO, whatsappUrl } from '@/config';
 import { colors, radius, shadows, spacing, typography } from '@/theme';
 
 /* ---------- קבועי פריסה ---------- */
@@ -86,7 +86,23 @@ function useRegion<T>(load: () => Promise<T>) {
   return { ...state, reload };
 }
 
-const loadCollections = async (): Promise<Collection[]> => (await getCollections(10)).nodes;
+/**
+ * "קנייה לפי קטגוריה" — 12 המחלקות המוגדרות ב-HOME_FEED, באותו סדר שבו הן
+ * מופיעות בדף הבית באתר.
+ *
+ * קודם הפס הזה קרא getCollections(10), כלומר עשר מתוך 186 הקטגוריות שממוינות
+ * ראשונות לפי שם — ולכן האפליקציה והאתר הציגו מחלקות שונות, למרות ש-HOME_FEED
+ * וההערה שמעליו הצהירו במפורש על זהות ביניהם. getCollectionsByHandle נכתבה
+ * בשביל זה ולא נקראה מאף מקום, בדיוק כמו HOME_FEED עצמו.
+ *
+ * אם מחלקה שונתה או נמחקה בחנות היא מסוננת בשקט, וכשלא נמצאה אף אחת יש נפילה
+ * חזרה לרשימה האלפביתית כדי שהמסך לא יישאר ריק.
+ */
+const loadCollections = async (): Promise<Collection[]> => {
+  const curated = await getCollectionsByHandle(HOME_FEED.departments);
+  if (curated.length > 0) return curated;
+  return (await getCollections(10)).nodes;
+};
 const loadBestSellers = async (): Promise<ProductCardData[]> =>
   (await getProducts({ first: 6, sortKey: 'BEST_SELLING' })).nodes;
 const loadNewArrivals = async (): Promise<ProductCardData[]> =>
@@ -191,14 +207,20 @@ export default function HomeScreen() {
   );
 
   const callStore = useCallback(() => {
-    Linking.openURL(`tel:${STORE_INFO.phone}`).catch(() => {});
+    /* phoneDial exists for exactly this — the display number carries hyphens. */
+    Linking.openURL(`tel:${STORE_INFO.phoneDial}`).catch(() => {});
   }, []);
 
-  const whatsappNumber: string = STORE_INFO.whatsapp;
-  const hasWhatsapp = whatsappNumber.trim() !== '';
+  /* whatsappUrl() handles both shapes the config field can hold. This used to
+     interpolate the config value into a wa.me path, and the value is already a
+     full wa.link URL — so the app opened https://wa.me/https://wa.link/… which
+     is syntactically valid, meaning openURL resolved and the catch never ran. */
+  const whatsappHref = whatsappUrl();
+  const hasWhatsapp = whatsappHref !== '';
   const openWhatsapp = useCallback(() => {
-    Linking.openURL(`https://wa.me/${whatsappNumber}`).catch(() => {});
-  }, [whatsappNumber]);
+    if (whatsappHref === '') return;
+    Linking.openURL(whatsappHref).catch(() => {});
+  }, [whatsappHref]);
 
   // מדורים ריקים (חנות בלי נתונים) מוסתרים — המסך לעולם לא נשאר ריק כי
   // הכותרת, ההירו וכרטיס יצירת הקשר תמיד מוצגים.
