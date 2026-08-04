@@ -87,6 +87,23 @@ async function text(url, minBytes = 0) {
     }
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const body = await res.text();
+
+    /*
+     * חסימה ברמת הפלטפורמה, שנראית כמו הצלחה.
+     *
+     * אחרי יום של זחילות כל האתרים על Konimbo — פתיה, חן, נתנאל, ארגנטולס,
+     * אספקה — התחילו להחזיר HTTP 200 עם גוף באורך 1,622 בתים בדיוק, בלי
+     * JSON-LD ובלי meta description. זה לא לפי אתר אלא לפי הפלטפורמה, כלומר
+     * החסימה חלה על כולם בבת אחת.
+     *
+     * `res.ok` אמיתי, ולכן בלי הבדיקה הזאת התוצאה נספרת כ"אין Product
+     * ב-JSON-LD" — כאילו לאתר אין את המוצר. הטווח ולא מספר מדויק, כי גודל
+     * עמוד החסימה עשוי להשתנות קלות.
+     */
+    if (body.length > 1400 && body.length < 1900 && !body.includes('application/ld+json')) {
+      last = `חסימת פלטפורמה (${body.length} בתים) — המתינו ונסו שוב`;
+      continue;
+    }
     if (body.length < minBytes) {
       last = `גוף קצר מדי (${body.length} בתים)`;
       continue;

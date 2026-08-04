@@ -1844,3 +1844,53 @@ tool, so it is 158 pixels, and the output was looked at rather than assumed.
 The two sibling garlanda products were checked and deliberately left alone. Their
 images are photographs of the retail packaging, with the logo and badges printed
 on the box rather than composited onto the photo, and Google flagged neither.
+
+### 26.10 The whole Konimbo platform is now rate-limiting this IP
+
+Every supplier site in this work runs on Konimbo — Fetaya, Chen, Netanel,
+Aspaka, Nisani, Argentools, Nisko, ToolsOnline. After a day of crawling they all
+began returning **HTTP 200 with a body of about 1,622 bytes**, no JSON-LD and no
+meta description. It is not per-site: Chen, Argentools and Fetaya were tested
+within a minute of each other and all three returned it. The block is at the
+platform, so it lifts for all of them together.
+
+This is the worst possible failure shape, because `res.ok` is true. Before the
+guard, a blocked page counted as "no Product in JSON-LD" — as though the supplier
+did not carry the product. Both `fetch-fetaya-catalogue.js` and
+`fill-descriptions.js` now recognise the signature and report it as a block.
+
+**Everything still open is blocked on this, not on effort:**
+
+| item | published | why it is stuck |
+|---|---|---|
+| price 0 | 98 | needs a reseller page; §26.4 |
+| no image | 11 | only 1 of the 11 exists at any supplier |
+| description | 196 | needs one supplier page each — the script is written and works |
+
+### 26.11 Descriptions — the real number is 196, not 418
+
+Measured the 418 rather than trusting the threshold, and most are not a problem:
+
+```
+  48   empty
+  28   1-24 chars    the description is the title, verbatim
+ 120   25-49 chars   same
+ 222   50-79 chars   real spec text, just short — LEAVE THESE ALONE
+```
+
+"מתח עבודה 2X18V כושר חיתוך 650 מ״מ מהירות 2000-3600 תל״ד" is a genuine
+description at 58 characters. So the target is the 48 empty plus the 148 whose
+description is a copy of their own title, which Google treats as no description
+at all.
+
+`scripts/fill-descriptions.js` handles them: store product → SKU → supplier URL
+from the already-crawled catalogues → fetch that one page → JSON-LD description,
+falling back to meta description. One page per product rather than a whole
+re-crawl, which is what makes it viable at all now.
+
+75 of the 196 have a supplier URL on disk. **It deliberately never writes an
+invented description** — a description built from the title is the same
+duplication the script exists to remove, so a product with no supplier text is
+reported and left.
+
+Run it when the block clears. It needs no arguments to dry-run.
