@@ -476,10 +476,18 @@
     return Math.max(0, Math.min(1, f));
   }
 
-  /** מעדכן שדה ומודיע עליו, כדי שהרענון המושהה הקיים יתפוס */
-  function commit(input, value) {
+  /**
+   * מעדכן שדה ומודיע עליו, כדי שהרענון המושהה הקיים יתפוס.
+   *
+   * ערך שנמצא על קצה הטווח נכתב כשדה **ריק** ולא כמספר. גרירה עד הסוף היא
+   * "בלי הגבלה", ולכתוב 0 במינימום או 9000 במקסימום פירושו לשלוח פרמטר
+   * סינון שאינו מסנן דבר: הכתובת מקבלת filter.v.price.gte=0, החנות מציגה
+   * צ'יפ של מסנן פעיל, ו"נקה סינון" מופיע בלי שהמשתמש סינן משהו.
+   */
+  function commit(input, value, boundary) {
     if (!input) return;
-    var next = String(Math.round(value));
+    var atBoundary = boundary != null && Math.round(value) === Math.round(boundary);
+    var next = atBoundary ? '' : String(Math.round(value));
     if (input.value === next) return;
     input.value = next;
     input.dispatchEvent(new Event('input', { bubbles: true }));
@@ -487,14 +495,55 @@
 
   document.addEventListener('pointerdown', function (event) {
     var handle = event.target.closest ? event.target.closest('[data-price-handle]') : null;
-    if (!handle) return;
-    var slider = sliderOf(handle);
+    var slider = handle ? sliderOf(handle) : sliderOf(event.target);
     if (!slider) return;
     var p = partsOf(slider);
     if (!p.max || !p.track) return;
 
+    /*
+     * נגיעה בפס עצמו, ולא בידית, מקרבת אליה את הידית הסמוכה וממשיכה משם
+     * לגרירה.
+     *
+     * בלי זה הפס נראה אינטראקטיבי ואינו כזה: הידיות הן 22 פיקסלים על רקע
+     * של פס לרוחב כל המסנן, ומשתמש מקיש על הפס במקום שהוא רוצה. סליידר
+     * שמתעלם מהקשה כזאת נחשב שבור, לא מוגבל.
+     */
+    if (!handle) {
+      var io0 = inputs(slider);
+      var minNow = valueOf(io0.min, 0);
+      var maxNow = valueOf(io0.max, p.max);
+      var at = fractionAt(p.track, event.clientX) * p.max;
+      var nearMin = Math.abs(at - minNow) <= Math.abs(at - maxNow);
+      handle = nearMin ? p.minHandle : p.maxHandle;
+      if (!handle) return;
+      if (nearMin) commit(io0.min, Math.min(at, maxNow), 0);
+      else commit(io0.max, Math.max(at, minNow), p.max);
+      paint(slider, nearMin ? Math.min(at, maxNow) : minNow, nearMin ? maxNow : Math.max(at, minNow));
+      /* הפוקוס עובר לידית כדי שחצי המקלדת ימשיכו מאותה נקודה */
+      if (handle.focus) handle.focus();
+    }
+
     event.preventDefault();
-    DRAG = { handle: handle, slider: slider, which: handle.getAttribute('data-price-handle') };
+    /*
+     * `engaged` מבחין בין גרירה לגלילת עמוד.
+     *
+     * הרצועה שמאזינה לנגיעה היא 44 פיקסלים בגובה, ועל הידיות יש
+     * touch-action: none אבל על המעטפת pan-y — כדי שאפשר יהיה לגלול את
+     * העמוד באצבע שמתחילה שם. בלי הסף הזה אותה תנועה אנכית גם גוללת וגם
+     * מזיזה את המחיר, ומשתמש שגלל את הרשימה מגלה שסינן בטעות.
+     *
+     * נגיעה על ידית נחשבת מכוונת ומתחילה גרירה מיד; נגיעה על הפס ממתינה
+     * לתנועה שהיא בעיקר אופקית.
+     */
+    var onHandle = event.target.closest && event.target.closest('[data-price-handle]');
+    DRAG = {
+      handle: handle,
+      slider: slider,
+      which: handle.getAttribute('data-price-handle'),
+      startX: event.clientX,
+      startY: event.clientY,
+      engaged: !!onHandle,
+    };
     handle.setAttribute('data-dragging', '');
     /*
      * לוכדים את המצביע כדי שהגרירה תמשיך גם כשהאצבע יוצאת מהידית — בלעדיו
@@ -509,8 +558,20 @@
     }
   });
 
+  var ENGAGE_PX = 6;
+
   document.addEventListener('pointermove', function (event) {
     if (!DRAG) return;
+
+    /* ראו ההערה ב-pointerdown: תנועה אנכית היא גלילה, ומבטלת את הגרירה */
+    if (!DRAG.engaged) {
+      var dx = Math.abs(event.clientX - DRAG.startX);
+      var dy = Math.abs(event.clientY - DRAG.startY);
+      if (dy > dx && dy > ENGAGE_PX) { endDrag(); return; }
+      if (dx > ENGAGE_PX) DRAG.engaged = true;
+      else return;
+    }
+
     var p = partsOf(DRAG.slider);
     var io = inputs(DRAG.slider);
     if (!p.max || !p.track) return;
@@ -527,8 +588,8 @@
     else maxV = Math.max(value, minV);
 
     paint(DRAG.slider, minV, maxV);
-    commit(io.min, minV);
-    commit(io.max, maxV);
+    commit(io.min, minV, 0);
+    commit(io.max, maxV, p.max);
   });
 
   function endDrag() {
@@ -578,8 +639,8 @@
 
     event.preventDefault();
     paint(slider, minV, maxV);
-    commit(io.min, minV);
-    commit(io.max, maxV);
+    commit(io.min, minV, 0);
+    commit(io.max, maxV, p.max);
   });
 
   /* הקלדה בשדות מזיזה את הידיות, אחרת הפס והמספרים מציגים דברים שונים */
