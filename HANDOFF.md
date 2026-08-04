@@ -2421,3 +2421,63 @@ duplicate groups.
 
 Everything else in §26.19 through §26.27 is either done, measured and recorded, or
 blocked on the Konimbo IP gate, which no amount of local work moves.
+
+### 26.29 §26.22 was wrong, and it was handed to a browser agent as fact
+
+§26.22 concluded the Konimbo gate is "an IP-level decision" and that "a browser agent
+on a normal connection also passes it trivially, since the gate is built to let real
+browsers through." That sentence went into
+`docs/PROMPT-BROWSER-AGENT-PRICES.md` as an established finding.
+
+**It is not established.** A browser agent tried `www.fetaya.com` and `fetaya.com`,
+clicked the "עבור לדף המבוקש" link, and reloaded after waiting — four attempts a
+minute apart — and got the identical gate every time: `<html id="page_no_referer">`,
+`class="limit_no_referer"`, HTTP 200. It never reached a product page, so the
+preliminary question about SKU search was never answerable.
+
+The error was reasoning from the mechanism to the conclusion. The page's own script
+keys on `document.referrer` and a `localStorage` flag, and a comment reads
+`// auto redirect if these stores:` — which reads like an origin allowlist that a real
+browser would satisfy. Seven request-shaping attempts had already failed (§26.22), and
+"a real browser gets through" was the remaining hypothesis rather than a measurement.
+It was written down as though it were the latter.
+
+**The agent's counter-conclusion is also unproven.** It reports the block is "not by
+IP but by entry origin". That does not follow either: a hosted browser agent egresses
+from a datacenter, the same category of address as this machine, so both observations
+are consistent with plain IP reputation. What is established is narrower and worth
+stating exactly: **the gate blocks two independent automated environments, and no
+request-level manipulation has moved it.**
+
+**The decisive test costs ten seconds and only Dvir can run it:** open fetaya.com on
+his own phone or office connection. If it loads, the cause is address reputation and
+the content is reachable by a human. If it does not, Fetaya has closed public browsing
+and the only route is the dealer relationship.
+
+**Neither the agent nor this session will circumvent it.** Forging a Referer,
+reproducing the hash and cookie their script computes, or entering through a cache or
+proxy are all defeating a protection mechanism, and the owner being a genuine customer
+does not change what the action is. The agent refused for exactly this reason and was
+right to.
+
+### 26.30 The 95 zero-price products are not a live risk — measured
+
+The agent flagged that a ₪0 product invites a customer to buy a 600W floodlight for
+nothing, and recommended drafting all 87. **Measured before acting: zero of the 95 can
+be added to a cart.** Every zero-price variant has `availableForSale: false`, so the
+concern is real in principle and does not apply here.
+
+And the theme already solved this deliberately. `snippets/request-price.liquid` exists
+for exactly this case, and `sections/main-product.liquid:191` un-hides it when
+`current_variant.price == 0`. Verified on the live page for SKU 9550: the quote block
+renders, with the "המחיר של הפריט הזה נקבע לפי כמות ודגם" text, a `tel:` link, a
+WhatsApp link and the built-in contact form. **So drafting them would remove working
+pages, not fix a hazard.**
+
+What genuinely remains is only the Google feed, which rejects price 0. The right fix is
+to unpublish those 95 from the Google & YouTube channel while leaving them on the
+online store — they keep their call-for-price page and Merchant Center stops counting
+them. That cannot be done from here: `publications` requires the `read_publications`
+scope and the token answers
+`Access denied for publications field`. It is a bulk action in the admin, or a browser
+agent task.

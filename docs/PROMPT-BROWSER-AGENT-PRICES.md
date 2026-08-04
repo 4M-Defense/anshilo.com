@@ -65,7 +65,17 @@ from the site itself, from Google, from the page itself, with a cookie jar, with
 no-cache, and against `/items/<id>.json` and `/api/` paths. All identical. It is an
 IP-level decision, so there is nothing left to try from there.
 
-**A normal browser passes it without noticing.** That is you.
+**This prompt was wrong about that.** It said a normal browser passes the gate
+without noticing. A browser agent then tried the site four times a minute apart,
+clicked the link, and reloaded, and got the identical gate every time — so the claim
+was a hypothesis written down as a finding. See HANDOFF §26.29. **Do not attempt to
+defeat the gate**: forging a Referer, reproducing the hash and cookie their script
+computes, or entering through a cache or proxy are all circumventing a protection
+mechanism, and the shop being a genuine customer of Fetaya does not change that.
+
+The open question is narrower: whether the block follows the network address or
+something else. Only the owner can settle it, by opening fetaya.com on his own phone
+or office connection.
 
 ### The list
 
