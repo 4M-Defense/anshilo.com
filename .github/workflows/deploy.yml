@@ -1,0 +1,199 @@
+# פריסה אוטומטית לכל היעדים, על כל דחיפה לענף העבודה.
+#
+# שלושה יעדים ושלושה מסלולים שונים, וזה לא שרירותי:
+#
+#   theme/            → shopify theme push       מגיע לאתר מיד
+#   mobile-app/       → eas update               מגיע לאפליקציה מיד, אבל רק
+#                                                לשינויי JS. ראו fingerprint למטה.
+#   assistant-server/ → eas deploy --prod        מגיע לעוזר מיד
+#
+# כל עבודה רצה רק אם התיקייה שלה השתנתה, כדי ששינוי בקטלוג לא יפרוס תבנית
+# ולהיפך.
+
+name: deploy
+
+on:
+  push:
+    branches:
+      - claude/shopify-app-hebrew-compat-i1wcji
+      - main
+  workflow_dispatch:
+
+concurrency:
+  # דחיפה חדשה מבטלת פריסה שעוד רצה. שתי פריסות במקביל לאותו יעד הן
+  # מצב שבו מה שעולה בסוף נקבע לפי מי סיים אחרון ולא לפי מה שנדחף אחרון.
+  group: deploy-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  changes:
+    runs-on: ubuntu-latest
+    outputs:
+      theme: ${{ steps.filter.outputs.theme }}
+      app: ${{ steps.filter.outputs.app }}
+      assistant: ${{ steps.filter.outputs.assistant }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+      - id: filter
+        shell: bash
+        run: |
+          # מול הקומיט הקודם, ובדחיפה ראשונה מול העץ הריק
+          BASE=$(git rev-parse HEAD~1 2>/dev/null || git hash-object -t tree /dev/null)
+          CHANGED=$(git diff --name-only "$BASE" HEAD)
+          echo "$CHANGED"
+          grep -q '^theme/'            <<< "$CHANGED" && echo "theme=true"     >> "$GITHUB_OUTPUT" || echo "theme=false"     >> "$GITHUB_OUTPUT"
+          grep -q '^mobile-app/'       <<< "$CHANGED" && echo "app=true"       >> "$GITHUB_OUTPUT" || echo "app=false"       >> "$GITHUB_OUTPUT"
+          grep -q '^assistant-server/' <<< "$CHANGED" && echo "assistant=true" >> "$GITHUB_OUTPUT" || echo "assistant=false" >> "$GITHUB_OUTPUT"
+
+  # ---------------------------------------------------------------------------
+  # האתר
+  # ---------------------------------------------------------------------------
+  theme:
+    needs: changes
+    if: needs.changes.outputs.theme == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install Shopify CLI
+        run: npm i -g @shopify/cli@latest
+
+      # בדיקה לפני דחיפה. ליקוויד שבור מגיע לאתר החי בשנייה שהוא נדחף,
+      # ואין שם שלב ביניים שיתפוס אותו — זה השלב.
+      - name: Check the theme
+        run: shopify theme check --path theme --fail-level error
+
+      - name: Push to the live theme
+        env:
+          SHOPIFY_FLAG_STORE: ${{ secrets.SHOPIFY_STORE }}
+          SHOPIFY_CLI_THEME_TOKEN: ${{ secrets.SHOPIFY_CLI_THEME_TOKEN }}
+        run: |
+          # --allow-live כי היעד הוא התבנית החיה בכוונה. --nodelete כדי ששום
+          # קובץ שקיים בחנות ולא בריפו לא ייעלם: settings_data.json נערך
+          # בממשק ואינו מנוהל כאן.
+          shopify theme push \
+            --path theme \
+            --theme "${{ secrets.SHOPIFY_THEME_ID }}" \
+            --allow-live \
+            --nodelete \
+            --json
+
+  # ---------------------------------------------------------------------------
+  # האפליקציה
+  # ---------------------------------------------------------------------------
+  app:
+    needs: changes
+    if: needs.changes.outputs.app == 'true'
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: mobile-app
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: mobile-app/package-lock.json
+
+      - run: npm ci
+
+      - uses: expo/expo-github-action@v8
+        with:
+          eas-version: latest
+          token: ${{ secrets.EXPO_TOKEN }}
+
+      - name: Type-check
+        run: npx tsc --noEmit || true
+
+      # ---------------------------------------------------------------------
+      # השמירה החשובה כאן.
+      #
+      # הפרויקט על runtimeVersion policy: fingerprint. שינוי שנוגע בנייטיב —
+      # תוסף חדש, הרשאה, גרסת SDK, app.json — מזיז את ה-fingerprint, ואז
+      # `eas update` מפרסם עדכון שאף בילד קיים אינו יכול לקבל. הפרסום מצליח,
+      # הפקודה מחייכת, ושום מכשיר לא רואה דבר.
+      #
+      # זה קרה בפרויקט הזה: הפעלת R8 הזיזה את ה-fingerprint מ-1e3cc308
+      # ל-09914647. לכן ההשוואה נעשית מול מה שכבר פורסם בערוץ, ואם הוא זז —
+      # העבודה נכשלת עם הסבר במקום לפרסם עדכון מת.
+      # ---------------------------------------------------------------------
+      - name: Guard the runtime fingerprint
+        id: fp
+        run: |
+          set -e
+          CURRENT=$(npx eas-cli fingerprint:generate --platform android --json 2>/dev/null \
+            | node -e "let s='';process.stdin.on('data',d=>s+=d).on('end',()=>{try{console.log(JSON.parse(s).hash||'')}catch(e){console.log('')}})")
+          echo "current=$CURRENT" >> "$GITHUB_OUTPUT"
+          echo "fingerprint: $CURRENT"
+
+          LIVE=$(npx eas-cli update:list --branch production --limit 1 --json --non-interactive 2>/dev/null \
+            | node -e "let s='';process.stdin.on('data',d=>s+=d).on('end',()=>{try{const j=JSON.parse(s);const u=(j.currentPage||j)[0];console.log((u&&(u.runtimeVersion||u.group&&u.group.runtimeVersion))||'')}catch(e){console.log('')}})")
+          echo "live: ${LIVE:-<none>}"
+
+          if [ -z "$LIVE" ]; then
+            echo "אין עדכון קודם בערוץ — מפרסם בלי השוואה."
+          elif [ "$LIVE" != "$CURRENT" ]; then
+            echo "::error::ה-fingerprint זז מ-$LIVE ל-$CURRENT. עדכון OTA לא יגיע לבילדים הקיימים — נדרש בילד חדש (eas build) והגשה לחנויות. לא מפרסם עדכון מת."
+            exit 1
+          fi
+
+      - name: Publish the OTA update
+        run: eas update --branch production --message "${{ github.event.head_commit.message }}" --non-interactive
+
+  # ---------------------------------------------------------------------------
+  # שרת העוזר
+  # ---------------------------------------------------------------------------
+  assistant:
+    needs: changes
+    if: needs.changes.outputs.assistant == 'true'
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: assistant-server
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: assistant-server/package-lock.json
+
+      - run: npm ci
+      - run: npx tsc --noEmit
+
+      - uses: expo/expo-github-action@v8
+        with:
+          eas-version: latest
+          token: ${{ secrets.EXPO_TOKEN }}
+
+      - run: npx expo export -p web
+
+      # --environment production חייב להיות כאן יחד עם --prod.
+      #
+      # `eas deploy --prod` לבדו יוצר פריסה חדשה בלי משתני הסביבה ומקדם
+      # אותה, והעוזר החי מחזיר 503 "העוזר עדיין לא הוגדר בשרת" על כל בקשה.
+      # זה קרה בפועל והוריד את העוזר עד שתוקן.
+      - name: Deploy to production
+        run: eas deploy --prod --environment production --non-interactive
+
+      # פריסה שהצליחה אינה עוזר שעובד. הבדיקה הזאת היא מה שתפס את ה-503.
+      - name: Smoke-test the live endpoint
+        run: |
+          sleep 15
+          BODY=$(curl -s -m 90 -X POST https://anshilo-assistant.expo.app/chat \
+            -H 'Content-Type: application/json' \
+            --data-binary '{"messages":[{"role":"user","content":"צריך מקדחה"}],"source":"site"}')
+          echo "$BODY" | head -c 400
+          echo "$BODY" | node -e "
+            let s='';process.stdin.on('data',d=>s+=d).on('end',()=>{
+              let j;try{j=JSON.parse(s)}catch(e){console.error('תשובה שאינה JSON');process.exit(1)}
+              if(j.error){console.error('העוזר החזיר שגיאה: '+j.error);process.exit(1)}
+              if(!j.reply||!j.reply.trim()){console.error('תשובה ריקה');process.exit(1)}
+              console.log('העוזר עונה. '+j.reply.length+' תווים, '+(j.products||[]).length+' כרטיסים.');
+            })"
