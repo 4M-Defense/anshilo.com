@@ -1,0 +1,66 @@
+{%- comment -%}
+  Renders pagination controls. Consumes the .pagination component from base.css.
+  Shopify builds paginate.parts as: first page, a "…" gap, a window of neighbours
+  around the current page, a "…" gap, last page. Pass `window_size` on the
+  paginate tag to widen or tighten that window.
+
+  Usage inside paginate tags: {% render 'pagination', paginate: paginate %}
+
+  Params:
+    paginate {Object}  the paginate object (required)
+    anchor   {String}  fragment appended to every link (e.g. '#ProductGridContainer')
+{%- endcomment -%}
+{%- if paginate.pages > 1 -%}
+  {%- assign frag = anchor | default: '' -%}
+  <nav class="pagination" role="navigation" aria-label="{{ 'general.pagination.label' | t }}">
+    {%- if paginate.previous -%}
+      <a
+        href="{{ paginate.previous.url }}{{ frag }}"
+        class="pagination__item pagination__item--prev"
+        rel="prev"
+        aria-label="{{ 'general.pagination.previous' | t }}"
+      >
+        {% render 'icon', name: 'chevron-left', size: 18 %}
+      </a>
+    {%- endif -%}
+
+    {%- for part in paginate.parts -%}
+      {%- if part.is_link -%}
+        <a
+          href="{{ part.url }}{{ frag }}"
+          class="pagination__item"
+          aria-label="{{ 'general.pagination.page' | t: number: part.title }}"
+        >
+          {{- part.title -}}
+        </a>
+      {%- elsif part.title == paginate.current_page -%}
+        <span
+          class="pagination__item pagination__item--current"
+          aria-current="page"
+        >
+          {%- comment -%}
+            The name is carried as content rather than aria-label: aria-label is not
+            valid on a plain span, which the HTML validator flags (4.1.1). Same
+            announcement as before - the full sentence is read, the bare digit is
+            hidden so it is not read twice.
+          {%- endcomment -%}
+          <span class="visually-hidden">{{ 'general.pagination.current_page' | t: number: part.title }}</span>
+          <span aria-hidden="true">{{- part.title -}}</span>
+        </span>
+      {%- else -%}
+        <span class="pagination__item pagination__item--gap" aria-hidden="true">{{ part.title }}</span>
+      {%- endif -%}
+    {%- endfor -%}
+
+    {%- if paginate.next -%}
+      <a
+        href="{{ paginate.next.url }}{{ frag }}"
+        class="pagination__item pagination__item--next"
+        rel="next"
+        aria-label="{{ 'general.pagination.next' | t }}"
+      >
+        {% render 'icon', name: 'chevron-right', size: 18 %}
+      </a>
+    {%- endif -%}
+  </nav>
+{%- endif -%}

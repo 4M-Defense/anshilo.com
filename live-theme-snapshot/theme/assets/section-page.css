@@ -1,0 +1,203 @@
+/* =========================================================
+   Shilo Pro — Static page template (sections/main-page.liquid)
+   v2 "Clarity". Article-width reading column on the light canvas.
+   Tokens and base.css components only — see theme/DESIGN-SYSTEM.md.
+   ========================================================= */
+
+.main-page__crumbs { margin-block-end: clamp(1rem, 2.5vw, 1.5rem); }
+
+.main-page__head { margin-block-end: clamp(1.25rem, 2.5vw, 1.75rem); }
+
+.main-page__title { margin: 0; }
+
+.main-page__lead {
+  margin-block-start: 0.85rem;
+  color: var(--color-text-muted);
+  font-size: 1.08rem;
+  line-height: 1.65;
+}
+
+.main-page__figure {
+  margin-block-end: clamp(1.5rem, 3vw, 2.25rem);
+}
+
+.main-page__media {
+  border-radius: var(--radius-card);
+  border: 1px solid var(--color-border);
+  background: var(--color-surface-sunken);
+}
+
+.main-page__caption {
+  margin-block-start: 0.6rem;
+  font-size: 0.86rem;
+  color: var(--color-text-muted);
+  text-align: center;
+}
+
+/* First heading of the body copy sits close to the title / hero image. */
+.main-page__content > .rte > :first-child { margin-block-start: 0; }
+
+.main-page__footer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.6rem 1rem;
+  margin-block-start: clamp(1.75rem, 3.5vw, 2.5rem);
+  padding-block-start: clamp(1.25rem, 2.5vw, 1.75rem);
+  border-block-start: 1px solid var(--color-border);
+}
+
+.main-page__footer-text {
+  margin: 0;
+  font-weight: 600;
+  color: var(--color-ink);
+}
+
+.main-page__phone { direction: ltr; unicode-bidi: isolate; }
+
+/* =========================================================
+   Legal documents (templates/policy.liquid + the עמוד משפטי template)
+   ========================================================= */
+
+/* A policy is read, not skimmed: slightly looser leading than .rte's 1.75 and a
+   clear step down from the numbered clause headings the documents are built from. */
+.rte--legal { line-height: 1.85; }
+
+.rte--legal > * + * { margin-block-start: 1.15em; }
+
+.rte--legal h2 {
+  font-size: calc(1.18rem * var(--font-heading-scale));
+  margin-block-start: 2em;
+  padding-block-end: 0.4rem;
+  border-block-end: 1px solid var(--color-border);
+}
+
+.rte--legal h3 {
+  font-size: calc(1.02rem * var(--font-heading-scale));
+  margin-block-start: 1.7em;
+}
+
+/* Legal copy arrives from the Shopify admin editor, which stamps
+   style="text-align: right" onto every paragraph it has ever touched. That is
+   correct for Hebrew and wrong the moment the same document is read in the
+   English locale, where the column is LTR — so the inline value is overridden
+   back to the reading direction. */
+.rte--legal [style*="text-align: right"],
+.rte--legal [style*="text-align:right"] { text-align: start !important; }
+
+/* Cross-links between the legal pages. */
+.legal-nav {
+  margin-block-start: clamp(1.75rem, 3.5vw, 2.5rem);
+  padding-block-start: clamp(1.25rem, 2.5vw, 1.75rem);
+  border-block-start: 1px solid var(--color-border);
+}
+
+.legal-nav__list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.legal-nav__link {
+  display: inline-flex;
+  align-items: center;
+  min-block-size: 40px;
+  padding: 0.4rem 0.9rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-pill);
+  background: var(--color-surface);
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--color-text-muted);
+  text-decoration: none;
+  transition: color var(--duration-fast) ease, border-color var(--duration-fast) ease,
+    box-shadow var(--duration-fast) ease;
+}
+
+.legal-nav__link:hover {
+  color: var(--color-accent);
+  border-color: var(--color-accent);
+  box-shadow: var(--shadow-sm);
+}
+
+/* The page you are already on stays in the row rather than disappearing from it,
+   so the set always reads as one complete group of documents. */
+.legal-nav__link--current {
+  color: var(--color-on-ink);
+  background: var(--color-ink);
+  border-color: var(--color-ink);
+  cursor: default;
+}
+
+.legal-nav__link--current:hover {
+  color: var(--color-on-ink);
+  border-color: var(--color-ink);
+  box-shadow: none;
+}
+
+/* The policy documents carry their own "updated on" line, so the template's lead
+   is supporting text, not a headline. */
+.main-page--policy .main-page__lead { font-size: 1rem; }
+
+/* Shopify renders the policy document itself, inside its own wrappers, straight
+   into content_for_layout — see the note in layout/theme.liquid for why it cannot
+   be handed a template. These strip its container back to plain flow so the
+   reading column the layout puts around it is the one that governs. */
+.shopify-policy__container {
+  max-inline-size: none;
+  margin: 0;
+  padding: 0;
+}
+
+/* Its heading prints the English admin title ("Refund policy"), and the layout
+   renders the Hebrew one from the locale in its place. */
+.shopify-policy__title { display: none; }
+
+.shopify-policy__body { margin: 0; }
+
+/* Belt and braces on direction. The document body is authored in the Shopify admin
+   editor, which stamps inline text-align on paragraphs and occasionally leaves an
+   LTR remnant behind from a paste; the reading direction of the page is the one
+   that should win either way. */
+.main-page--policy .shopify-policy__container,
+.main-page--policy .shopify-policy__body {
+  direction: inherit;
+  text-align: start;
+}
+
+/* Shopify nests the document two levels down (container > body > .rte), and that
+   inner .rte re-declares .rte's own leading — so the looser legal leading has to be
+   applied there rather than on the outer wrapper. */
+.main-page--policy .shopify-policy__body .rte { line-height: 1.85; }
+
+/* Empty paragraphs left behind by the admin editor. Descendant, not child: the
+   paragraphs live inside Shopify's wrappers, not directly under .rte--legal.
+   p:empty matches only genuinely empty elements, so a deliberate &nbsp; spacer is
+   left alone. */
+.rte--legal p:empty { display: none; }
+
+/* Keeps a linked address from interacting with the Hebrew text around it: a Latin
+   run in an RTL paragraph can otherwise be reordered against adjacent neutral
+   characters, so a trailing comma or bracket ends up on the wrong side. Verified
+   in Chromium by reading the rendered glyphs back in visual order, which is the
+   only way to see this class of bug — the source order is always correct.
+
+   Scope note, because an earlier version of this comment got it wrong. The
+   mangled address on the live privacy policy is NOT a rendering fault and this
+   rule does not address it: the string is stored corrupted. Reading the policy
+   body back through the Admin API returns "tools.co.il-ofir@dror" — which
+   contains a hyphen that the real address, ofir@drortools.co.il, does not have,
+   and bidi reordering never inserts characters. So the visual order was captured
+   into the data itself, almost certainly by copying the address out of an
+   RTL-rendered document and pasting what the screen showed. No stylesheet can
+   undo that; it has to be retyped in the document. */
+.rte--legal a[href^="mailto:"],
+.rte--legal a[href^="tel:"],
+.rte--legal a[href^="http"],
+.main-page--policy .shopify-policy__body a[href^="mailto:"],
+.main-page--policy .shopify-policy__body a[href^="tel:"] {
+  unicode-bidi: isolate;
+}

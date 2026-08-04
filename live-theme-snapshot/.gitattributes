@@ -1,0 +1,5 @@
+# The snapshot must stay byte-identical to what Shopify stores, so git must
+# never rewrite line endings here. Every text file in the snapshot is LF;
+# the six woff2 fonts are binary and must not be touched at all.
+* text eol=lf
+*.woff2 -text

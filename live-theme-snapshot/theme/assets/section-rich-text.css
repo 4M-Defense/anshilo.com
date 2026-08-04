@@ -1,0 +1,39 @@
+/* Rich-text section.
+
+   These rules used to live in a {% style %} block inside sections/rich-text.liquid,
+   keyed on #RichText-{{ section.id }}. Shopify wraps every section in a div, and a
+   <style> element is not valid as a child of a div, so the W3C validator flagged it
+   (4.1.1: "Element style not allowed as child of element div in this context").
+   The per-instance id was only ever buying specificity - none of these rules vary
+   by section setting - so they move here as plain class selectors. */
+
+.rich-text-block {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.9rem;
+  text-align: center;
+}
+
+/* Short centred blueprint mark opens the block. */
+.rich-text-block__rule {
+  flex: none;
+  inline-size: 64px;
+  margin-block-end: 0.35rem;
+}
+
+/* The eyebrow's leading dash would fight the centred rule above it. */
+.rich-text-block .text-eyebrow { margin-block-end: 0; }
+.rich-text-block .text-eyebrow::before { display: none; }
+
+.rich-text-block__heading {
+  margin: 0;
+  text-wrap: balance;
+}
+
+.rich-text-block__text {
+  max-inline-size: 68ch;
+  color: var(--color-text);
+}
+
+.rich-text-block__btn { margin-block-start: 0.6rem; }

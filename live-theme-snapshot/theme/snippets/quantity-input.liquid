@@ -1,0 +1,67 @@
+{%- comment -%}
+  Renders a quantity selector (the <quantity-input> element in global.js wires
+  the -/+ buttons to the native number input and re-fires `change`).
+
+  Usage: {% render 'quantity-input', id: 'Quantity-1', name: 'quantity', value: 1, min: 1, max: 10, small: true, product_title: 'X', line: 2 %}
+  Params:
+    id            {String}  input id, so an external <label for> can reach it
+    name          {String}  input name (default "quantity")
+    form          {String}  id of a form to associate the input with (form attribute),
+                            for inputs that live outside the submitted form
+    value         {Number}  starting value (default 1)
+    min           {Number}  minimum (default 1)
+    max           {Number}  maximum — omit for unlimited
+    small         {Boolean} compact variant for cart lines
+    line          {Number}  cart line index, exposed as data-line
+    product_title {String}  used in the buttons' accessible labels
+  Component styles: .qty / .qty__btn / .qty__input in assets/base.css.
+
+  Two notes on the input's attributes, kept here rather than inline:
+
+  - No `pattern`. HTML allows it only on email, password, search, tel, text and
+    url, so on type="number" it is invalid markup (4.1.1) and the browser ignores
+    it regardless. `inputmode` already summons the numeric keypad.
+  - Never put a whitespace-stripping Liquid tag ({%- ... -%}) between two HTML
+    attributes. The hyphens eat the surrounding newline and indentation, so the
+    attributes fuse: `inputmode="numeric"autocomplete="off"`. The W3C validator
+    catches it as "No space between attributes"; a comment written that way here
+    produced exactly that error on the product page and twice on the cart.
+{%- endcomment -%}
+{%- liquid
+  assign qty_value = value | default: 1
+  assign qty_min = min | default: 1
+  assign input_name = name | default: 'quantity'
+  assign title_for_a11y = product_title | default: ''
+-%}
+<quantity-input class="qty{% if small %} qty--sm{% endif %}" {% if line %}data-line="{{ line }}"{% endif %}>
+  <button
+    type="button"
+    name="minus"
+    class="qty__btn"
+    aria-label="{{ 'general.accessibility.decrease_quantity' | t: product: title_for_a11y }}"
+  >
+    {% render 'icon', name: 'minus', size: 16 %}
+  </button>
+  <input
+    type="number"
+    class="qty__input"
+    {% if id %}id="{{ id }}"{% endif %}
+    name="{{ input_name }}"
+    {% if form %}form="{{ form }}"{% endif %}
+    value="{{ qty_value }}"
+    min="{{ qty_min }}"
+    {% if max %}max="{{ max }}"{% endif %}
+    step="1"
+    inputmode="numeric"
+    autocomplete="off"
+    aria-label="{{ 'products.product.quantity_label' | t }}"
+  >
+  <button
+    type="button"
+    name="plus"
+    class="qty__btn"
+    aria-label="{{ 'general.accessibility.increase_quantity' | t: product: title_for_a11y }}"
+  >
+    {% render 'icon', name: 'plus', size: 16 %}
+  </button>
+</quantity-input>
