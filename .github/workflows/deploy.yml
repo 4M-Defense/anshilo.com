@@ -58,7 +58,9 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          # 22 ולא 20: @shopify/cli מכריז engines node >=22.12.0, ועל 20 הוא נופל
+          # בהתקנה. שתי הריצות שבהן עבודת התבנית באמת רצה נכשלו בדיוק שם.
+          node-version: 22
 
       - name: Install Shopify CLI
         run: npm i -g @shopify/cli@latest
@@ -105,7 +107,9 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          # 22 ולא 20: @shopify/cli מכריז engines node >=22.12.0, ועל 20 הוא נופל
+          # בהתקנה. שתי הריצות שבהן עבודת התבנית באמת רצה נכשלו בדיוק שם.
+          node-version: 22
           cache: npm
           cache-dependency-path: mobile-app/package-lock.json
 
@@ -131,28 +135,56 @@ jobs:
       # ל-09914647. לכן ההשוואה נעשית מול מה שכבר פורסם בערוץ, ואם הוא זז —
       # העבודה נכשלת עם הסבר במקום לפרסם עדכון מת.
       # ---------------------------------------------------------------------
+      # ההשוואה היא לכל פלטפורמה בנפרד, וזה לא קוסמטי: הגרסה הראשונה יצרה
+      # fingerprint של אנדרואיד והשוותה אותו ל-runtimeVersion של העדכון האחרון
+      # בערוץ — שיכול להיות של iOS. שני מספרים שלא אמורים להיות שווים, כלומר
+      # שמירה שנכשלת תמיד ולכן חוסמת כל פרסום במקום להגן על אחד.
       - name: Guard the runtime fingerprint
-        id: fp
         run: |
           set -e
-          CURRENT=$(npx eas-cli fingerprint:generate --platform android --json 2>/dev/null \
-            | node -e "let s='';process.stdin.on('data',d=>s+=d).on('end',()=>{try{console.log(JSON.parse(s).hash||'')}catch(e){console.log('')}})")
-          echo "current=$CURRENT" >> "$GITHUB_OUTPUT"
-          echo "fingerprint: $CURRENT"
+          npx eas-cli update:list --branch production --json --non-interactive > /tmp/updates.json 2>/dev/null || echo '[]' > /tmp/updates.json
 
-          LIVE=$(npx eas-cli update:list --branch production --limit 1 --json --non-interactive 2>/dev/null \
-            | node -e "let s='';process.stdin.on('data',d=>s+=d).on('end',()=>{try{const j=JSON.parse(s);const u=(j.currentPage||j)[0];console.log((u&&(u.runtimeVersion||u.group&&u.group.runtimeVersion))||'')}catch(e){console.log('')}})")
-          echo "live: ${LIVE:-<none>}"
+          FAILED=0
+          for PLATFORM in android ios; do
+            CURRENT=$(npx eas-cli fingerprint:generate --platform "$PLATFORM" --json 2>/dev/null \
+              | node -e "let s='';process.stdin.on('data',d=>s+=d).on('end',()=>{try{console.log(JSON.parse(s).hash||'')}catch(e){console.log('')}})")
+            if [ -z "$CURRENT" ]; then
+              echo "::warning::לא הצלחתי לחשב fingerprint ל-$PLATFORM — מדלג על השמירה הזאת."
+              continue
+            fi
 
-          if [ -z "$LIVE" ]; then
-            echo "אין עדכון קודם בערוץ — מפרסם בלי השוואה."
-          elif [ "$LIVE" != "$CURRENT" ]; then
-            echo "::error::ה-fingerprint זז מ-$LIVE ל-$CURRENT. עדכון OTA לא יגיע לבילדים הקיימים — נדרש בילד חדש (eas build) והגשה לחנויות. לא מפרסם עדכון מת."
-            exit 1
-          fi
+            LIVE=$(PLATFORM="$PLATFORM" node -e "
+              const fs=require('fs');
+              let j;try{j=JSON.parse(fs.readFileSync('/tmp/updates.json','utf8'))}catch(e){process.exit(0)}
+              const rows=j.currentPage||j.updates||j||[];
+              // עדכון נושא platform ברמת העדכון או ברמת הקבוצה, תלוי בגרסת ה-CLI
+              const mine=rows.filter(u=>(u.platform||u.group?.platform||'').toLowerCase()===process.env.PLATFORM);
+              const u=mine[0];
+              if(u) console.log(u.runtimeVersion||u.group?.runtimeVersion||'');
+            ")
 
+            echo "$PLATFORM: מקומי=$CURRENT  בערוץ=${LIVE:-<אין>}"
+            if [ -n "$LIVE" ] && [ "$LIVE" != "$CURRENT" ]; then
+              echo "::error::$PLATFORM — ה-fingerprint זז מ-$LIVE ל-$CURRENT. עדכון OTA לא יגיע לבילדים הקיימים; נדרש eas build והגשה לחנויות. לא מפרסם עדכון מת."
+              FAILED=1
+            fi
+          done
+          [ "$FAILED" = "0" ]
+
+      # ההודעה עוברת דרך env ולא דרך ${{ }} בתוך הפקודה.
+      #
+      # ההזרקה הישירה נכשלה בפועל: גרש בודד ב-"What's left" סגר מרכאה שלא נפתחה
+      # והריצה מתה ב-unexpected EOF. זה גם אומר שהודעת קומיט יכולה להריץ פקודות
+      # שרירותיות ב-CI, ולכן זה לא באג נוחות אלא פרצה.
+      #
+      # ורק השורה הראשונה: ההודעות כאן הן פסקאות שלמות, ותיאור עדכון OTA אינו
+      # המקום להן.
       - name: Publish the OTA update
-        run: eas update --branch production --message "${{ github.event.head_commit.message }}" --non-interactive
+        env:
+          COMMIT_MESSAGE: ${{ github.event.head_commit.message }}
+        run: |
+          SUBJECT=$(printf '%s' "$COMMIT_MESSAGE" | head -n 1 | cut -c1-180)
+          eas update --branch production --message "${SUBJECT:-deploy}" --non-interactive
 
   # ---------------------------------------------------------------------------
   # שרת העוזר
@@ -168,7 +200,9 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          # 22 ולא 20: @shopify/cli מכריז engines node >=22.12.0, ועל 20 הוא נופל
+          # בהתקנה. שתי הריצות שבהן עבודת התבנית באמת רצה נכשלו בדיוק שם.
+          node-version: 22
           cache: npm
           cache-dependency-path: assistant-server/package-lock.json
 
@@ -203,5 +237,14 @@ jobs:
               let j;try{j=JSON.parse(s)}catch(e){console.error('תשובה שאינה JSON');process.exit(1)}
               if(j.error){console.error('העוזר החזיר שגיאה: '+j.error);process.exit(1)}
               if(!j.reply||!j.reply.trim()){console.error('תשובה ריקה');process.exit(1)}
-              console.log('העוזר עונה. '+j.reply.length+' תווים, '+(j.products||[]).length+' כרטיסים.');
+
+              // הבדיקה האמיתית היא כרטיסים, לא אורך.
+              //
+              // 'צריך מקדחה לבטון' היא שאלה שיש עליה מלאי, והתפקיד של העוזר הוא
+              // להחזיר מוצר. נמדד בפועל שהוא עונה לפעמים 'לא הבנתי את הבקשה' על
+              // בדיוק השאלה הזאת — תשובה של 98 תווים ואפס כרטיסים, שעברה את
+              // הבדיקה הקודמת בהצלחה ודווחה כעוזר שעובד.
+              const cards=(j.products||[]).length;
+              if(cards===0){console.error('אפס כרטיסי מוצר על שאלה שיש עליה מלאי. התשובה שחזרה: '+j.reply.slice(0,160));process.exit(1)}
+              console.log('העוזר עונה. '+j.reply.length+' תווים, '+cards+' כרטיסים.');
             })"

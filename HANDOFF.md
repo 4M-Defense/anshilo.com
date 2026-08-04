@@ -2195,3 +2195,125 @@ Prices are unaffected. SKU, price and URL all come from the same page's JSON-LD,
 spot-checks (9300, 9302, 9304 — store title, URL and price all agreed) confirm the
 price is keyed to the right product. Only `name` is contaminated. It is used by the
 retired `--by-name` matcher, which stays off.
+
+### 26.22 The Konimbo gate is not a rate-limiter. Corrected, with the page in hand.
+
+§26.10 called this a platform-wide rate-limit on the IP. The mechanism is different
+and now measured directly. Every Konimbo host returns **1,648 bytes** (it drifted
+from the recorded 1,622; the `>1400 && <1900` guard still catches it) of this:
+
+```html
+<html id="page_no_referer"><title>עבור לדף המבוקש</title>
+<a id='redirect_to_link' href="javascript:window.location.reload(true)">
+<script>
+  var current_key = stringToHash(window.location.href);
+  if (document.referrer.length == 0 && localStorage.getItem("checkedEmptyReferrer"+current_key) != "true") {
+    localStorage.setItem('checkedEmptyReferrer'+current_key, "true");
+    window.onload = goto_link;   // reload
+  } else { ...show the link... }
+</script>
+```
+
+`Server: konimbo`, so it comes from the origin app, not CloudFront.
+
+The name says "no referer", which reads like a header fix. **It is not.** Measured
+against a known-good product URL with a Chrome UA:
+
+| attempt | result |
+|---|---|
+| no Referer | 200, 1,648 bytes, no JSON-LD |
+| `Referer: https://www.fetaya.com/` | identical |
+| `Referer: https://www.google.com/` | identical |
+| `Referer:` the page itself | identical |
+| request 2 and 3 with a cookie jar | identical, **and zero cookies are ever set** |
+| `Cache-Control: no-cache` | identical |
+| `Accept-Language: he-IL` | identical |
+
+And it is not scoped to product pages. `/`, `/sitemap.xml`, `/items/<id>.json`,
+`/api/items/<id>`, `/items/<id>?format=json` and `/he/items/<id>` **all return the
+same gate** — the homepage included. This is an IP-level decision; the
+`page_no_referer` template is merely what a flagged client is served.
+
+So no header, cookie, path or retry gets through, and there is nothing left to try
+from this machine. The two routes that remain are a different IP, or the supplier's
+own price file — Fetaya is Dvir's supplier and can hand over a list. A browser agent
+on a normal connection also passes it trivially, since the gate is built to let real
+browsers through.
+
+### 26.23 Do not restart the Nisani crawl — it is still running
+
+§26.5 step 1 says to restart the two dead crawls. **PID 29336 is alive**:
+`node scripts/fetch-fetaya-catalogue.js --domain www.nisanihashmal.co.il --out nisani`,
+started 2026-08-03 15:58, 66 MB resident, and recorded at 2,925 of 8,010 — the 1,625
+figure in §26.4 is stale. Restarting would put a second crawl against a gating
+platform and race the first for the same output path.
+
+`nisani-catalogue.json` does not exist yet because the fetcher writes only on
+completion. At roughly 109 URLs an hour it needs about two more days, and on Aspaka's
+measured yield the result will be close to worthless for prices — but the fix is to
+leave it alone and look for the file when it exits, not to launch another.
+
+`aspaka-catalogue.json` is **not** the completed crawl §26.5 assumes: 80 entries of
+2,943, SKUs on 73, **prices on zero**. It was written during the block, so it
+harvested identifiers and no money. `--only-missing` on that file is the wrong advice.
+
+### 26.24 R8 is ON. §26.7 is stale, and four CI bugs were real.
+
+`app.json:64-72` enables `enableProguardInReleaseBuilds` and
+`enableShrinkResourcesInReleaseBuilds`; the plugin config validates. §26.7's "R8 is
+off … left off deliberately" is wrong and was written **after** the change. Two
+notes: `enableProguardInReleaseBuilds` now survives only through a deprecation shim
+and should become `enableMinifyInReleaseBuilds`, and no `extraProguardRules` and no
+recorded smoke test means the reflection-stripping risk §26.7 named is still open.
+
+Edge-to-edge needs nothing on our side — SDK 57 makes it mandatory, `app.json` sets
+no bar colours, and the deprecated `setStatusBarColor` calls Play flags come from
+`react-native` and `react-native-screens` inside `node_modules`. **Orientation is
+still locked**: `app.json:6` is `"orientation": "portrait"`, which the core prebuild
+plugin writes onto MainActivity for every form factor. There is no `android/` folder,
+so that one line is the whole configuration. Changing it to `"default"` also unlocks
+iPhone rotation, which is why it is a decision and not a fix.
+
+**The pipeline had four real bugs, and two of its five runs failed for the first.**
+
+1. `node-version: 20` cannot install `@shopify/cli`, which declares
+   `engines.node >= 22.12.0`. Both runs where the theme job actually executed died
+   there. Now 22.
+2. `--message "${{ github.event.head_commit.message }}"` interpolated the commit
+   message into the shell. The apostrophe in *"What's left"* closed a quote that was
+   never opened and the run died on `unexpected EOF`. **This is an injection hole,
+   not an inconvenience** — a commit message could run commands in CI. It now goes
+   through `env:` and only the first line is used.
+3. The fingerprint guard generated an **Android** fingerprint and compared it to the
+   channel's newest `runtimeVersion`, which may be **iOS**. Two numbers with no
+   reason to match, so the guard would have failed every time and blocked all
+   publishing rather than protecting one. It now compares per platform.
+4. The post-deploy smoke test asserted only a non-empty reply. Measured, the live
+   assistant answers *"לא הבנתי את הבקשה"* to "צריך מקדחה לבטון" on some runs — 98
+   characters, zero cards — and that **passed** the gate and was reported as healthy.
+   It now fails on zero product cards.
+
+**All four GitHub secrets are absent** (`gh` is authenticated with admin on
+`A-N-Shilo/anshilo.com`; the secrets list is empty), so nothing has ever deployed:
+the assistant and app jobs were skipped in all five runs.
+
+### 26.25 The assistant answers the same question correctly about one time in four
+
+Four identical POSTs of "צריך מקדחה לבטון" to the live endpoint: all 200, all
+non-empty — so the empty-reply fix from §26.8 holds, 4 of 4. But only **one** run
+returned real drills with cards. One replied "לא הבנתי את הבקשה" to a perfectly clear
+question, and two produced text naming products with **zero cards attached**, which
+means the `[[handle]]` contract silently failed.
+
+This is a different failure from the one that was fixed, it is worse for a customer
+than an empty reply, and the CI gate could not see it until the change above.
+
+### 26.26 One more note on quoting, learned the hard way twice in five minutes
+
+The CI injection above was fixed and then immediately reproduced locally: a
+`git commit -F -` heredoc containing the words *"What's left"* aborted the whole
+shell command with `unexpected EOF while looking for matching '`. Nothing was
+written and nothing was committed, which is the good failure mode, but the lesson is
+the same in both places. **Write long prose to a file and pass the path.** Do not
+send paragraphs through a shell, whether the paragraph is a commit message, a CI
+`--message`, or a heredoc.
