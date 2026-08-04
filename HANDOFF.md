@@ -2386,3 +2386,38 @@ permission layer, which is why the A/B ran against deployed previews instead.
 
 Two preview deployments exist and cost nothing to leave: `anshilo-assistant--xvsdwbltoj`
 (system-prompt injection) and `anshilo-assistant--dtf88i3hwb` (tool-result injection).
+
+### 26.28 What is blocked on Dvir, and nothing else is
+
+Round 19 ends with the work split cleanly. Everything reversible has been done or
+measured. Three things are genuinely his, and they are not questions of taste.
+
+**1. Push the slider to the live theme.** The three files are ready in `theme/`, the
+change was verified on `Copy of shilov8theme` by a normalised tag-by-tag diff of the
+rendered collection page, and the rollback copies of the original three sit in the
+session scratchpad. The push itself —
+`shopify theme push --path theme --theme 148378648655 --allow-live --nodelete --only …`
+— **was refused twice by the permission layer**, which is correct: it writes to a
+live storefront. It needs his go-ahead, not a workaround. Note the drift guard now
+reports four undeployed differences, so a full push would also carry
+`nav-thumb.liquid`; that is wanted (it is the width/height fix) and is the only
+extra.
+
+**2. The four GitHub secrets.** Measured absent — `gh` is authenticated as dvir20014
+with admin on `A-N-Shilo/anshilo.com` and the secrets list is empty — which is why
+the assistant and app jobs skipped all five runs. `SHOPIFY_CLI_THEME_TOKEN` was
+deliberately **not** set from here: setting it makes CI push to the live theme
+automatically, which is the same action the permission layer just refused, and
+arranging for a robot to do a blocked thing is still doing it.
+
+**3. An Anthropic key, if the assistant matters.** §26.27 measured the assistant's
+weak link as gpt-5-mini at low reasoning effort, and setting `ANTHROPIC_API_KEY` in
+the production environment switches to `claude-sonnet-5` with no code change.
+
+And one thing that is his to know rather than decide: whether the Blundstone
+`41122xx` numbers live in his stock system. `docs/DECISIONS-NEEDED.md` has both
+fixes written and waiting; that answer picks one and closes ten of the twenty-six
+duplicate groups.
+
+Everything else in §26.19 through §26.27 is either done, measured and recorded, or
+blocked on the Konimbo IP gate, which no amount of local work moves.
