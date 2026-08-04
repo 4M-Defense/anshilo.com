@@ -67,6 +67,15 @@ const SOURCES = [
   /* חן חשמל — משווק של פתיה, ומקור המחירים למוצרים שפתיה עצמה כבר לא מפרסמת */
   'chen-catalogue.json',
   'argentools-prices.json',
+  /*
+   * נתנאל לבניין — משווק נוסף של פתיה, והתווסף רק אחרי שבדיקת השפיות נכנסה.
+   *
+   * הוא נשאר בחוץ עד עכשיו מסיבה טובה: המקטים שלו מתנגשים. מקט "100" יושב שם
+   * על "כפתור קריסטל 1409" ב-9 ₪, ובחנות אותו מקט יושב על "דבק קרמיקה סיקה" —
+   * וזה בדיוק המחיר השגוי שהיה נכתב. עכשיו skuMatchLooksSane דוחה התאמה ששני
+   * שמותיה אינם חולקים אף מילה, אז המקור הזה שווה את הסיכון.
+   */
+  'netanel-catalogue.json',
 ];
 
 function readEnvValue(key) {
@@ -85,6 +94,48 @@ const normSku = (s) => {
   const v = String(s ?? '').replace(/[^0-9a-zA-Z]/g, '').toUpperCase();
   return v.length >= 3 ? v : null;
 };
+
+/** מה שנדחה על בדיקת השפיות — מדווח בסוף, לא נשתק. */
+const skuRejected = [];
+
+/**
+ * בדיקת שפיות על התאמת מקט: האם שני השמות מדברים בכלל על אותו דבר.
+ *
+ * מקט הוא זיהוי חזק ולכן נסמכנו עליו לבד, וזה נתפס: מקט "100" בחנות יושב על
+ * "דבק קרמיקה סיקה 135", ובקטלוג של נתנאל אותו מקט יושב על "כפתור קריסטל 1409"
+ * ב-9 ₪. שני השמות אינם חולקים אף מילה, וההתאמה הייתה כותבת 9 ₪ על דבק.
+ *
+ * מקטים קצרים אינם באמת מזהים — הם מונים, ומונים מתנגשים בין ספקים. נמדד: 129
+ * מקטים נושאים מחירים שנבדלים ביותר מ-20% בין שני קטלוגים.
+ *
+ * למה לא פשוט לדרוש מקט ארוך יותר: נמדד שמקטים באורך שלוש הם לגיטימיים —
+ * T55, XH1, C14, 526 הם שמות דגם אצל ארגנטולס. אורך אינו המבחן; חוסר מילה
+ * משותפת הוא.
+ *
+ * הבדיקה שמרנית בכוונה: די במילה משמעותית אחת משותפת. נמדד שאף מחיר שכבר
+ * בחנות ותואם מחיר ספק אינו נכשל בה, כלומר היא אינה דוחה התאמות אמיתיות.
+ */
+const SANITY_STOPWORDS = new Set(['fetaya', 'מ"מ', 'ממ', 'עם', 'ללא', 'לבן', 'שחור', 'דגם']);
+
+function sanityTokens(s) {
+  return new Set(
+    String(s ?? '')
+      .replace(/[^0-9a-zA-Z֐-׿]+/g, ' ')
+      .toLowerCase()
+      .split(' ')
+      .filter((t) => t.length > 2 && !SANITY_STOPWORDS.has(t))
+  );
+}
+
+function skuMatchLooksSane(storeTitle, catalogueName) {
+  /* בלי שם בקטלוג אין מה לבדוק — לא דוחים על חוסר מידע, זה היה חוסם הכול */
+  if (!catalogueName) return { ok: true };
+  const a = sanityTokens(storeTitle);
+  const b = sanityTokens(catalogueName);
+  if (a.size === 0 || b.size === 0) return { ok: true };
+  for (const t of b) if (a.has(t)) return { ok: true };
+  return { ok: false, why: 'אין אף מילה משותפת בין שם המוצר בחנות לשם בקטלוג' };
+}
 
 /*
  * ---------------------------------------------------------------------------
@@ -225,6 +276,9 @@ function buildIndex() {
       if (Number.isFinite(price) && price > 0 && (cur.price == null || price > cur.price)) {
         cur.price = price;
         cur.priceSource = file;
+        /* השם של המקור שממנו בא המחיר, ולא cur.name שהוא הראשון שנתקלנו בו —
+         * בדיקת השפיות למטה משווה את השם של המחיר שנכתב, לא של מקור אחר. */
+        cur.priceName = r.name ?? r.title ?? null;
       }
       if (images.length && cur.images.length === 0) { cur.images = images; cur.imageSource = file; }
       if (!cur.name && r.name) cur.name = r.name;
@@ -342,6 +396,8 @@ async function main() {
         ?? p.variants.nodes.map((v) => normSku(v.sku)).find(Boolean);
       const hit = sku ? idx.get(sku) : null;
       if (hit?.price) {
+        const sane = skuMatchLooksSane(p.title, hit.priceName);
+        if (!sane.ok) { skuRejected.push({ title: p.title, sku, price: hit.price, name: hit.priceName, why: sane.why }); continue; }
         plan.push({ p, price: hit.price, priceSource: hit.priceSource, vars: zeroVars, by: 'מקט' });
         continue;
       }
@@ -389,6 +445,16 @@ async function main() {
     console.log('\nבלי מקור למחיר:');
     for (const m of missPrice.slice(0, 10)) console.log(`  ${String(m.sku).padEnd(14)} ${m.title.slice(0, 48)}`);
     if (missPrice.length > 10) console.log(`  … ועוד ${missPrice.length - 10}`);
+  }
+  /* דחייה על בדיקת שפיות מדווחת בקול — היא מונעת מחיר שגוי, וגם אומרת
+   * שהמקט הזה אינו מזהה אמין ולכן שווה עין. */
+  if (skuRejected.length) {
+    console.log('\nנדחו על בדיקת שפיות — המקט תואם אבל השמות אינם:');
+    for (const r of skuRejected) {
+      console.log(`  מקט ${String(r.sku).padEnd(10)} ${r.price} ₪`);
+      console.log(`     בחנות:  ${r.title.slice(0, 60)}`);
+      console.log(`     בקטלוג: ${String(r.name).slice(0, 60)}`);
+    }
   }
   if (missImage.length) {
     console.log('\nבלי מקור לתמונה:');
