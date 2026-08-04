@@ -1701,9 +1701,17 @@ result. All four Fetaya resellers found run the same Konimbo platform, so
 ```
 chen-electric.co.il    1,936 / 1,978   done
 netaneltools.co.il     1,228 / 1,487   done, 362 with SKU
-aspaka.co.il           2,943 total     CRAWL WAS RUNNING — now dead
-nisanihashmal.co.il    8,010 total     CRAWL WAS RUNNING — now dead
+aspaka.co.il           2,943 total     crawl was mid-flight — CHECK THE FILE
+nisanihashmal.co.il    8,010 total     crawl was mid-flight — CHECK THE FILE
 ```
+
+**Before re-crawling those two, check whether `aspaka-catalogue.json` and
+`nisani-catalogue.json` exist in `mobile-app/`.** Both crawls were still running
+when this was written — aspaka at 1,675 of 2,943 and nisani at 1,625 of 8,010 —
+and the fetcher only writes its output file when it finishes. So either the file
+is there and complete, or it is absent and the whole crawl is lost. There is no
+partial state. If a file is present, run with `--only-missing` to top it up
+rather than starting over.
 
 **The DISC series is solved structurally** and is 47 of the 116. Its SKUs decode
 completely: bands 924, 925 and 926 are cool, warm and natural light, and the last
