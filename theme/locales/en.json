@@ -358,6 +358,11 @@
       "twitter": "Twitter",
       "whatsapp": "WhatsApp",
       "youtube": "YouTube"
+    },
+    "legal": {
+      "contact_text": "Something in this document unclear? We're happy to explain by phone or email.",
+      "lead": "This document applies to your use of this site and to orders placed through it.",
+      "nav_label": "Company documents and information"
     }
   },
   "gift_cards": {
@@ -501,7 +506,8 @@
       "tags": "Tags",
       "unavailable": "Unavailable",
       "vendor": "Brand",
-      "view_details": "View details"
+      "view_details": "View details",
+      "official_importer": "Official importer"
     }
   },
   "sections": {

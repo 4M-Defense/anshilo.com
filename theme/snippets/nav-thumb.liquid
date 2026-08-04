@@ -33,6 +33,9 @@
     style="--nav-thumb-size: {{ nav_thumb_size }}px"
     src="{{ nav_thumb_image | image_url: width: nav_thumb_2x }}"
     alt=""
+    {%- comment -%} הממדים ידועים ממילא — בלעדיהם הדפדפן לא שומר מקום והתפריט קופץ {%- endcomment -%}
+    width="{{ nav_thumb_size }}"
+    height="{{ nav_thumb_size }}"
     loading="lazy"
     decoding="async"
   >
