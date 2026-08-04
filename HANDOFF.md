@@ -2121,3 +2121,77 @@ the secrets are not set — but the trap was armed and documented as ready to us
 `config/settings_data.json`, `templates/*.json` and `sections/*-group.json` are
 now `--ignore`d: those are what the theme editor writes, and `--nodelete` does not
 protect them because it prevents deletion, not overwrite.
+
+### 26.19 The gap numbers, measured in one pass — and several of the recorded ones were wrong
+
+`mobile-app/scripts/store-gap-report.js` reads the whole store and reports every gap
+at once. One pass rather than one script per gap, because `client_credentials`
+minting revokes the previous token and two scripts running at once kill each other
+with a mid-run 401 — that already destroyed a 355-product run here.
+
+It separates published from draft, because Merchant Center only sees published: a
+gap on a draft is not a feed error, and mixing them makes the report useless for
+the one question it exists to answer.
+
+**Store: 2,714 products — 1,791 published, 920 draft, 3 archived.**
+
+| gap | published | draft |
+|---|---|---|
+| price 0 | **95** | 1 |
+| no image at all | **11** | 10 |
+| primary image under 500px | **48** | 8 |
+| no useful description | **197** | 547 |
+| no category (what Google reads) | **0** | 242 |
+| no product type | **0** | 708 |
+| variant with no SKU | **372** | 585 |
+
+Two recorded numbers were wrong. Small primary images were recorded as **332**; the
+measured count of published products whose primary image is under 500px is **48**.
+Missing descriptions were recorded as **87**; measured, **46 are completely empty**
+and **151 more are under 50 characters or are just the title repeated**, so 197.
+`check-sku-collisions.js` separates those two, because empty needs a new source
+while short needs expanding — different work.
+
+The 11 no-image products are genuinely imageless: 0 have media without a
+`featuredMedia`, and 0 have a `featuredMedia` that is not an image, so nothing is
+hiding in a counting seam.
+
+Published gaps concentrate almost entirely in one vendor: **פתיה holds 85 of the 95
+zero prices, 6 of the 11 missing images and 82 of the descriptions** — which is why
+the Konimbo block gates most of what is left.
+
+### 26.20 SKU collisions across suppliers — checked for damage, none found in prices
+
+`fill-gaps-from-catalogues.js` fills price by SKU across every catalogue with
+highest-price-wins. Fetaya SKUs are bare numbers and Makita model numbers look
+identical, so the store legitimately holds SKU 6952 on both a Makita impact driver
+at ₪1,499 and a Fetaya switch at ₪15.50. If a zero-priced Makita product's model
+number collided with a Fetaya SKU, it would have been priced as a switch.
+
+Measured: **129 SKUs carry prices differing by more than 20% between two different
+suppliers' catalogues**; 80 of those SKUs exist in the store, and 54 have a store
+price matching exactly one supplier. **Every one of the 54 matched its own vendor's
+catalogue** — Fetaya products took Fetaya's price, which is both correct and what
+the owner asked for (the highest price published in Israel). No cross-vendor
+mispricing exists.
+
+The collisions are mostly the same product sold by several suppliers at different
+prices, not different products sharing an id.
+
+### 26.21 Do not use the `name` field in fetaya-catalogue.json for any decision
+
+Measured against the product URL slug, which carries the Hebrew name and is
+authoritative: **23 of 904 names (2.5%) disagree with their own URL**, and the
+captured text is breadcrumb or category wording rather than the product — SKU 3001's
+name is "פעמון זמזם פעמוני זמזם ביתיים" where the URL says a specific 130×70×48mm
+mechanical doorbell.
+
+**The word-overlap test that found those 23 misses the worse cases.** SKU 9300's
+captured name is "DARYA הספק 70" while its URL is "OREO 30W"; they share
+גוף/תאורה/לד/צמוד/תקרה/בצבע/לבן/מסדרת and so score as agreeing. This is the same
+trap as §26.4: the discriminator is a single word, so overlap cannot find it.
+
+Prices are unaffected. SKU, price and URL all come from the same page's JSON-LD, and
+spot-checks (9300, 9302, 9304 — store title, URL and price all agreed) confirm the
+price is keyed to the right product. Only `name` is contaminated. It is used by the
+retired `--by-name` matcher, which stays off.
