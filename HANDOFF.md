@@ -158,7 +158,7 @@ palette colour, run the validator — it will tell you if you broke AA.
 
 ---
 
-## 5. Deployed theme vs repo — there IS a delta, measured in round 15
+## 5. Deployed theme vs repo — measured again in round 18: the repo was NEVER deployed. See §26.14 before trusting this section.
 
 > ⚠️ **The heading below was wrong, and believing it would have caused a
 > regression.** `shilov8theme` (`148378648655`) is ahead of the repo, not equal
@@ -1975,3 +1975,68 @@ and `write_files` only. Ready-to-paste content for all of them is in
   shekels while the written policy correctly says "whichever is lower"
 - the Google Customer Reviews pixel, via Customer events since Checkout
   Extensibility removed Additional scripts
+
+### 26.14 The theme in this repo has never been deployed — measured
+
+§5 says "Deployed theme vs repo — there IS a delta". The delta is not partial. It
+is everything.
+
+Measured two ways. The live site serves CDN sequence `t/30`, and its four largest
+assets are 9,518 / 14,924 / 37,755 / 21,091 bytes against the repo's 25,923 /
+25,389 / 50,452 / 34,483. Then every asset directory on the shop's CDN, `t/1`
+through `t/40`, was swept: `base.css` appears as 65,755 at t/1, 65,967 at t/5, t/6
+and t/8, then 35,448 / 37,050 / 37,080 / 37,378 / 37,755 / 37,755 across t/22 to
+t/31. **It is never 50,452 anywhere.** No theme on this store carries the
+repository's files.
+
+`base.css` last changed in the repo on 2026-07-31, in the assistant commit. So this
+is not stale-by-a-day; a body of theme work has been committed and never shipped.
+
+**Do not conclude the pushes went to the wrong theme.** That was the obvious
+hypothesis and it is wrong — t/27 is draft 148375371855 and it does not match
+either.
+
+### 26.15 Theme facts, corrected
+
+| | |
+|---|---|
+| published / live | **`shilov8theme`, id 148378648655**, CDN `t/30` |
+| 148375371855 | an **unpublished draft** named `שילו 2026 — העיצוב החדש v5 ⭐`, CDN `t/27` |
+| also present | drafts named v6 and v7, `Copy of shilov8theme` (t/31, byte-identical to live), `שמירה 1` |
+| theme count | **at the 20-theme ceiling** |
+
+§3 names 148375371855 as the deploy target. **That id is a draft, and not even the
+newest one** — v6 and v7 drafts both post-date the v5 it points at. Use
+148378648655.
+
+The 20-theme ceiling matters more than it looks: **any deploy route that creates a
+theme will fail.** That rules out the zip-import procedure in §3, which does
+exactly that. `shopify theme push --theme 148378648655` writes into the existing
+theme and is unaffected.
+
+### 26.16 How to deploy, given all of the above
+
+`themeFilesUpsert` is not available: it answers "requires write_themes **and an
+exemption from Shopify** to modify theme files", so even widening the app's scopes
+would not be enough. The app the API token belongs to is `Shilo Image Tools`
+(`write_files, write_products, read_files, read_products`).
+
+The route that works is Shopify's own **Theme Access** app, which issues a password
+scoped to theme files only — no product, order or customer access, and it changes
+no existing app's permissions. Install at `apps.shopify.com/theme-access`, add a
+password, and Shopify emails it to the store owner. Then:
+
+```
+SHOPIFY_CLI_THEME_TOKEN=shptka_...   in mobile-app/.env, or as a GitHub secret
+shopify theme push --path theme --theme 148378648655 --allow-live --nodelete
+```
+
+`.github/workflows/deploy.yml` does this on every push once the secret is set;
+see `docs/AUTO-DEPLOY.md`.
+
+**Do not push straight to live the first time.** Since none of this has ever been
+deployed, the first push is not a slider — it is months of theme work landing at
+once on a live storefront. Delete two or three of the ~20 drafts to get under the
+ceiling, push to a fresh unpublished theme, preview it, and publish only after
+looking at it. `shopify theme check --fail-level error` catches broken Liquid but
+not a layout that renders wrong.
