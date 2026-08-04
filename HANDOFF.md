@@ -1,6 +1,6 @@
 # HANDOFF — א.נ. שילו · Shilo Pro v2
 
-**Current state: round 18. Start at §26, then §2.**
+**Current state: round 18. Start at §26.12 for the final state, then §26.4 and §26.10 for what is blocked and why.**
 Round 18 is supplier imports and the Google Merchant Center cleanup. **§26.4 lists
 six price-sourcing approaches that were measured and failed — read it before
 spending any time on the 102 unpriced products.** Two crawls were mid-flight when
@@ -1894,3 +1894,84 @@ duplication the script exists to remove, so a product with no supplier text is
 reported and left.
 
 Run it when the block clears. It needs no arguments to dry-run.
+
+### 26.12 Round 18, second Merchant Center report — final state
+
+Twelve issues in total across two reports. Eight are closed.
+
+```
+                              before   after
+SEO title missing              2,714  →    0  ✓
+category missing                 514  →    0  ✓
+category Google blocks            36  →    0  ✓
+product type empty             1,862  →    0  ✓
+promotional overlay on image       1  →    0  ✓
+purchasable at 0 shekels           2  →    0  ✓
+small primary, larger in gallery  36  →    0  ✓
+tool sets missing tool count      19  →    0  ✓
+duplicate products               161  →   20
+primary image under 500px        455  →  336
+description under 30 chars        89  →   87
+price 0                          102  →   95
+```
+
+**The 161 "duplicates" were two opposite problems.** SKUs separate them: 38 groups
+share a SKU and are one product listed twice, mostly Hagit ladders. 9 groups carry
+distinct SKUs — different products with an identical title, **which is also why
+the six conflicting prices are legitimate rather than a bug.** "path light 4.4W"
+appears three times under 9250, 9251 and 9252 at 140, 140 and 130; the Fetaya SKU
+tail encodes the product, so those are three models. 74 drafted, 9 collisions left
+for retitling, which is a content decision.
+
+That nearly went wrong. Grouping by title and asking "are all SKUs unique" fails
+on the Hunter set, whose SKUs are 100313-026, -027 and -026: not all unique, so it
+fell into the dedupe branch and would have drafted the -027, a different model.
+**Group by SKU, not by title** — same SKU is the same product, different SKU is a
+different product, and one rule covers every case.
+
+**Power Tool Sets: measuring it prevented writing something false.** Battery
+voltage is already present in every description whose title states it — that gap
+is zero. Tool count was missing from 19, and those are exactly the titles that
+state it outright. The other 25 were left alone: ten list their tools by name, and
+counting the list gives wrong answers. "impact + drill/driver + two batteries"
+counts as three when two batteries are not a tool, and "drill / driver" is one
+combi tool written with a slash. A confident wrong number in a description is
+worse than a missing one.
+
+**Images.** Three separate levers, and only one of them was upscaling — which was
+rejected, because a blurred image satisfies nothing and looks worse. The supplier
+platform serves each photo at several sizes and the catalogues stored `/large/`;
+`/original/` is genuinely bigger (500x415 → 848x1000, 400x400 → 800x800), and 52
+products crossed 500 that way. 31 more already had a large image sitting further
+down the gallery and only needed reordering. The remaining 336 have no larger
+source anywhere — Hagit is the biggest group at 105 products with no catalogue at
+all — and `upgrade-small-images.js` reports that rather than padding the number.
+
+**product type** was empty on 1,786 while all 1,791 already carried a taxonomy
+category, so it is derived from it. Zero guessing, and left in English because
+Shopify's taxonomy is English and translating it would be invention.
+
+**Two products were purchasable at 0 shekels** with 99 in stock, an 80-litre
+vacuum among them. Verified the other 96 are unsellable only because they are out
+of stock. Both drafted, reversible the moment a price exists.
+
+### 26.13 What is left, and why
+
+| item | count | blocked on |
+|---|---|---|
+| price 0 | 95 | Konimbo platform block — §26.10 |
+| description under 30 | 87 | same |
+| no image | 11 | only 1 of them exists at any supplier |
+| primary under 500px | 336 | no larger source exists |
+| duplicate titles | 20 (9 groups) | needs retitling, a content decision |
+
+And four items need scopes this token does not have — it carries `write_products`
+and `write_files` only. Ready-to-paste content for all of them is in
+`docs/MERCHANT-CENTER-TODO.md`:
+
+- three missing clauses in the refund policy (the rest of it is already compliant)
+- a cancellation-notice link on the homepage
+- the restocking fee: Shopify has no cap field, so 5% overcharges above 2,000
+  shekels while the written policy correctly says "whichever is lower"
+- the Google Customer Reviews pixel, via Customer events since Checkout
+  Extensibility removed Additional scripts
