@@ -34,9 +34,35 @@ const CASES = [
   { q: 'אני צריך סולם לגובה 3 מטר', expect: /סולם|מדרג/i, label: 'סולם' },
   { q: 'יש לכם ברז למטבח?', expect: /ברז|מטבח/i, label: 'ברז מטבח' },
   { q: 'נעלי עבודה עם כיפת ברזל מידה 43', expect: /נעל|בלנסטון|כיפ/i, label: 'נעלי בטיחות' },
+  { q: 'כפפות עבודה', expect: /כפפ/i, label: 'כפפות' },
+  { q: 'מברגה נטענת', expect: /מברג/i, label: 'מברגה' },
+
+  /*
+   * שני מקרים הפוכים: כאן הצלחה היא לסרב, וכרטיס מוצר הוא כישלון.
+   *
+   * בלעדיהם המדד מתגמל רק "תדחוף מוצר", ומודל שדוחף מוצר על כל שאלה היה מקבל
+   * ציון מושלם גם כשהוא מציע מקדחה למי ששאל על כאב ראש. שתי הדרישות נמדדות
+   * יחד כי הן מתנגשות, וטיוב אחת מהן בלי השנייה שובר את החנות בכיוון אחר.
+   */
+  { q: 'מה מזג האוויר מחר בירושלים?', mustRefuse: true, label: 'מחוץ לתחום: מזג אוויר' },
+  { q: 'תכתוב לי סקריפט בפייתון שממיר קבצים', mustRefuse: true, label: 'מחוץ לתחום: קוד' },
 ];
 
+/*
+ * המגביל של השרת עצמו הוא 20 בקשות ל-5 דקות לכל כתובת IP, וזה תפס את המדידה
+ * הזאת: ריצה של 24 בקשות רצופות קיבלה 20 תשובות 429 ודווחה כאילו המודל נכשל.
+ * המדידה חייבת להיות איטית מהמגביל, אחרת היא מודדת את עצמה.
+ *
+ * 16 שניות לבקשה נותנות 18-19 בקשות בחלון — מתחת ל-20 עם שוליים.
+ */
+const PACE_MS = 16000;
+let lastCall = 0;
+
 async function ask(url, question) {
+  const wait = Math.max(0, PACE_MS - (Date.now() - lastCall));
+  if (wait > 0) await new Promise((r) => setTimeout(r, wait));
+  lastCall = Date.now();
+
   const started = Date.now();
   let res, text;
   try {
@@ -67,30 +93,41 @@ async function ask(url, question) {
     console.log(url);
     console.log('='.repeat(72));
 
-    let totalRuns = 0, withCards = 0, onTopic = 0, totalMs = 0;
+    let shopRuns = 0, onTopic = 0, refuseRuns = 0, refusedOk = 0, totalMs = 0, okRuns = 0, errors = 0;
 
     for (const c of CASES) {
       const marks = [];
       for (let i = 0; i < RUNS; i++) {
         const r = await ask(url, c.q);
-        totalRuns++;
-        if (!r.ok) { marks.push('✗' + r.why.slice(0, 8)); continue; }
-        totalMs += r.ms;
+        if (!r.ok) { errors++; marks.push('✗' + r.why.slice(0, 8)); continue; }
+        totalMs += r.ms; okRuns++;
+
+        if (c.mustRefuse) {
+          refuseRuns++;
+          /*
+           * סירוב נמדד לפי כרטיסים ולא לפי נוסח. תשובה שמסבירה בנימוס שזה מחוץ
+           * לתחום ומצרפת שלושה מוצרים אינה סירוב — הלקוח רואה כרטיסים.
+           */
+          if (r.products.length === 0) { refusedOk++; marks.push('✓סירב'); }
+          else marks.push(`✗${r.products.length}כרטיסים`);
+          continue;
+        }
+
+        shopRuns++;
         const cards = r.products.length;
-        if (cards > 0) withCards++;
-        const hit = r.products.some((p) => c.expect.test(p.title));
-        if (hit) { onTopic++; marks.push(`✓${cards}`); }
-        else if (cards > 0) marks.push(`✗${cards}:${r.products[0].title.slice(0, 14)}`);
+        if (r.products.some((p) => c.expect.test(p.title))) { onTopic++; marks.push(`✓${cards}`); }
+        else if (cards > 0) marks.push(`✗${cards}:${r.products[0].title.slice(0, 12)}`);
         else marks.push('✗0');
       }
-      console.log(`  ${c.label.padEnd(16)} ${marks.join('  ')}`);
+      console.log(`  ${c.label.padEnd(22)} ${marks.join('  ')}`);
     }
 
+    const pct = (a, b) => (b ? `${Math.round((100 * a) / b)}%` : '–');
     console.log();
-    console.log(`  ריצות: ${totalRuns}`);
-    console.log(`  עם כרטיסים:        ${withCards}/${totalRuns}`);
-    console.log(`  כרטיסים בקטגוריה:  ${onTopic}/${totalRuns}   ← זה המדד`);
-    console.log(`  זמן תשובה ממוצע:   ${withCards ? Math.round(totalMs / withCards) : '-'} מ"ש`);
+    console.log(`  מוצר נכון בשאלות חנות:  ${onTopic}/${shopRuns}  (${pct(onTopic, shopRuns)})   ← המדד העיקרי`);
+    console.log(`  סירב כשצריך לסרב:       ${refusedOk}/${refuseRuns}  (${pct(refusedOk, refuseRuns)})`);
+    if (errors) console.log(`  שגיאות:                 ${errors}`);
+    console.log(`  זמן תשובה ממוצע:        ${okRuns ? Math.round(totalMs / okRuns) : '-'} מ"ש`);
     console.log();
   }
 })();
