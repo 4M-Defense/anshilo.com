@@ -66,7 +66,7 @@ Branch: `claude/shopify-app-hebrew-compat-i1wcji` · PR: [#4](https://github.com
 
 ---
 
-## 3. How to deploy a theme change — the only procedure that works
+## 3. How to deploy a theme change — ⚠ §26.17 FIRST: the repo theme is OLD and must not be pushed. This section describes mechanics only.
 
 The repo is the source of truth. `theme/` maps 1:1 onto the theme root
 (`theme/assets/base.css` → `assets/base.css`).
@@ -2040,3 +2040,44 @@ once on a live storefront. Delete two or three of the ~20 drafts to get under th
 ceiling, push to a fresh unpublished theme, preview it, and publish only after
 looking at it. `shopify theme check --fail-level error` catches broken Liquid but
 not a layout that renders wrong.
+
+### 26.17 STOP — the owner says `theme/` in this repo is OLD. Direction is PULL, not push.
+
+Everything earlier in this file that treats `theme/` as the source of truth —
+§3 explicitly says "The repo is the source of truth" — is **wrong by the owner's
+own statement**: the repo theme is an old, outdated design. §26.14 measured that
+it was never deployed and read that as undelivered work; the correct reading is
+that it was **abandoned** work.
+
+What happened in round 18, in order:
+
+1. A Theme Access password was created (name `claude-code-deploy`), stored in
+   `mobile-app/.env` as `SHOPIFY_CLI_THEME_TOKEN`. It works.
+2. The repo theme was pushed to **`Copy of shilov8theme` (148566474831)** — an
+   unpublished staging copy. **The live store was never touched**, verified
+   before and after: live serves `t/30`, no slider markup in it.
+3. The owner said the repo theme is old and must not go live.
+4. The copy was **restored to byte-match the live theme** from a local pull, and
+   the restore was verified (no slider markup in its preview). Nothing is left
+   that could be published by accident.
+
+**What survives and is still valuable:**
+
+- A local pull of the live theme exists (session scratchpad `live-theme/`) and
+  seven live-only files plus eight locale keys were merged INTO the repo, so the
+  repo is closer to live than before — but its shared files are still the old
+  design and must not be pushed.
+- The price-slider work (facets.liquid handles, facets.js drag logic,
+  section-collection.css styling) is committed in the repo and is written as a
+  **self-contained additive layer**. To ship it, apply those additions to a pull
+  of the LIVE theme's files, not to the repo's versions.
+- The footer cancellation-notice link and locale labels — same: re-apply onto the
+  live theme's footer.liquid, which may differ from the repo's.
+- The Theme Access password and the CI pipeline are both fine; the pipeline's
+  theme job must be pointed at a repo directory that mirrors the LIVE theme
+  before it is ever enabled.
+
+**Next step for the theme (do this before any other theme work):** pull the live
+theme into `theme/` (replacing the old design), commit that as the new baseline,
+then re-apply the slider and footer additions on top. That makes the repo the
+source of truth in fact rather than by assertion.
