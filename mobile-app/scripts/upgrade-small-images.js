@@ -140,20 +140,34 @@ async function main() {
     ADMIN_TOKEN = await mintAdminToken();
   }
 
-  /* תמונת ספק לפי מקט */
+  /*
+   * שני מפתחות לאיתור תמונת הספק: מקט, ובנוסף חתימת שם הקובץ.
+   *
+   * שמות הקבצים של התמונות בחנות הם hash בן 32 תווים — 01d71b23...bf340 —
+   * בדיוק כמו אצל Konimbo, כלומר הן יובאו משם ושם הקובץ נשמר. זה מפתח זהות
+   * מדויק שאינו תלוי במקט בכלל, והוא תופס מוצרים שהמקט שלהם לא נמצא
+   * בקטלוגים. בבדיקה הוא הוסיף 14 התאמות על 455.
+   */
   const idx = new Map();
+  const byFile = new Map();
+  const fileKey = (u) =>
+    String(u).split('/').pop().split('?')[0].replace(/\.[a-z0-9]+$/i, '').toLowerCase();
+
   for (const f of ['fetaya', 'chen', 'netanel', 'argentools', 'nisko', 'aspaka', 'nisani']) {
     const p = path.join(__dirname, '..', `${f}-catalogue.json`);
     if (!fs.existsSync(p)) continue;
     let rows;
     try { rows = JSON.parse(fs.readFileSync(p, 'utf8')); } catch { continue; }
     for (const r of rows) {
-      const k = normSku(r?.sku);
       const img = r.images?.[0] ?? r.image;
-      if (k && img && !idx.has(k)) idx.set(k, { img, src: f });
+      if (!img) continue;
+      const k = normSku(r?.sku);
+      if (k && !idx.has(k)) idx.set(k, { img, src: f });
+      const fk = fileKey(img);
+      if (fk.length >= 16 && !byFile.has(fk)) byFile.set(fk, { img, src: f });
     }
   }
-  console.log(`תמונות ספק לפי מקט: ${idx.size}`);
+  console.log(`תמונות ספק: ${idx.size} לפי מקט | ${byFile.size} לפי שם קובץ`);
 
   const all = [];
   let a = null;
@@ -173,9 +187,11 @@ async function main() {
   const plan = [];
   const noSource = [];
   for (const p of small) {
+    const media = firstImage(p);
     const sk = p.variants.nodes.map((v) => normSku(v.sku)).find(Boolean);
-    const hit = sk ? idx.get(sk) : null;
-    if (hit) plan.push({ p, sku: sk, ...hit, media: firstImage(p) });
+    /* מקט קודם, ואם אין — חתימת שם הקובץ של התמונה הנוכחית */
+    const hit = (sk ? idx.get(sk) : null) ?? byFile.get(fileKey(media.image.url));
+    if (hit) plan.push({ p, sku: sk ?? '(לפי שם קובץ)', ...hit, media });
     else noSource.push(p);
   }
 
