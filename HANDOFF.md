@@ -1599,9 +1599,16 @@ Published only — this is all Google sees:
   no category         0        (was 514 store-wide)
   blocked category    0        (was 36)
   no image           11        (Google reported 29)
-  price 0           102        (Google reported 131)
+  price 0            98        (Google reported 131)
   description <80   418        (Google flagged 43)
+  promotional overlay 0        (was 1 — fixed, see §26.9)
 ```
+
+Four of the six Merchant Center items are closed. What remains is **98 prices,
+11 images and 418 descriptions**, and each is blocked on a source rather than on
+work: the prices need a retailer that stocks the product (§26.4), the images need
+a supplier that has one (only 1 of 11 does), and the descriptions need one more
+Fetaya crawl (§26.5 step 4) which is currently blocked — see §26.9.
 
 Nothing was published. 1,867 active is the same number as before this round
 started — every import landed as DRAFT and stayed there.
@@ -1806,3 +1813,34 @@ Deleting collections is irreversible and was not requested:
 - The catalogue has **no exterior wall paint at all**: `צבע חוץ` returns zero
   results. Customers ask for it, and the assistant now says plainly that there
   is none.
+
+### 26.9 Two things that happened late, and both matter
+
+**Fetaya has started blocking.** A re-crawl to pick up descriptions returned
+"1 sitemap, 0 product URLs" after a day of requests against the site. That is
+what blocking looks like there — not an error code, an empty catalogue. Wait
+before retrying, and expect the same from the other three resellers if they are
+hit as hard.
+
+**The crawler destroyed a good file, and now cannot.** It wrote that empty result
+over 904 products and reported success. A backup taken a minute earlier is the
+only reason the data still exists. `fetch-fetaya-catalogue.js` now refuses to
+write when it fetched zero products, and refuses to write anything under half the
+existing count, which is what partial blocking produces. **Take a copy before any
+re-crawl anyway** — the guard covers the case that was seen, not every case.
+
+**The promotional-overlay rejection is fixed.** The 10-metre garlanda image had a
+FETAYA LIGHTING banner, bulb graphics and IP44 / 2-YEARS badges composited across
+the top. `scripts/replace-product-image.js <productId> <file> --apply` uploads,
+waits for the media to reach READY, and only then deletes the old one — the
+reverse order leaves a product with no image if the upload fails, which is a
+different Google rejection rather than a fix.
+
+Detecting the banner height automatically failed: horizontal variance cut at 57
+of 500 pixels because the decorative bulbs inside the banner have variance while
+the badges sit lower. For a single product a crop checked by eye is the right
+tool, so it is 158 pixels, and the output was looked at rather than assumed.
+
+The two sibling garlanda products were checked and deliberately left alone. Their
+images are photographs of the retail packaging, with the logo and badges printed
+on the box rather than composited onto the photo, and Google flagged neither.
