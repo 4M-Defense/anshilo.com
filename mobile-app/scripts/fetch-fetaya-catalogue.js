@@ -160,6 +160,29 @@ function extract(html, url) {
   const image = html.match(/<meta property="og:image" content="([^"]+)"/);
 
   /*
+   * כל תמונות הגלריה, ולא רק og:image.
+   *
+   * נמדד ש-1,395 מוצרים מפורסמים בחנות מחזיקים תמונה אחת בלבד, ו-Merchant
+   * Center מדרג את "Images per offer" כ-Low בגללן. הסיבה שלא היה מאיפה
+   * להשלים היא שהשליפה אספה `og:image` בלבד — תמונה אחת — בזמן שלעמוד יש
+   * גלריה.
+   *
+   * הגלריה היא `<li data-thumb=... data-src=...>`, ו-`data-src` מצביע
+   * ישירות על גרסת `extra_large`, שנמדדה כגדולה ביותר: לאותה תמונה
+   * `original` נתן 548x527 ו-`extra_large` נתן 1200x1154.
+   *
+   * חשוב שזה `data-src` ולא כל כתובת תמונה בעמוד: עמוד מוצר מכיל עשרות
+   * תמונות של מוצרים קשורים, של אייקונים ושל דפי קטלוג. ספירה גורפת נתנה
+   * 51 מזהים שונים לעמוד שבו למוצר עצמו יש תמונה אחת.
+   */
+  const gallery = [
+    ...new Set(
+      [...html.matchAll(/data-src=["']?(https:\/\/[^\s"'>]*\/system\/photos\/\d+\/[^\s"'>]+)/g)]
+        .map((m) => m[1])
+    ),
+  ];
+
+  /*
    * המקט — וזה החלק שהופך את כל השליפה לשימושית.
    *
    * התאמה לפי שם בין הקטלוג של פתיה לחנות **אינה עובדת**, ולא במעט:
@@ -220,6 +243,8 @@ function extract(html, url) {
     currency: offers?.priceCurrency ?? null,
     availability: offers?.availability ?? null,
     image: image ? image[1] : null,
+    /* הגלריה המלאה; ראו ההערה למעלה. הראשונה היא גם ה-og ברוב המקרים. */
+    images: gallery.length ? gallery : image ? [image[1]] : [],
   };
 }
 

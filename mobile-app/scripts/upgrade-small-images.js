@@ -196,8 +196,20 @@ async function main() {
      * `/original/` במקום `/large/`. אם הכתובת אינה בתבנית הזאת מנסים אותה
      * כמו שהיא — יש ספקים שהתמונה שלהם כבר במקור.
      */
+    /*
+     * `extra_large` נבדק ראשון, ואחריו `original`.
+     *
+     * הצורה הזאת התגלתה מאוחר, אחרי שבדקתי `xlarge`, `xl`, `huge` ו-`full`
+     * וכולם החזירו 403 והנחתי ש-`original` הוא הגדול. נמדד שהוא לא תמיד:
+     * לאותה תמונה `original` נתן 548x527 ו-`extra_large` נתן 1200x1154.
+     * בשתי תמונות אחרות הם זהים, ולכן בודקים את שניהם ולוקחים את הגדול.
+     */
     const candidates = x.img.includes('/large/')
-      ? [x.img.replace('/large/', '/original/'), x.img]
+      ? [
+          x.img.replace('/large/', '/extra_large/'),
+          x.img.replace('/large/', '/original/'),
+          x.img,
+        ]
       : [x.img];
 
     let best = null;
