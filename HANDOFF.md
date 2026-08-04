@@ -2317,3 +2317,72 @@ written and nothing was committed, which is the good failure mode, but the lesso
 the same in both places. **Write long prose to a file and pass the path.** Do not
 send paragraphs through a shell, whether the paragraph is a commit message, a CI
 `--message`, or a heredoc.
+
+### 26.27 The assistant: root cause found, two fixes measured, both reverted
+
+§26.25 recorded that the assistant answers the same question correctly about one
+time in four. This is what the investigation found, and what it did not fix.
+
+**Production runs on gpt-5-mini, not Claude.** `eas env:list production` shows
+`OPENAI_API_KEY` and `SHOPIFY_STOREFRONT_TOKEN` and no `ANTHROPIC_API_KEY`, so the
+`openAiKey` branch is what serves every request and `OPENAI_DEFAULT_MODEL` applies.
+`DEFAULT_MODEL = 'claude-sonnet-5'` in the file has never run in production.
+
+**The failure is the query the model invents.** Six identical POSTs of "צריך מקדחה
+לבטון" returned, by the products in the cards:
+
+| run | what it searched for |
+|---|---|
+| 1 | ladders — three ladders came back |
+| 2, 3, 5 | generic tools — tool sets and a contractor's belt |
+| 4, 6 | drills — correct |
+
+The replies match: "נראה שההודעה קצרה", "אולי אתה מחפש מקדחה?", "מחפש כלי עבודה
+כללי?" — a model guessing rather than reading. `tool_choice` was forced to
+`search_catalog` on the first turn (§26.8's "answer with a product, not a question"
+change), and with `reasoning_effort: 'low'` — set so reasoning would not eat the
+token budget — the model fires a tool before it has understood the question.
+
+**Two fixes were built, deployed to preview, and measured. Neither beat the
+baseline.** `assistant-server/scripts/ab-assistant.js` is the harness: four
+realistic Hebrew questions, N runs each, scoring whether the returned *cards* are in
+the category asked for — cards, because a card is what the customer can click, and a
+reply that names products with no `[[handle]]` is a failure however good it reads.
+
+| version | cards in the right category |
+|---|---|
+| live, as deployed | 7/12, then 9/12 on a second run |
+| prefetch the opening search, injected into the system prompt | 8/12 |
+| same, injected as a real `tool_use` + `tool_result` pair | 7/12, and 18s versus 13s |
+
+So the code was reverted to exactly what is deployed. **The variance between two
+measurements of the unchanged live version (7 and 9 of 12) is as large as the
+difference between versions, which means twelve runs cannot decide this** — and it
+also means any future claim of improvement needs far more runs than that.
+
+**What the measurements did settle, and it is worth keeping:**
+
+- `search()` — the Storefront search connection the tool actually uses — is
+  **good**: 5 of 6 realistic questions return the right category from the customer's
+  raw words. An earlier suspicion that Hebrew search was the problem was wrong, and
+  it was wrong because the first measurement used `products(query:)`, a different
+  endpoint. Do not "fix" the search tool.
+- `products(query:)` by contrast is nearly useless for free Hebrew text — 1 of 10 —
+  because it ANDs terms and matches descriptions: "מקדחה" finds drills, "מקדחה
+  לבטון" finds nothing, "נעל" finds a moisture absorber and "צבע" finds a Makita
+  speaker. Scoping to `title:` fixes it completely (10 of 10 with a fallback ladder,
+  see `scripts/measure-search-ladder.js`) — **relevant only if something ever needs
+  `products`, not for the assistant.**
+- A useful side finding: `title:כפפות` returns three products, so the store **does**
+  stock gloves. A plain search for "כפפות עבודה" returning nothing was a search
+  failure, not an out-of-stock.
+
+**The most likely real fix was not testable here: change the model.** The weak link
+is gpt-5-mini at low reasoning effort, and the code already supports Claude — setting
+`ANTHROPIC_API_KEY` in the production environment switches the branch and picks up
+`claude-sonnet-5` with no code change. That needs a key, so it is Dvir's to decide.
+Reading the existing `OPENAI_API_KEY` to measure locally was blocked by the
+permission layer, which is why the A/B ran against deployed previews instead.
+
+Two preview deployments exist and cost nothing to leave: `anshilo-assistant--xvsdwbltoj`
+(system-prompt injection) and `anshilo-assistant--dtf88i3hwb` (tool-result injection).
