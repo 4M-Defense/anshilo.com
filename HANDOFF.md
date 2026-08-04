@@ -839,3 +839,67 @@ execution. **A visual pass on a real device/browser is the obvious next step.**
 3. Decide the two owner questions in §15.4.
 4. `theme/tools/shoot.mjs` now defaults to no `preview_theme_id`, so it screenshots
    the live site. It needs a network that can reach `anshilo.com`.
+
+---
+
+## 16. The ₪0 defect, measured against the live catalogue — it is LATENT, not active
+
+§15.2 calls the unpriced-product defect "critical" and says ₪0 products "were
+sellable through five routes". **The code analysis is right; the severity framing
+is wrong, and it misled a later session into telling the owner the live store was
+giving stock away.** The owner corrected it by simply looking at the storefront:
+₪0 products render "אזל מהמלאי" and cannot be added. Here is the measurement, so
+nobody repeats the mistake in either direction.
+
+### 16.1 Why the storefront blocks them today
+
+Every buy route in the live theme gates on **availability**, and none of them gates
+on **price**:
+
+| Route | The live condition |
+|---|---|
+| `snippets/buy-buttons.liquid` | `current_variant.available == false` → `disabled` + "sold out" |
+| `snippets/product-card.liquid` | `{%- if quick_add_enabled and product.available -%}` |
+| `assets/quick-order.js` | `row.dataset.variantId = hit.available ? variant_id : ''` — an unavailable variant never gets an id, so it cannot be submitted |
+
+Since every ₪0 product is out of stock, availability blocks what price does not.
+**Remove the stock condition and all five routes open at once** — that is exactly
+what round 8's price gate is for.
+
+### 16.2 The numbers (Admin API, whole catalogue, verified row by row)
+
+- **95** active ₪0 products, one variant each — not the ~150 §15.2 implies.
+  Cross-checked: `productsCount(status:active AND price:<=0)` = 95.
+- **0 of 95** have `availableForSale: true`. Not one is purchasable.
+- **0 of 95** have `inventoryPolicy: CONTINUE`. All are `DENY` at quantity 0, and
+  inventory is tracked, so Shopify itself refuses the line. There is no oversell path.
+- **0** products mix a ₪0 variant with a priced one. Confirmed three ways, including
+  a clean partition: 95 (`price:<=0`) + 1696 (`price:>0`) = 1791 total active.
+  So the mixed-price scenario §15.2 worries about does not currently exist.
+- All 95 **are** published to the Online Store — visible, but rendering as sold out.
+
+### 16.3 The two things that would make it live
+
+1. **A stock update.** Any process that puts inventory on a ₪0 product — a supplier
+   feed, a manual count — turns it into a free product the moment it saves.
+2. **Two DRAFT ₪0 products already carry stock 99 and `availableForSale: true`:**
+   `שואב-אבק-3-מנועים-80-ליטר-s-washer-washing-18425` (variant 41948577366095) and
+   `שקע-טלפון-בזק-כפול-אופן-התקנה-תחת-הטיח-fetaya` (variant 42053661491279).
+   They are unreachable while they are drafts. **Publishing either one creates a
+   free, in-stock, add-to-cart-able product immediately.**
+
+### 16.4 What this means for how the fix ships
+
+It is preventive hardening, not an incident. Do **not** rush a theme publish for it:
+it can ride the normal branch → PR → deploy path. What it buys is that a stock
+update or a publish can never silently become free sales.
+
+### 16.5 A search-syntax trap that produces false conclusions
+
+`productVariants(query: "price:<=0")` **silently ignores the filter** and returns
+every variant — it was measured returning variants at 9.00, 799.00 and 9000.00.
+Invalid field names in Shopify search are dropped, not rejected, so the query looks
+like it worked. The **product**-level filter `products(query: "price:<=0")` does
+work. Always verify the returned rows carry the value you filtered on; never trust
+a filter to have applied. The same trap hides in `inventory_policy:`, which is not
+a variant search field at all.
