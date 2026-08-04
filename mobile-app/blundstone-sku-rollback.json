@@ -1,0 +1,66 @@
+{
+  "productId": "gid://shopify/Product/7539725631567",
+  "title": "נעל בלנסטון גברים דגם 910 שחור BLUNDSTONE יבואן רשמי",
+  "changes": [
+    {
+      "id": "gid://shopify/ProductVariant/42018282274895",
+      "size": "39",
+      "from": "4112286",
+      "to": "BLM910-0B1-060"
+    },
+    {
+      "id": "gid://shopify/ProductVariant/42018282307663",
+      "size": "40",
+      "from": "4112287",
+      "to": "BLM910-0B1-065"
+    },
+    {
+      "id": "gid://shopify/ProductVariant/42018282340431",
+      "size": "41",
+      "from": "4112288",
+      "to": "BLM910-0B1-070"
+    },
+    {
+      "id": "gid://shopify/ProductVariant/42018282373199",
+      "size": "41.5",
+      "from": "4112289",
+      "to": "BLM910-0B1-075"
+    },
+    {
+      "id": "gid://shopify/ProductVariant/42018282405967",
+      "size": "42",
+      "from": "4112290",
+      "to": "BLM910-0B1-080"
+    },
+    {
+      "id": "gid://shopify/ProductVariant/42018282438735",
+      "size": "42.5",
+      "from": "4112291",
+      "to": "BLM910-0B1-085"
+    },
+    {
+      "id": "gid://shopify/ProductVariant/42018282471503",
+      "size": "43",
+      "from": "4112292",
+      "to": "BLM910-0B1-090"
+    },
+    {
+      "id": "gid://shopify/ProductVariant/42018282504271",
+      "size": "43.5",
+      "from": "4112293",
+      "to": "BLM910-0B1-095"
+    },
+    {
+      "id": "gid://shopify/ProductVariant/42018282537039",
+      "size": "44",
+      "from": "4112294",
+      "to": "BLM910-0B1-100"
+    },
+    {
+      "id": "gid://shopify/ProductVariant/42018282569807",
+      "size": "45",
+      "from": "4112295",
+      "to": "BLM910-0B1-105"
+    }
+  ]
+}
