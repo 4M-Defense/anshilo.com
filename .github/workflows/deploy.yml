@@ -39,6 +39,18 @@ jobs:
       - id: filter
         shell: bash
         run: |
+          # הרצה ידנית פורסת הכול, ולא לפי מה שהקומיט האחרון נגע בו.
+          #
+          # בלי זה הרצה ידנית הייתה חסרת תועלת בדיוק כשצריך אותה: הסינון בוחן
+          # `git diff HEAD~1 HEAD`, וכשמפעילים את הצינור ביד זה הקומיט האחרון —
+          # שאם נגע רק בסקריפטים, עבודת התבנית מדולגת והלחיצה לא עשתה כלום.
+          # מי שמריץ ביד מתכוון לפרוס, אחרת לא היה לוחץ.
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "הרצה ידנית — פורס את שלושת היעדים."
+            printf 'theme=true\napp=true\nassistant=true\n' >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
           # מול הקומיט הקודם, ובדחיפה ראשונה מול העץ הריק
           BASE=$(git rev-parse HEAD~1 2>/dev/null || git hash-object -t tree /dev/null)
           CHANGED=$(git diff --name-only "$BASE" HEAD)
