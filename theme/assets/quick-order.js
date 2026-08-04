@@ -405,9 +405,9 @@
 
   QuickOrder.prototype.refreshRow = function (row) {
     var price = parseInt(row.dataset.price, 10);
-    var qty = parseInt(row.querySelector('[data-quick-order-qty]').value, 10) || 1;
+    var qty = parseInt(row.querySelector('[data-quick-order-qty]').value, 10) || 0;
     var cell = row.querySelector('[data-quick-order-line-total]');
-    if (row.dataset.variantId && !isNaN(price)) cell.textContent = formatMoney(price * qty);
+    if (row.dataset.variantId && !isNaN(price) && qty > 0) cell.textContent = formatMoney(price * qty);
     else cell.textContent = '';
     this.refreshTotals();
   };
@@ -424,7 +424,7 @@
     var total = 0;
 
     rows.forEach(function (row) {
-      var qty = parseInt(row.querySelector('[data-quick-order-qty]').value, 10) || 1;
+      var qty = parseInt(row.querySelector('[data-quick-order-qty]').value, 10) || 0;
       var price = parseInt(row.dataset.price, 10) || 0;
       items += qty;
       total += price * qty;
@@ -535,9 +535,11 @@
     var items = rows.map(function (row) {
       return {
         id: parseInt(row.dataset.variantId, 10),
-        quantity: parseInt(row.querySelector('[data-quick-order-qty]').value, 10) || 1
+        quantity: parseInt(row.querySelector('[data-quick-order-qty]').value, 10) || 0
       };
     });
+    items = items.filter(function (i) { return i.quantity > 0; });
+    if (!items.length) return;
 
     var self = this;
     this.submitBtn.classList.add('btn--loading');

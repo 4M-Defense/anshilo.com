@@ -141,14 +141,10 @@
             templates/search.quick-order.liquid already uses.
           {%- endcomment -%}
           {%- if product.featured_media -%}
-            {%- assign images_emitted = 0 -%}
+            {%- assign sd_images = product.media | where: 'media_type', 'image' -%}
             "image": [
-              {%- for media in product.media limit: 5 -%}
-                {%- if media.media_type == 'image' -%}
-                  {%- if images_emitted > 0 -%},{%- endif -%}
-                  {{ media | image_url: width: 1200 | prepend: 'https:' | json }}
-                  {%- assign images_emitted = images_emitted | plus: 1 -%}
-                {%- endif -%}
+              {%- for media in sd_images limit: 5 -%}
+                {{ media | image_url: width: 1200 | prepend: 'https:' | json }}{%- unless forloop.last -%},{%- endunless -%}
               {%- endfor -%}
             ],
           {%- endif -%}
