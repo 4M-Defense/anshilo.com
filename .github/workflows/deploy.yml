@@ -54,8 +54,16 @@ jobs:
     needs: changes
     if: needs.changes.outputs.theme == 'true'
     runs-on: ubuntu-latest
+    permissions:
+      # כתיבה כי העבודה מזיזה את התג theme-deployed בסוף
+      contents: write
     steps:
       - uses: actions/checkout@v4
+        with:
+          # ההיסטוריה והתגים נדרשים: קו הבסיס של בדיקת הסחיפה הוא
+          # `git archive theme-deployed`, ובעומק ברירת המחדל התג אינו קיים כאן.
+          fetch-depth: 0
+          fetch-tags: true
       - uses: actions/setup-node@v4
         with:
           # 22 ולא 20: @shopify/cli מכריז engines node >=22.12.0, ועל 20 הוא נופל
@@ -69,6 +77,42 @@ jobs:
       # ואין שם שלב ביניים שיתפוס אותו — זה השלב.
       - name: Check the theme
         run: shopify theme check --path theme --fail-level error
+
+      # ---------------------------------------------------------------------
+      # והשמירה השנייה: לא לדרוס עריכה שנעשתה בממשק.
+      #
+      # זה קרה כאן בפועל. התבנית החיה החזיקה שבעה קבצים שהריפו מעולם לא ראה —
+      # legal-nav.liquid, templates/policy.liquid ועוד — ושמונה מפתחות תרגום
+      # שכל עמודי המדיניות מציגים. מישהו ערך אותם בממשק, והריפו לא ידע. דחיפה
+      # כמות שהיא הייתה מגישה "translation missing" בכל עמוד מדיניות, וזה נתפס
+      # במקרה על ידי theme check ולא על ידי שמירה.
+      #
+      # ההשוואה היא לתג theme-deployed — מה שנדחף לאחרונה — ולא לריפו של עכשיו.
+      # ההשוואה לריפו נבדקה ונפלה: היא סימנה קובץ שאנחנו שינינו ולא דחפנו עדיין
+      # כאילו נערך בממשק. אם החי שונה ממה שדחפנו, מישהו אחר ערך אותו.
+      #
+      # בריצה הראשונה אין תג, ואז זה מזהיר בלבד: בלי קו בסיס אין דרך לדעת מי
+      # שינה מה, וכשלון על ניחוש הוא שמירה שמושבתת ביום הראשון.
+      # ---------------------------------------------------------------------
+      - name: Pull the live theme
+        env:
+          SHOPIFY_FLAG_STORE: ${{ secrets.SHOPIFY_STORE }}
+          SHOPIFY_CLI_THEME_TOKEN: ${{ secrets.SHOPIFY_CLI_THEME_TOKEN }}
+        run: |
+          mkdir -p /tmp/live
+          shopify theme pull --theme "${{ secrets.SHOPIFY_THEME_ID }}" --path /tmp/live
+
+      - name: Refuse to overwrite admin edits
+        run: |
+          set -e
+          if git rev-parse -q --verify refs/tags/theme-deployed > /dev/null; then
+            mkdir -p /tmp/baseline
+            git archive theme-deployed theme | tar -x --strip-components=1 -C /tmp/baseline
+            node theme/tools/check-live-drift.mjs --live /tmp/live --repo /tmp/baseline
+          else
+            echo "אין תג theme-deployed — ריצה ראשונה, מזהיר בלבד."
+            node theme/tools/check-live-drift.mjs --live /tmp/live --repo theme --warn-only
+          fi
 
       - name: Push to the live theme
         env:
@@ -92,6 +136,14 @@ jobs:
             --ignore 'templates/*.json' \
             --ignore 'sections/*-group.json' \
             --json
+
+      # התג הוא קו הבסיס של הריצה הבאה — "זה מה שדחפנו". הוא מוזז רק אחרי
+      # דחיפה שהצליחה, כי תג שמוזז אחרי כישלון היה מכריז על מצב שלא הגיע לחנות
+      # ומעלים בדיוק את הסחיפה שהשמירה קיימת בשבילה.
+      - name: Mark what was deployed
+        run: |
+          git tag -f theme-deployed
+          git push -f origin theme-deployed
 
   # ---------------------------------------------------------------------------
   # האפליקציה
