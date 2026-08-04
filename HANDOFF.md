@@ -1,7 +1,8 @@
 # HANDOFF — א.נ. שילו · Shilo Pro v2
 
-**Current state: the v8 theme is PUBLISHED and live. Start at §2, then §13's
-RESOLVED block for how that was verified, then §15 for the audit round.**
+**Current state: the v8 theme is PUBLISHED and live, and round 8 (the security &
+quality audit) is done but may not be pushed yet — START AT §15, it tells you how to
+check and what to import. Then §2 for the environment facts.**
 
 **Written by the previous agent. Read this before touching anything.**
 Run `git log --oneline` for the current head — the list in §9 stops at the commit
@@ -696,3 +697,145 @@ Once connected:
   it re-fetches, re-applies on the new tip and retries.
 - The connected theme keeps one stable id forever; the v2–v8 theme pile stops
   growing, and earlier previews can be deleted.
+
+---
+
+## 15. Round 8 — the security & quality audit round (READ THIS FIRST)
+
+**Written for whoever picks this up in a new session. Everything this round found,
+fixed, verified and deliberately left is here.**
+
+### 15.0 START HERE: the commits may not be in the repo yet
+
+This round produced **6 commits on `claude/app-improvements-security-q68kjg`**, and
+the session that wrote them **could not push them.** If
+`git log --oneline claude/shopify-store-modern-design-746p2i..claude/app-improvements-security-q68kjg`
+shows nothing in your clone, the work is not here yet and you must import it before
+doing anything else.
+
+The owner has a git bundle (`anshilo-fixes.bundle`, ~100 KB, verified to apply as a
+clean fast-forward). To import:
+
+```bash
+git fetch /path/to/anshilo-fixes.bundle 'refs/heads/*:refs/remotes/bundle/*'
+git push origin refs/remotes/bundle/claude/app-improvements-security-q68kjg:refs/heads/claude/app-improvements-security-q68kjg
+```
+
+**Why the push failed, so you do not repeat the diagnosis.** GitHub answered
+`Permission to A-N-Shilo/anshilo.com.git denied to ofir-commits` on
+`git-receive-pack`, and the API answered `403 Resource not accessible by
+integration` on `POST /git/refs`. Reads worked (200). It is NOT a repo permission
+problem: `ofir-commits` has **admin** on the repo (the owner granted it mid-session,
+and the API confirms `admin: true`), and another Claude session pushed to
+`claude/shopify-app-hebrew-compat-i1wcji` three times during the session
+(`1a9dc7e` → `93f385f` → `31a4959`). The credential for THAT session was minted
+read-only at session start, and `add_repo` with `access: "push"` returns
+`already_present` without re-minting. **If your session can push, nothing else is
+needed — just push.** Do not ask the owner for more GitHub permissions; that was
+already tried and was not the cause.
+
+### 15.1 What this round did
+
+Two adversarial workflows, 23 subagents total. The first audited the whole
+repository across six dimensions and adversarially verified every finding:
+**62 confirmed** (1 critical, 6 high, 28 medium, 27 low), 9 refuted. The second
+attacked the resulting fixes rather than the original code, and confirmed **28
+regressions I had introduced** (9 more refuted) — including one that made the
+original problem worse. Both rounds are fixed.
+
+### 15.2 The headline defect: ₪0 products were sellable through five routes
+
+The "call for price" rule for the ~150 products published at ₪0 was enforced in
+exactly one place (`sections/main-product.liquid` against one variant). Every other
+route walked past it:
+
+1. **`snippets/product-card.liquid`** rendered a working add-to-cart form directly
+   beneath its own "מחיר בטלפון" label, on every collection, search,
+   recommendation and recently-viewed rail.
+2. **Variant changes** were never re-checked: `assets/section-main-product.js`
+   printed `formatMoney(0)` over a live button.
+3. **`assets/quick-order.js`** resolved a ₪0 SKU and added it — the route
+   contractors are pointed at.
+4. **`{{ form | payment_button }}`** — Shopify's accelerated checkout. It reads the
+   form's variant id at CLICK time, never fires the submit event `<product-form>`
+   intercepts, and **ignores `disabled`**. My first fix left it live and actually
+   exposed it in more cases. It must be **hidden**, and
+   `section-main-product.js` flips it per variant.
+5. **The mobile app had no equivalent rule at all** — "₪0" with an enabled
+   add-to-cart button.
+
+The rule now lives in one snippet (`snippets/price-call.liquid`) rendered by both
+the server and, via a `<template>`, the client. **If you touch the buy path, check
+all five.**
+
+### 15.3 What was verified, and how
+
+| Check | Result |
+|---|---|
+| `python3 theme/tools/validate.py --strict` | 0 errors, 0 warnings |
+| `cd mobile-app && npx tsc --noEmit` | 0 errors |
+| `npx shopify theme check --path theme --fail-level error` | exit 0 (6 known false-positive warnings) |
+| `sync-shopify-live.sh` end-to-end | sandbox with a correctly flattened `shopify-live`: Liquid templates deploy, editor-owned JSON is preserved AND the discard is reported |
+| `validate.py` liquid-body balance | deliberately removed an `endif` inside a `{% liquid %}` block — caught |
+| `validate.py` comment stripping | unterminated comment + unclosed `if` — both caught (this was a regression I introduced and fixed) |
+| `window.formatMoney` | executed against all 8 Shopify money placeholders; all correct |
+| The git bundle | fetched into a fresh clone of the real remote: 6 commits, clean fast-forward, all signatures intact, tree identical |
+
+**NOT verified: the storefront and the app were never run.** `anshilo.com` is
+blocked by the agent proxy (§2), and `npx expo install --check` needs
+`api.expo.dev`, also blocked. Everything above is static analysis plus sandboxed
+execution. **A visual pass on a real device/browser is the obvious next step.**
+
+### 15.4 Two decisions left for the owner
+
+1. **`color_tile_bg` is saved as `#FFFFFF` in the live theme.** The cream field
+   (`#EFE9DF`) that the department tiles were designed around therefore does not
+   appear. Verified against the live `settings_data.json` via the Admin API. This
+   is a visual decision, deliberately not changed from a script. To apply: theme
+   editor → צבעים → "רקע אריחי המחלקות" → `#EFE9DF`.
+2. **Is `shopify-live` actually connected to the published theme?** §14 now opens
+   with this. The published theme came from a hand-uploaded zip, not a GitHub
+   deploy, so `sync-shopify-live.sh` may push to a branch nothing watches — it
+   exits 0 and nothing reaches the storefront. The script prints that caveat with
+   the pushed SHA on every success.
+
+### 15.5 Facts established against the live store (do not re-derive)
+
+- **`shilov8theme` (`148378648655`) is `role: MAIN`.** The design is LIVE. §2's
+  table used to name `שמירה 1` as MAIN; that was corrected this round.
+- The live theme **does** carry the importer seals
+  (`importer_badge_1` = makita-argentolas-stamp.png,
+  `importer_badge_2` = delco-milwaukee-stamp.png). §13's pending-upsert plan is
+  therefore moot. Both refs were merged into the repo's `settings_data.json`, which
+  had neither — so a zip build or fresh install would have dropped them.
+- **Friday closes at 14:00, not 13:00.** The live theme's `store_hours` is the
+  owner's own save; the repo, the schema default, `docs/INSTALL-THEME.md` and the
+  app all said 13:00. All four corrected.
+- `store_whatsapp` differs by design: live holds a bare international number
+  (`972545070202`), the repo holds `https://wa.link/sp55tw`. Both work — the theme
+  accepts either shape and the app's `whatsappUrl()` normalises both.
+
+### 15.6 Things this round added that you should not undo
+
+- **`.github/workflows/ci.yml`** — the first CI in this repo. Pushing to
+  `shopify-live` IS the deploy, and nothing enforced the checks before. Runs
+  `validate.py --strict`, pinned `theme-check`, `tsc`, and `expo install --check`.
+- **`theme/.theme-check.yml`** — exempts `snippets/nav-thumb.liquid` from
+  `ImgWidthAndHeight`, with the reason in the snippet. Without it the workflow was
+  red on its first run on untouched code.
+- **`snippets/price-call.liquid`** — the single source for the call-for-price block.
+- **`expo-secure-store` at `~57.0.1`** — the cart id is a bearer capability, not a
+  preference. It was briefly pinned to `~15.0.0`, which is off-SDK; `expo install
+  --check` in CI now catches that class.
+- The `products.quick_order.*` locale keys — `assets/quick-order.js` used to carry
+  Hebrew literals, putting the store's only bulk-ordering flow outside the locale
+  files.
+
+### 15.7 Known-good next steps
+
+1. Push the branch (§15.0) and open a PR.
+2. Run the storefront and the app on real devices — the one thing this round could
+   not do.
+3. Decide the two owner questions in §15.4.
+4. `theme/tools/shoot.mjs` now defaults to no `preview_theme_id`, so it screenshots
+   the live site. It needs a network that can reach `anshilo.com`.
