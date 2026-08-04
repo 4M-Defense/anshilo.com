@@ -136,10 +136,14 @@
   padding-block: 0 clamp(2.5rem, 4vw, 4.5rem);
 }
 
+/* NOT sticky (owner report, round 7): the bar used to park at
+   --collection-stick, but the site header auto-hides on downward scroll, so
+   the parked bar was left hovering mid-air over the cards — "נשאר צף לבד".
+   Pinning it to 0 instead would jump every time the header hides/reveals.
+   It now scrolls with the page like any other row; on mobile the filter
+   button is at the top of the grid, one flick away. */
 .collection-toolbar {
-  position: sticky;
-  inset-block-start: var(--collection-stick);
-  z-index: 20;
+  position: relative;
   display: flex;
   align-items: center;
   flex-wrap: wrap;
@@ -150,8 +154,8 @@
   border-block-end: 1px solid var(--color-border);
 }
 
-/* Bleed the bar's own background over the page gutters so cards never appear
-   to slide out from underneath it. */
+/* Bleed the bar's own background over the page gutters so it reads as a
+   full-width rule even inside the padded container. */
 .collection-toolbar::before {
   content: "";
   position: absolute;
@@ -280,17 +284,12 @@
     align-items: start;
   }
 
+  /* NOT sticky, same round-7 owner report as the toolbar: a pinned panel
+     below an auto-hiding header floats detached once the header hides. The
+     sidebar now flows with the page — no height clamp, no inner scrollbar,
+     nothing left hovering. */
   .collection-layout__sidebar {
-    position: sticky;
-    inset-block-start: calc(var(--collection-stick) + 4.25rem);
-    /* Hard floor: whatever the offset resolves to (or becomes in the future),
-       the filters panel must never collapse below a usable height. */
-    max-block-size: max(18rem, calc(100vh - var(--collection-stick) - 6rem));
-    overflow-y: auto;
-    overscroll-behavior: contain;
     padding-inline-end: 0.35rem;
-    scrollbar-width: thin;
-    scrollbar-color: var(--color-border-strong) transparent;
   }
 }
 
@@ -313,14 +312,6 @@
 
 .collection-products__item > .product-card {
   inline-size: 100%;
-}
-
-/* The card's title anchor paints a full-card ::after overlay at z-index 1.
-   base.css lifts quick-add above it only where hover is available, so raise it
-   for touch too — stacking only, no visual change. */
-.collection-products .product-card__quick-add {
-  position: relative;
-  z-index: 3;
 }
 
 .collection-products .product-card__sku {
@@ -471,10 +462,12 @@
   min-inline-size: 0;
 }
 
+/* 0.73rem on the accent wash — the smallest text in the theme sitting on a tinted
+   surface, so the readable accent ink, not the accent. See --color-accent-ink. */
 .facet__selected {
   font-size: 0.73rem;
   font-weight: 700;
-  color: var(--color-accent);
+  color: var(--color-accent-ink);
   background: var(--color-accent-soft);
   padding: 0.1rem 0.55rem;
   border-radius: var(--radius-pill);
@@ -693,6 +686,9 @@ details[open] > .facet__summary .facet__chevron { transform: rotate(180deg); }
   position: relative;
   flex: 1;
   min-inline-size: 0;
+  /* Match the input's dir="ltr" so the ₪ resolves to the left, over the
+     input's 2rem padding-left instead of colliding with digits on the right. */
+  direction: ltr;
 }
 
 .facet-price__currency {
@@ -722,9 +718,17 @@ details[open] > .facet__summary .facet__chevron { transform: rotate(180deg); }
 
 .facets-form__noscript { margin-block-start: 1rem; }
 
-/* ---- Desktop: neutralise the drawer chrome, render as a sidebar ---- */
+/* ---- Desktop: neutralise the drawer chrome, render as a sidebar ----
+   SPECIFICITY TRAP (this bug shipped): base.css closes the drawer with
+   `[dir="rtl"] .drawer--end { transform: translateX(-100%) }` — that is
+   (0,2,0). A bare `.facets-drawer { transform: none }` is only (0,1,0), so on
+   this RTL storefront the "neutralised" sidebar stayed shifted one full width
+   to the left, under the product grid, which paints over it — the filters
+   appeared as slivers peeking through the grid gaps. Every rule that must
+   beat the drawer's closed state is therefore written at (0,3,0) via
+   `[dir] .collection-layout__sidebar .facets-drawer`. */
 @media (min-width: 990px) {
-  .facets-drawer {
+  [dir] .collection-layout__sidebar .facets-drawer {
     position: static;
     inset: auto;
     inline-size: 100%;
@@ -781,10 +785,10 @@ details[open] > .facet__summary .facet__chevron { transform: rotate(180deg); }
   margin-block-end: clamp(1rem, 2vw, 1.5rem);
 }
 
+/* NOT sticky — same round-7 rule as the collection toolbar: anything pinned
+   below the auto-hiding header is left floating alone once the header hides. */
 .collection-index__jump {
-  position: sticky;
-  inset-block-start: var(--collection-stick);
-  z-index: 20;
+  position: relative;
   display: flex;
   align-items: center;
   gap: 0.75rem;

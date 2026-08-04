@@ -1,3 +1,12 @@
+/*
+ * ------------------------------------------------------------
+ * IMPORTANT: The contents of this file are auto-generated.
+ *
+ * This file may be updated by the Shopify admin language editor
+ * or related systems. Please exercise caution as any changes
+ * made to this file may be overwritten.
+ * ------------------------------------------------------------
+ */
 {
   "accessibility_widget": {
     "big_cursor": "Large cursor",
@@ -289,6 +298,11 @@
       "subtitle": "The page you were looking for has moved or doesn't exist. You may find what you need in our catalog.",
       "title": "Page not found"
     },
+    "legal": {
+      "contact_text": "Something in this document unclear? We're happy to explain by phone or email.",
+      "lead": "This document applies to your use of this site and to orders placed through it.",
+      "nav_label": "Company documents and information"
+    },
     "meta": {
       "page": "Page {{ page }}",
       "tagged": "Tagged \"{{ tags }}\""
@@ -358,11 +372,6 @@
       "twitter": "Twitter",
       "whatsapp": "WhatsApp",
       "youtube": "YouTube"
-    },
-    "legal": {
-      "contact_text": "Something in this document unclear? We're happy to explain by phone or email.",
-      "lead": "This document applies to your use of this site and to orders placed through it.",
-      "nav_label": "Company documents and information"
     }
   },
   "gift_cards": {
@@ -489,6 +498,7 @@
         "open_media": "Open image {{ index }}"
       },
       "new": "New",
+      "official_importer": "Official importer",
       "on_sale": "Sale",
       "out_of_stock": "Out of stock",
       "pickup_available": "Pickup available at our Kiryat Ata store",
@@ -506,8 +516,7 @@
       "tags": "Tags",
       "unavailable": "Unavailable",
       "vendor": "Brand",
-      "view_details": "View details",
-      "official_importer": "Official importer"
+      "view_details": "View details"
     }
   },
   "sections": {
@@ -539,7 +548,6 @@
     "footer": {
       "payment_methods": "Payment methods",
       "policies": {
-        "cancellation_notice": "Cancellation notice",
         "contact": "Contact information",
         "legal": "Legal notice",
         "privacy": "Privacy policy",

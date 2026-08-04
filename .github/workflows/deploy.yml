@@ -74,13 +74,21 @@ jobs:
           SHOPIFY_CLI_THEME_TOKEN: ${{ secrets.SHOPIFY_CLI_THEME_TOKEN }}
         run: |
           # --allow-live כי היעד הוא התבנית החיה בכוונה. --nodelete כדי ששום
-          # קובץ שקיים בחנות ולא בריפו לא ייעלם: settings_data.json נערך
-          # בממשק ואינו מנוהל כאן.
+          # קובץ שקיים בחנות ולא בריפו לא ייעלם.
+          #
+          # --ignore על ההגדרות והתבניות: אלה נערכים בממשק ולא כאן. הן מחזיקות
+          # את הצבעים, הגופנים וסידור הסקשנים שבעל החנות בחר, וכל דחיפה הייתה
+          # מחזירה אותם לעותק שבריפו — שמתיישן ברגע שהוא נוגע בעורך התבניות.
+          # --nodelete לא מגן על זה: הוא מונע מחיקה, לא דריסה. מי שמשנה עיצוב
+          # בממשק לא מצפה שדחיפת קוד תבטל לו את זה.
           shopify theme push \
             --path theme \
             --theme "${{ secrets.SHOPIFY_THEME_ID }}" \
             --allow-live \
             --nodelete \
+            --ignore config/settings_data.json \
+            --ignore 'templates/*.json' \
+            --ignore 'sections/*-group.json' \
             --json
 
   # ---------------------------------------------------------------------------

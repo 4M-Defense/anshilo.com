@@ -20,11 +20,13 @@
           <h2 class="section-header__heading h3">{{ section.settings.heading }}</h2>
         </div>
       </div>
-      <div
-        class="recently-viewed__row scroll-row"
-        data-recently-viewed-target
-        aria-label="{{ section.settings.heading | escape }}"
-      ></div>
+      {%- comment -%}
+        No aria-label here. It repeated the <h2> directly above, so a screen reader
+        announced the same heading twice, and aria-label on a plain div is not valid
+        markup either - it was one of the HTML validation errors (4.1.1). The
+        heading already labels this row.
+      {%- endcomment -%}
+      <div class="recently-viewed__row scroll-row" data-recently-viewed-target></div>
     </recently-viewed>
   </div>
 </div>

@@ -40,13 +40,17 @@
   min-inline-size: 0;
   text-align: center;
   opacity: 0;
+  /* visibility keeps hidden slides out of the tab order; transitioning it too
+     lets the outgoing slide stay visible through the crossfade. */
+  visibility: hidden;
   transform: translateY(4px);
-  transition: opacity var(--duration-base) var(--ease-out), transform var(--duration-base) var(--ease-out);
+  transition: opacity var(--duration-base) var(--ease-out), transform var(--duration-base) var(--ease-out), visibility var(--duration-base) var(--ease-out);
   pointer-events: none;
 }
 
 .announcement-bar__item.is-active {
   opacity: 1;
+  visibility: visible;
   transform: translateY(0);
   pointer-events: auto;
 }
@@ -176,6 +180,24 @@ a.announcement-bar__text:hover {
   transition: transform var(--duration-base) var(--ease-out);
 }
 
+/* Sticky turned off in the theme editor: the header returns to normal flow, and the
+   Shopify section wrapper around it has to come out of the sticky arrangement too.
+   This lived in an inline <style> block in header.liquid that interpolated
+   section.id, which the HTML validator rejects on every page — a <style> element is
+   not valid as a child of a div, and Shopify always wraps a section in one. :has()
+   reaches the same wrapper without needing the id, so the markup stays clean. The
+   theme already depends on :has() elsewhere; if it were unsupported the header
+   would simply stay in its sticky arrangement, which is the safe direction. */
+:has(> .site-header--static) {
+  position: static;
+  block-size: auto;
+}
+
+.site-header--static {
+  position: relative;
+  inline-size: auto;
+}
+
 /* box-shadow cannot be handed to the compositor, so the resting shadow lives on
    an inert overlay whose opacity is animated instead — the header repainted its
    whole shadow on every frame of the hide-up slide before. inset: 0 tracks the
@@ -201,26 +223,48 @@ a.announcement-bar__text:hover {
 .site-header.is-hidden-up::after { opacity: 0; }
 
 /* Measurement guard — section-header.js toggles is-stuck synchronously to read
-   both heights, and must not start any transition doing it. */
+   both heights, and must not start any transition doing it. The descendant
+   selector matters now that the collapsing rows animate: without it the measure
+   pass would kick off a real 240ms collapse and read a height from the middle
+   of it. */
 .site-header.is-measuring,
-.site-header.is-measuring::after { transition: none; }
+.site-header.is-measuring::after,
+.site-header.is-measuring * { transition: none !important; }
 
 /* ---------- Row 1 — utility strip on ink ---------- */
-/* No transition on block-size. It is a layout-triggering property, so animating
-   it cost a style recalc + layout + paint of the header subtree on the main
-   thread for every one of the ~15 frames of the collapse, right at the start of
-   the gesture (--ease-out is easeOutExpo-shaped and front-loads ~80% of the
-   motion into the first four frames). The collapse is now a single discrete
-   layout on the class flip, which the hysteresis in global.js fires once.
-   Composited motion is kept where it is free: the shadow overlay, the hide-up
-   slide, and the panel animations. */
+/* block-size IS transitioned, against the earlier note in this file that left the
+   collapse discrete for performance. Two things make it affordable here, and both
+   were verified before the transition went back in:
+
+   1. .site-header is position: absolute (see above), so its height is outside the
+      document flow — an animating header relayouts its own subtree and nothing
+      else. The page content below never moves, which was the expensive half.
+   2. The subtree being laid out is this one 44px row: a flex line holding a
+      handful of links. That is a trivial layout, not the whole header.
+
+   The collapse is the most-seen motion on the site — it fires on the first scroll
+   of every visit — and a 44px row disappearing between two frames reads as a
+   glitch, not as a design. The remaining rows below follow the same reasoning.
+   Where motion is genuinely free it still goes to the compositor instead: the
+   shadow overlay, the hide-up slide, and the panel animations. */
 .site-header__util {
   --header-util-h: 44px;
   block-size: var(--header-util-h);
   overflow: hidden;
+  transition: block-size var(--duration-base) var(--ease-out), visibility 0s;
 }
 
-.site-header.is-stuck .site-header__util { block-size: 0; }
+/* visibility drops the collapsed rows' links out of the tab order — height 0 +
+   overflow hidden alone would leave them keyboard-focusable while invisible.
+   It is held until the collapse has finished, or the row's contents would blink
+   out on frame one and leave an empty box animating shut behind them. Expanding
+   uses the base rule's `visibility 0s`, so they come back immediately. */
+.site-header.is-stuck .site-header__util {
+  block-size: 0;
+  visibility: hidden;
+  transition: block-size var(--duration-base) var(--ease-out),
+    visibility 0s linear var(--duration-base);
+}
 
 .site-header__util-inner {
   display: flex;
@@ -292,6 +336,7 @@ a.site-header__util-item:hover .icon { color: #fff; }
    collapse instead of animating. A ~6px step is imperceptible on its own. */
 .site-header__main {
   padding-block: 0.5rem;
+  transition: padding-block var(--duration-base) var(--ease-out);
 }
 
 .site-header.is-stuck .site-header__main { padding-block: 0.35rem; }
@@ -301,6 +346,7 @@ a.site-header__util-item:hover .icon { color: #fff; }
   align-items: center;
   gap: 0.3rem;
   min-block-size: 56px;
+  transition: min-block-size var(--duration-base) var(--ease-out);
 }
 
 .site-header__burger {
@@ -337,6 +383,8 @@ a.site-header__util-item:hover .icon { color: #fff; }
   max-inline-size: min(var(--logo-width, 260px), 58vw);
   max-block-size: 46px;
   object-fit: contain;
+  transition: max-block-size var(--duration-base) var(--ease-out),
+    max-inline-size var(--duration-base) var(--ease-out);
 }
 
 .site-header__logo-text {
@@ -413,6 +461,7 @@ a.site-header__util-item:hover .icon { color: #fff; }
   padding-inline: 0.6rem 0.3rem;
   min-block-size: 50px;
   font-size: 1rem;
+  transition: min-block-size var(--duration-base) var(--ease-out);
 }
 
 .header-search__input:focus { outline: none; }
@@ -682,6 +731,14 @@ details[open] > .site-nav__link .icon-chevron { transform: rotate(180deg); }
   inset-inline-end: 0;
 }
 
+/* JS-applied when a measured flyout overflows the viewport — the nth-last-child
+   guard above only covers the DOM-last items, but the row wraps at 990-1400px,
+   so the items nearest the edge can be mid-list (end of the first line). */
+.site-nav__panel--flyout.is-edge {
+  inset-inline-start: auto;
+  inset-inline-end: 0;
+}
+
 .site-nav__list {
   display: flex;
   flex-direction: column;
@@ -759,19 +816,22 @@ details[open] > .site-nav__link .icon-chevron { transform: rotate(180deg); }
    product shots and brand wordmarks, and cropping a wordmark to a square would
    destroy it. A fixed box on both axes means no layout shift, so the img needs
    no width/height attributes.
-   The field is the same tile token the category rail uses (--color-tile-bg), so
-   the menu and the homepage read as one system. No blend mode here: a global
+   Deliberately NOT the rail's --color-tile-bg token: the rail's field matches
+   the cream baked into the twelve DEPARTMENT images, but the level-2/3 images
+   this snippet mostly shows are product shots and wordmarks on WHITE (kodhot,
+   hr2630X1, …), so white is the unifying field here. No blend mode: a global
    multiply would discolour the brand-wordmark thumbs in the מותגים panel
-   (e.g. Makita's teal would multiply to a dark green), and per-thumb flags are
-   not possible for menu-driven images — see docs/STORE-HEALTH.md. */
+   (e.g. Makita's teal would multiply to a dark green), and per-thumb flags
+   are not possible for menu-driven images. */
 .nav-thumb {
   inline-size: var(--nav-thumb-size, 40px);
   block-size: var(--nav-thumb-size, 40px);
   flex: 0 0 auto;
   object-fit: contain;
-  background: var(--color-tile-bg, var(--color-highlight));
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
   border-radius: var(--radius-sm);
-  padding: 3px;
+  padding: 2px;
 }
 
 /* The two-level flyout rows get a thumb too, so both panel types read alike. */
@@ -805,12 +865,18 @@ details[open] > .site-nav__link .icon-chevron { transform: rotate(180deg); }
   transition: color var(--duration-fast) ease, border-color var(--duration-fast) ease;
 }
 
+/* Wraps rather than truncates. This was nowrap + text-overflow: ellipsis, which
+   silently cut real department names at every zoom level, not just at 200%: inside
+   the 196px grid column the span is left about 111px once the 40px thumbnail, the
+   13px arrow and the two 0.55rem gaps are taken out, while "כלי עבודה חשמליים"
+   measures 282px. The menu read "כלי עב…", "כלים נ…", "שואבי…". An ellipsis on a
+   navigation label is loss of content under 1.4.4, and it was losing it at 100%.
+   Wrapping is preferred over widening the column because it cannot truncate at any
+   label length or any text size, where a wider column only moves the threshold. */
 .site-nav__col-title > span {
   margin-inline-end: auto;
   min-inline-size: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  overflow-wrap: anywhere;
 }
 
 .site-nav__col-title .icon {
@@ -1077,13 +1143,35 @@ details[open] > .menu-drawer__toggle .icon-chevron { transform: rotate(180deg); 
     border-block-end: 1px solid var(--color-border);
   }
 
+  /* The department row's height is `auto` — one line at wide widths, two when the
+     12 labels wrap between 990 and 1400px — so it cannot be pinned to a number
+     without breaking the wrap. auto → 0 only interpolates where interpolate-size
+     is supported, which is exactly what this asks for; everywhere else the row
+     keeps folding in one frame, as it always did, and nothing else changes.
+     border-block-end-width rides along so the 1px rule thins out with the row
+     instead of dropping away on frame one. */
+  @supports (interpolate-size: allow-keywords) {
+    .site-header__nav {
+      interpolate-size: allow-keywords;
+      transition: block-size var(--duration-base) var(--ease-out),
+        border-block-end-width var(--duration-base) var(--ease-out), visibility 0s;
+    }
+
+    .site-header.is-stuck .site-header__nav {
+      transition: block-size var(--duration-base) var(--ease-out),
+        border-block-end-width var(--duration-base) var(--ease-out),
+        visibility 0s linear var(--duration-base);
+    }
+  }
+
   /* Compressed state: utility + nav rows fold away, leaving logo + search +
      actions. The burger takes over so the catalogue stays one tap away.
-     Every declaration in this block is untransitioned on purpose — see the note
-     on .site-header__util. They all resolve in the same single layout pass.
-     The nav row never animated anyway: its base block-size is `auto`, and
-     auto → 0 is not interpolable without interpolate-size/calc-size, so the row
-     already snapped in one frame while the reserve spacer was still chasing it. */
+     These now interpolate together with the utility row above, so the whole
+     compression reads as one movement instead of a row vanishing while the logo
+     jumps. The transitions are declared on the base rules (below) rather than
+     here, so expanding and collapsing share the same curve.
+     The nav row is the one exception — its base block-size is `auto`, and
+     auto → 0 needs interpolate-size, so it gets its own @supports block. */
   .site-header.is-stuck .site-header__main { padding-block: 0.4rem; }
   .site-header.is-stuck .site-header__row { min-block-size: 52px; }
   .site-header.is-stuck .site-header__logo-img {
@@ -1100,6 +1188,9 @@ details[open] > .menu-drawer__toggle .icon-chevron { transform: rotate(180deg); 
     border-block-end-width: 0;
     overflow: hidden;
     pointer-events: none;
+    /* keep the hidden summaries/panel links out of the tab order — see the
+       matching note on .site-header__util. */
+    visibility: hidden;
   }
 }
 

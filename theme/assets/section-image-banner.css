@@ -68,17 +68,42 @@
   --hero-beam-end: 7%;
   --hero-beam-tilt: 13deg;
 
-  /* The stage never paints outside itself. NOT content-visibility: this block
-     is above the fold and skipping its layout would postpone the LCP text. */
-  contain: paint;
+  /* Photograph branch, see "Photograph" below. The content is align-start, so the
+     heavy end of the legibility floor and the open end that keeps the picture
+     bright are both direction-dependent. mask-image takes no logical keywords
+     (rule 3 above) but a background gradient is fine as long as the ONE flipped
+     value is the direction itself — same contract as --hero-beam-tilt. */
+  --hero-scrim-dir: to right;
+  --hero-glow-x: 88%;
 }
 
-[dir="rtl"] .image-banner { --hero-beam-tilt: -13deg; }
+/* The stage never paints outside itself — but the CLIP that guarantees that lives
+   on .hero-stage, not here. It used to be `contain: paint` on this element, and
+   paint containment cannot be released the way `overflow` can: the :has() rule
+   further down lifts `overflow: hidden` while the search dropdown is open, and the
+   containment kept clipping the panel at the banner's bottom edge anyway. Moving
+   it one level in keeps the containment exactly where the animation cost is and
+   lets the one descendant that is meant to hang out of the hero do it.
+   NOT content-visibility on either element: this block is above the fold and
+   skipping its layout would postpone the LCP text. */
+.hero-stage {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  contain: paint;
+  pointer-events: none;
+}
+
+[dir="rtl"] .image-banner {
+  --hero-beam-tilt: -13deg;
+  --hero-scrim-dir: to left;
+  --hero-glow-x: 12%;
+}
 
 /* ---------- Heights ---------- */
-.image-banner--small { min-block-size: clamp(360px, 46svh, 470px); }
-.image-banner--medium { min-block-size: clamp(450px, 62svh, 600px); }
-.image-banner--large { min-block-size: clamp(540px, 78svh, 760px); }
+.image-banner--small { min-block-size: clamp(360px, 46vh, 470px); min-block-size: clamp(360px, 46svh, 470px); }
+.image-banner--medium { min-block-size: clamp(450px, 62vh, 600px); min-block-size: clamp(450px, 62svh, 600px); }
+.image-banner--large { min-block-size: clamp(540px, 78vh, 760px); min-block-size: clamp(540px, 78svh, 760px); }
 .image-banner--full {
   min-block-size: 100vh;
   min-block-size: 100svh;
@@ -150,6 +175,86 @@
   );
 }
 
+/* ---------- Photograph ----------
+   A real photograph of the yard is the most persuasive thing this page owns, so
+   the job here is to protect the words WITHOUT flattening the picture. The old
+   treatment did the opposite: a flat ink wash across the whole frame plus a
+   full-width scrim, which reads as a dimmed slide no matter how good the photo is.
+
+   Three layers, front to back:
+     1. warm daylight over the open side — the frame reads like light in the yard
+        rather than a tinted panel, and it is the one thing that makes a flat
+        phone photo look deliberate;
+     2. the legibility floor, DIRECTIONAL — heavy under the column of text, gone
+        by the far edge, so the photograph keeps its own contrast where nothing
+        is written over it;
+     3. a short bottom fade that seats the section on the page below.
+
+   Because the merchant's photograph is unknowable in advance, legibility comes
+   from this floor and the text shadows below, never from assuming a dark image. */
+.image-banner--photo .image-banner__scrim {
+  background-image:
+    radial-gradient(
+      ellipse 76% 96% at var(--hero-glow-x) 16%,
+      rgba(var(--color-highlight-rgb), 0.17) 0%,
+      rgba(var(--color-highlight-rgb), 0.05) 42%,
+      transparent 70%
+    ),
+    linear-gradient(
+      var(--hero-scrim-dir),
+      rgba(var(--color-ink-rgb), 0.95) 0%,
+      rgba(var(--color-ink-rgb), 0.86) 34%,
+      rgba(var(--color-ink-rgb), 0.66) 56%,
+      rgba(var(--color-ink-rgb), 0.28) 76%,
+      transparent 95%
+    ),
+    linear-gradient(to top, rgba(var(--color-ink-rgb), 0.5) 0%, transparent 32%);
+}
+
+/* Centred content has no open side to keep bright, so the floor goes vertical and
+   the daylight moves to the top edge where no text sits. Same profile as the
+   phone floor below — both cases put text across the full width, so both need the
+   contrast to come from height rather than from direction. */
+.image-banner--photo.image-banner--align-center .image-banner__scrim {
+  background-image:
+    radial-gradient(
+      ellipse 92% 64% at 50% 4%,
+      rgba(var(--color-highlight-rgb), 0.15) 0%,
+      transparent 64%
+    ),
+    linear-gradient(
+      to top,
+      rgba(var(--color-ink-rgb), 0.9) 0%,
+      rgba(var(--color-ink-rgb), 0.8) 50%,
+      rgba(var(--color-ink-rgb), 0.66) 82%,
+      rgba(var(--color-ink-rgb), 0.7) 100%
+    );
+}
+
+/* A one-time paint on a still image. The no-filter rule at the top of this file
+   guards MOVING surfaces — nothing in this branch animates, so the compositor
+   pays for this once. Phone photographs of a lit yard come back flat and slightly
+   grey; this restores the colour without touching exposure. Deliberately NO
+   brightness(): the merchant's photograph may already be blown out at the sky,
+   and lifting it there costs legibility for nothing. */
+.image-banner--photo .image-banner__media img {
+  filter: saturate(1.1) contrast(1.03);
+}
+
+/* The headline can land on any pixel the merchant uploads, so it carries its own
+   floor: a tight shadow for edge definition against busy detail, a wide one for
+   separation from a bright sky. */
+.image-banner--photo .image-banner__heading {
+  text-shadow:
+    0 1px 3px rgba(var(--color-ink-rgb), 0.55),
+    0 2px 24px rgba(var(--color-ink-rgb), 0.5);
+}
+
+.image-banner--photo .image-banner__eyebrow,
+.image-banner--photo .image-banner__subheading {
+  text-shadow: 0 1px 8px rgba(var(--color-ink-rgb), 0.55);
+}
+
 /* ---------- Designed fallback (no photography yet) ---------- */
 .image-banner--designed { background-color: var(--color-ink); }
 
@@ -169,15 +274,20 @@
    headline for legibility.
 
      1  tint            merchant tint over footage
-     2  plane--far      112px grid, 1.33 px/s
-     3  plane--near      48px grid, 3.7 px/s   (+ pointer parallax)
-     4  aura            two counter-rotating gradient masses
-     5  shaft / motes   skylight beam + rising sawdust
-     6  draw            the construction detail that draws itself
+     2  .hero-stage     the clipping wrapper, and inside it, in the same order:
+     2    plane--far    112px grid, 1.33 px/s
+     3    plane--near    48px grid, 3.7 px/s   (+ pointer parallax)
+     4    aura          two counter-rotating gradient masses
+     5    shaft / motes skylight beam + rising sawdust
+     6    draw          the construction detail that draws itself
      7  scrim           legibility floor
      8  level           the laser level that lands on the bottom rule
      9  container       the content
     10  edge            .blueprint-rule, scaled in as the laser lands
+
+   The wrapper is a stacking context, so 2-6 keep their order relative to each
+   other while the whole group sits between the tint and the scrim. Anything that
+   must paint ABOVE the scrim stays outside it — see .hero-stage__level.
    ========================================================= */
 
 /* Two grids at different speeds are the whole depth trick: 3.7 px/s against
@@ -593,11 +703,12 @@
   to { opacity: 1; transform: none; }
 }
 
-/* LCP GUARD. templates/index.json ships no hero image, so the designed branch
-   runs and this <h1> is the homepage LCP element. Chrome will not accept text
-   painted at opacity 0 as an LCP candidate, so fading it in would push LCP out
-   by the whole entrance. It RISES instead: transform only, no opacity, no delay,
-   so the first painted frame already contains the finished text. */
+/* LCP GUARD. templates/index.json now ships a hero photograph, so the eager
+   <img> is normally the homepage LCP element — but this <h1> becomes it again the
+   moment a merchant clears the image (designed branch) or the photo is slow, and
+   Chrome will not accept text painted at opacity 0 as an LCP candidate. So the
+   heading RISES rather than fades: transform only, no opacity, no delay, and the
+   first painted frame already contains the finished text either way. */
 @keyframes hero-heading-rise {
   from { transform: translate3d(0, 14px, 0); }
   to { transform: none; }
@@ -653,6 +764,76 @@
 }
 
 .image-banner--align-center .image-banner__search-wrap { margin-inline: auto; }
+
+/* MUST outrank .image-banner__actions and .image-banner__trust, which follow this
+   element in the DOM. Every beat of the entrance carries `animation: hero-beat-in
+   ... both`, and that keyframe ends on `transform: none` — which fills as the
+   IDENTITY MATRIX, not as the absence of a transform. So each beat is left a
+   stacking context of its own, permanently, and the dropdown's z-index: 86 is
+   trapped inside this one instead of competing with the two buttons and the trust
+   pills. Three z-index-auto stacking contexts paint in document order, so the last
+   two won and the panel opened underneath the "לקטלוג המלא" and "דברו איתנו"
+   buttons.
+   A positive z-index here lifts the whole beat — panel included — out of that tie.
+   position: relative is not what makes it apply (a flex item takes z-index while
+   static) but it is what makes that legible to the next reader. */
+.image-banner__search-wrap {
+  position: relative;
+  z-index: 1;
+}
+
+/* The live-results panel is absolutely positioned against this form. */
+.image-banner__search { position: relative; }
+
+/* The hero clips its own children (overflow: hidden above) so nothing can spill,
+   and `isolation: isolate` makes it a stacking context — which means a dropdown
+   hanging below the field would be both cut off at the hero's edge AND painted
+   underneath the section that follows.
+
+   Both are lifted only while the panel is actually open, and only then. :has()
+   carries this with no extra class for JavaScript to toggle and no way for the two
+   to fall out of sync. The motion stage keeps its own clip throughout, because
+   that one lives on .hero-stage rather than on the section.
+
+   z-index 20 is deliberately below the header's 80: the panel has to cover the
+   sections underneath the hero, never the sticky header above it. */
+.image-banner:has([data-search-panel]:not([hidden])) {
+  overflow: visible;
+  z-index: 20;
+}
+
+/* Shorter than the header's dropdown: this one opens mid-hero rather than under a
+   40px-tall bar, so a 580px panel would run past the fold on a laptop. */
+.image-banner__search-panel {
+  inset-block-start: calc(100% + 8px);
+  max-block-size: min(52vh, 420px);
+  text-align: start;
+}
+
+/* The panel is a light surface inside a section that sets `color: #fff`, so the
+   inherited colour has to be put back or the result titles arrive white-on-white. */
+.image-banner__search-panel,
+.image-banner__search-panel .predictive-results__heading { color: var(--color-text); }
+
+.image-banner__search-clear {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  inline-size: 34px;
+  block-size: 34px;
+  border: none;
+  border-radius: var(--radius-pill);
+  background: none;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  transition: color var(--duration-fast) ease, background-color var(--duration-fast) ease;
+}
+
+.image-banner__search-clear:hover {
+  color: var(--color-ink);
+  background-color: var(--color-surface-sunken);
+}
 
 .image-banner__search-box {
   display: flex;
@@ -965,6 +1146,27 @@
     background-color: rgba(255, 255, 255, 0.12);
     backdrop-filter: none;
     -webkit-backdrop-filter: none;
+  }
+
+  /* A phone gives the text the full width, so there is no "open side" left to
+     keep bright — the directional floor would leave the end of every line
+     unprotected. It goes vertical, and the daylight moves to the top corner
+     above the text. */
+  .image-banner--photo .image-banner__scrim,
+  .image-banner--photo.image-banner--align-center .image-banner__scrim {
+    background-image:
+      radial-gradient(
+        ellipse 120% 52% at var(--hero-glow-x) 0%,
+        rgba(var(--color-highlight-rgb), 0.16) 0%,
+        transparent 66%
+      ),
+      linear-gradient(
+        to top,
+        rgba(var(--color-ink-rgb), 0.9) 0%,
+        rgba(var(--color-ink-rgb), 0.8) 50%,
+        rgba(var(--color-ink-rgb), 0.66) 82%,
+        rgba(var(--color-ink-rgb), 0.7) 100%
+      );
   }
 
   /* The drawing becomes a watermark rather than disappearing — it is the

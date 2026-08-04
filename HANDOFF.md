@@ -2081,3 +2081,43 @@ What happened in round 18, in order:
 theme into `theme/` (replacing the old design), commit that as the new baseline,
 then re-apply the slider and footer additions on top. That makes the repo the
 source of truth in fact rather than by assertion.
+
+### 26.18 The repo theme is now the LIVE theme plus the slider. Baseline replaced.
+
+The owner settled it: **the live design is the one he wants and it stays.** The
+only thing it was missing is the draggable price slider. So §26.17's "next step"
+is done, and the direction it describes is now the actual state of the repo.
+
+`theme/` was replaced wholesale with a fresh pull of live `shilov8theme`
+(148378648655), and the slider was re-applied on top as three additions:
+
+| file | how |
+|---|---|
+| `snippets/facets.liquid` | live and repo were **byte-identical** (17,281 both), so the repo's version already was live + handles — copied straight over |
+| `assets/facets.js` | live differed; only the slider block was extracted by line and appended to live's version |
+| `assets/section-collection.css` | same treatment |
+
+`theme/DESIGN-SYSTEM.md`, `theme/SPEC.md` and `theme/tools/` are ours, not
+Shopify's — restored after the wholesale replace, which had staged them as
+deletions. The old repo design is not lost; it is in history at `2a3a980`.
+
+Verified on `Copy of shilov8theme` (148566474831) by normalising the rendered
+collection page of both — section-id prefixes, asset folder, cache-buster, request
+ids — and diffing tag by tag. **The only markup difference is the slider wrapper
+and its two handles around the existing track**, plus Shopify's own preview-bar
+and hot-reload scripts. The served, minified `facets.js` was checked for the drag
+logic itself: pointer capture, RTL inversion, the ENGAGE_PX scroll-vs-drag
+threshold, `Math.abs(at-minNow)<=Math.abs(at-maxNow)` for tap-on-track, and
+`?"":String(Math.round(value))` for boundary-writes-empty.
+
+One error-level offence remains in `theme check`: `nav-thumb.liquid` has no width
+and height. It comes from the live theme, and the fix is kept in the repo copy.
+
+**The pipeline was a live hazard until this commit and the one that follows.**
+`deploy.yml` pushes `theme/` to the live theme with `--allow-live` on every push;
+with the old design sitting in `theme/`, setting the GitHub secrets would have
+overwritten the design the owner just said he wants to keep. Nothing had fired —
+the secrets are not set — but the trap was armed and documented as ready to use.
+`config/settings_data.json`, `templates/*.json` and `sections/*-group.json` are
+now `--ignore`d: those are what the theme editor writes, and `--nodelete` does not
+protect them because it prevents deletion, not overwrite.

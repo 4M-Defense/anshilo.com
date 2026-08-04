@@ -77,11 +77,14 @@
   .category-rail__tile:hover .category-rail__title { color: var(--color-accent); }
 }
 
-/* ---------- Department images: one flat amber field ----------
-   The owner asked for a single uniform coloured background behind all twelve
-   images (the previous sunken-well + white-window treatment read as a square
-   inside a square). One surface, one token, uniform padding, image contained
-   inside it — nothing nested, nothing framed.
+/* ---------- Department images: one flat field ----------
+   One surface, one token, uniform padding, image contained inside it —
+   nothing nested, nothing framed. (The earlier sunken-well + white-window
+   treatment read as a square inside a square; a later amber field was
+   rejected by the owner on sight.) The owner's direction: the field should be
+   the background most of the department images already carry — white — so the
+   default of --color-tile-bg is now the surface white and the images melt
+   into the tile. The token stays merchant-tintable from theme settings.
    The padding lives on this wrapper and NOT on .media: base.css absolutely
    positions .media > img with inset: 0 against the padding box, so padding on
    .media itself would not inset the image at all.
@@ -89,8 +92,14 @@
    four sides stay equal at every breakpoint and the plate stays square. */
 .category-rail__plate {
   display: block;
-  padding: 8%;
-  background-color: var(--color-tile-bg, var(--color-highlight));
+  /* Slim ring: the owner asked for the image square to be as large as it can
+     be inside the card. The plate colour defaults (via the token's setting)
+     to the cream field baked into the designed department images, so plate
+     and image read as one surface; the white-background photo tiles are
+     multiply-blended onto it (see below), which lands their white exactly on
+     the same cream. */
+  padding: 2.5%;
+  background-color: var(--color-tile-bg, var(--color-surface));
   border-radius: var(--radius-base);
 }
 
@@ -165,6 +174,13 @@
   gap: 0.3rem;
   padding-inline: 0.3rem;
   min-inline-size: 0;
+}
+
+/* .chip (base.css) sets white-space: nowrap; on the narrowest rail tiles a
+   3-digit count pill would paint past the tile edge, so let it wrap here. */
+.category-rail__count {
+  max-inline-size: 100%;
+  white-space: normal;
 }
 
 .category-rail__title {

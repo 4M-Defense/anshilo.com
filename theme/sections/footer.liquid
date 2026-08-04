@@ -391,24 +391,6 @@
             <li>
               <a class="footer__legal-link" href="{{ policy.url }}">{{ policy_label | escape }}</a>
             </li>
-            {%- comment -%}
-              קישור ייעודי לשליחת הודעת ביטול, מיד אחרי מדיניות ההחזרים.
-
-              חוק הגנת הצרכן דורש אותו בעסקאות שנעשות דרך האתר, והוא כבר נוסף
-              לתפריט "אודותינו" שמופיע למעלה בכותרת התחתונה. השורה הזאת נוצרת
-              מהתבנית ולא מתפריט, ולכן היא לא קיבלה אותו — והיא זו שמופיעה בכל
-              עמוד, כולל דף הבית שהחוק מדבר עליו.
-
-              מפנה לעמוד צור קשר הקיים ולא לטופס ביטול נפרד: בעל החנות אינו רוצה
-              זרימת ביטול עצמית, והחוק דורש ערוץ להודעה ולא כפתור שמבצע אותה.
-            {%- endcomment -%}
-            {%- if policy_handle == 'refund-policy' -%}
-              <li>
-                <a class="footer__legal-link" href="{{ routes.root_url }}pages/contact">
-                  {{- 'sections.footer.policies.cancellation_notice' | t -}}
-                </a>
-              </li>
-            {%- endif -%}
           {%- endif -%}
         {%- endfor -%}
       </ul>
