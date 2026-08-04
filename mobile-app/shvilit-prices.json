@@ -1,0 +1,58 @@
+[
+  {
+    "id": "gid://shopify/Product/7545777619023",
+    "title": "גוף תאורה שבילית לד מלבני הספק 4.4W מוגן IP65 גוון אור חם בצבע לבן FETAYA",
+    "price": 136.25,
+    "src": "fetaya 9068",
+    "matchedTo": "גוף תאורה שבילית לד מלבני 44W מוגן IP65 גוון אור קר לבן",
+    "vars": [
+      {
+        "id": "gid://shopify/ProductVariant/42038020079695",
+        "sku": "90680",
+        "price": "0.00"
+      }
+    ]
+  },
+  {
+    "id": "gid://shopify/Product/7545784336463",
+    "title": "גוף תאורה שבילית לד מלבני הספק 3.5W מוגן IP65 גוון אור חם DOWN LIGHT בצבע לבן FETAYA",
+    "price": 136.25,
+    "src": "fetaya 9070",
+    "matchedTo": "גוף תאורה שבילית לד מלבני הספק 35W מוגן IP65 גוון אור קר DOWN LIGHT בצבע לבן",
+    "vars": [
+      {
+        "id": "gid://shopify/ProductVariant/42038046064719",
+        "sku": "90700",
+        "price": "0.00"
+      }
+    ]
+  },
+  {
+    "id": "gid://shopify/Product/7545787875407",
+    "title": "גוף תאורה שבילית לד מלבני הספק 3.5W מוגן IP65 גוון אור חם DOWN LIGHT בצבע בזלת FETAYA",
+    "price": 136.25,
+    "src": "fetaya 9070B",
+    "matchedTo": "גוף תאורה שבילית לד מלבני הספק 35W מוגן IP65 גוון אור קר DOWN LIGHT בצבע בזלת",
+    "vars": [
+      {
+        "id": "gid://shopify/ProductVariant/42038053765199",
+        "sku": "90700B",
+        "price": "0.00"
+      }
+    ]
+  },
+  {
+    "id": "gid://shopify/Product/7545788858447",
+    "title": "גוף תאורה שבילית לד מלבני הספק 3.5W מוגן IP65 גוון אור חם DOWN LIGHT בצבע אפור FETAYA",
+    "price": 136.25,
+    "src": "fetaya 9070G",
+    "matchedTo": "גוף תאורה שבילית לד מלבני הספק 35W מוגן IP65  גוון אור קר DOWN LIGHT בצבע אפור",
+    "vars": [
+      {
+        "id": "gid://shopify/ProductVariant/42038056321103",
+        "sku": "90700G",
+        "price": "0.00"
+      }
+    ]
+  }
+]

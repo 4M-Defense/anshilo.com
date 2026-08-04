@@ -1682,6 +1682,22 @@ an electrical faceplate into a vehicle part.
    because the discriminator is a **word** — the series name, מואר against
    לא מואר, דו-פיני against כח. Left in `fill-gaps-from-catalogues.js` behind
    `--by-name` with a warning, and it should stay off.
+
+   **Correction to the evidence cited for this.** Earlier rounds used
+   "שבילית 4.4W matched שבילית 44W, a factor of ten in wattage" as proof that
+   similarity conflates different products. Those are the **same product**, and
+   it is Fetaya's notation that drops the decimal point — their own catalogue
+   lists a memorial candle as "הספק 05W", which can only mean 0.5W. All 19
+   store products with a decimal wattage have a no-decimal twin at the supplier,
+   and Chen appears to have copied Fetaya's data. **The store's numbers are
+   correct; the supplier's are not.** The conclusion about name matching still
+   holds — the TV-FM and מואר cases are unrelated to this and are real — but do
+   not treat a wattage mismatch against a Fetaya name as proof of a different
+   product. Four שבילית prices were resolved through it, by stripping the
+   trailing zero the store SKU adds (90680 → 9068) **and requiring the series
+   token to match**. Without that guard the same rule paired DISC 92550 with a
+   שבילית and 92640 with a MICHAELLA, because DISC tails 40 and 50 legitimately
+   end in zero.
 5. **Enumerating fetaya.com past its sitemap** — the sitemap gives 910 and the
    site declares 1,068. `?items=all`, `?page=N` on both search and category
    pages, bare item IDs, and hunting the lazy-load endpoint all failed. A valid
