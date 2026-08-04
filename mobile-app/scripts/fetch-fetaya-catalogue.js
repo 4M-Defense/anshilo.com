@@ -306,6 +306,34 @@ async function main() {
   if (ONLY_MISSING) console.log(`סה"כ בקטלוג    : ${merged.length}`);
 
   const dir = path.join(__dirname, '..');
+
+  /*
+   * מסרבים לכתוב קובץ ריק, וגם לכתוב קובץ שקטן משמעותית מהקיים.
+   *
+   * זה קרה: ריצה מחדש על פתיה כדי לאסוף תיאורים חזרה עם "1 מפות אתר,
+   * 0 כתובות מוצר" — האתר חסם אחרי יום של בקשות — והסקריפט כתב מערך ריק
+   * על קטלוג של 904 מוצרים. שעות זחילה נמחקו בהצלחה מדווחת, ורק גיבוי
+   * ידני שעשיתי דקה קודם הציל את זה.
+   *
+   * חסימה נראית כמו קטלוג ריק, ולכן ריק אינו תוצאה קבילה. הסף על 50%
+   * תופס גם חסימה חלקית, שהיא המצב השכיח יותר.
+   */
+  const outPath = path.join(dir, `${OUT}-catalogue.json`);
+  if (merged.length === 0) {
+    throw new Error(
+      `נשלפו 0 מוצרים — כנראה חסימה. הקובץ הקיים לא נדרס. נסו שוב מאוחר יותר.`
+    );
+  }
+  if (fs.existsSync(outPath)) {
+    let prev = [];
+    try { prev = JSON.parse(fs.readFileSync(outPath, 'utf8')); } catch { /* קובץ פגום — נדרס */ }
+    if (Array.isArray(prev) && prev.length > 0 && merged.length < prev.length * 0.5) {
+      throw new Error(
+        `נשלפו ${merged.length} מוצרים מול ${prev.length} בקובץ הקיים — פחות מחצי. ` +
+          `לא נדרס. אם זה מכוון, מחקו את הקובץ ידנית והריצו שוב.`
+      );
+    }
+  }
   fs.writeFileSync(path.join(dir, `${OUT}-catalogue.json`), JSON.stringify(merged, null, 2));
   fs.writeFileSync(path.join(dir, `${OUT}-catalogue.csv`), toCsv(merged));
   console.log(`\nנשמר: ${OUT}-catalogue.json ו-${OUT}-catalogue.csv`);
