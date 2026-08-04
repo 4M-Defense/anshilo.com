@@ -533,6 +533,7 @@
     "footer": {
       "payment_methods": "Payment methods",
       "policies": {
+        "cancellation_notice": "Cancellation notice",
         "contact": "Contact information",
         "legal": "Legal notice",
         "privacy": "Privacy policy",

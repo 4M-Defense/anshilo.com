@@ -908,3 +908,95 @@ details[open] > .facet__summary .facet__chevron { transform: rotate(180deg); }
 
   .collection-index__jump-list { flex-wrap: wrap; overflow-x: visible; }
 }
+
+/* ---- Price filter: draggable handles ---- */
+
+/*
+ * מעטפת לפס ולידיות. הריפוד האנכי נותן לידיות מקום להתפרש מעל הפס בלי
+ * להידחס לשדות שמתחתיו, וגם מגדיל את השטח שאפשר להתחיל בו גרירה.
+ */
+.facet-price__slider {
+  position: relative;
+  padding-block: 14px;
+  touch-action: pan-y;
+}
+
+.facet-price__handle {
+  /*
+   * 44 על 44 הוא שטח הנגיעה, והעיגול הנראה קטן ממנו.
+   *
+   * זו הסיבה שהידית היא button עם רקע שקוף ועיגול מצויר ב-::before ולא
+   * div בגודל העיגול: אצבע צריכה 44 פיקסלים כדי לאחוז בביטחון, אבל עיגול
+   * של 44 על פס בגובה 5 נראה כמו כפתור ולא כמו ידית של סליידר.
+   */
+  position: absolute;
+  inset-block-start: 50%;
+  inset-inline-start: var(--handle-at, 0%);
+  inline-size: 44px;
+  block-size: 44px;
+  margin-inline-start: -22px;
+  transform: translateY(-50%);
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: grab;
+  /*
+   * בלי זה הדפדפן מפרש את הגרירה כגלילת עמוד ולוקח אליו את האצבע באמצע
+   * התנועה, וזה בדיוק מה שהופך את הסליידר לבלתי שמיש בנייד.
+   */
+  touch-action: none;
+  -webkit-tap-highlight-color: transparent;
+  z-index: 1;
+}
+
+.facet-price__handle::before {
+  content: '';
+  position: absolute;
+  inset-block-start: 50%;
+  /*
+   * המרכוז אינו תלוי כיוון.
+   *
+   * הגרסה הראשונה מרכזה ב-inset-inline-start: 50% עם translateX, וזה חייב
+   * היפוך של הטרנספורם ב-LTR — כלומר כלל נוסף שתלוי ב-dir על html, ואם
+   * הוא לא מוגדר שם העיגול יוצא מהמרכז בלי שאף אחד ישים לב. margin שלילי
+   * במחצית הרוחב עובד זהה בשני הכיוונים כי inset-inline-start ו-margin
+   * -inline-start פועלים לאותו כיוון בשניהם.
+   */
+  inset-inline-start: 50%;
+  margin-inline-start: -11px;
+  inline-size: 22px;
+  block-size: 22px;
+  transform: translateY(-50%);
+  border-radius: 50%;
+  background: var(--color-surface, #fff);
+  border: 2px solid var(--color-accent);
+  box-shadow: 0 1px 4px rgb(0 0 0 / 0.18);
+  transition: transform 120ms ease, box-shadow 120ms ease;
+}
+
+.facet-price__handle:hover::before {
+  box-shadow: 0 2px 8px rgb(0 0 0 / 0.24);
+}
+
+.facet-price__handle:focus-visible {
+  outline: none;
+}
+
+.facet-price__handle:focus-visible::before {
+  outline: 3px solid var(--color-accent);
+  outline-offset: 3px;
+}
+
+.facet-price__handle[data-dragging] {
+  cursor: grabbing;
+}
+
+.facet-price__handle[data-dragging]::before {
+  transform: translateY(-50%) scale(1.15);
+  box-shadow: 0 3px 12px rgb(0 0 0 / 0.28);
+}
+
+/* בלי JS אין מה לגרור, ולהציג ידיות שאינן זזות זו הטעיה */
+.no-js .facet-price__handle {
+  display: none;
+}

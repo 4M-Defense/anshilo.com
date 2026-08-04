@@ -210,12 +210,54 @@
                     assign highest_price = filter.range_max | money
                   -%}
                   <div class="facet-price">
+                    {%- comment -%}
+                      הפס נשאר גם כשאין JS, ומעליו שתי ידיות לגרירה.
+
+                      הידיות יושבות מחוץ ל-.facet-price__track ולא בתוכו, כי לפס
+                      יש overflow: hidden שנחוץ כדי שהמילוי לא יגלוש מהפינות
+                      המעוגלות — ידית בתוכו הייתה נחתכת בקצוות בדיוק במקומות
+                      שבהם צריך לאחוז בה.
+
+                      ה-min וה-max נמסרים במאפייני data ולא נקראים מהשדות, כי
+                      השדות ריקים כשאין סינון פעיל וה-placeholder אינו ערך.
+                    {%- endcomment -%}
                     <div
-                      class="facet-price__track"
-                      aria-hidden="true"
-                      style="--range-start: {{ start_pct }}%; --range-span: {{ span_pct }}%;"
+                      class="facet-price__slider"
+                      data-price-slider
+                      data-range-max="{{ range_max_units }}"
                     >
-                      <span class="facet-price__span"></span>
+                      <div
+                        class="facet-price__track"
+                        aria-hidden="true"
+                        style="--range-start: {{ start_pct }}%; --range-span: {{ span_pct }}%;"
+                      >
+                        <span class="facet-price__span"></span>
+                      </div>
+
+                      {%- assign handle_min = price_min | default: 0 -%}
+                      {%- assign handle_max = price_max | default: range_max_units -%}
+                      <button
+                        type="button"
+                        class="facet-price__handle"
+                        data-price-handle="min"
+                        role="slider"
+                        aria-valuemin="0"
+                        aria-valuemax="{{ range_max_units }}"
+                        aria-valuenow="{{ handle_min }}"
+                        aria-label="{{ 'products.facets.from' | t }} ({{ cart.currency.symbol }})"
+                        style="--handle-at: {{ start_pct }}%;"
+                      ></button>
+                      <button
+                        type="button"
+                        class="facet-price__handle"
+                        data-price-handle="max"
+                        role="slider"
+                        aria-valuemin="0"
+                        aria-valuemax="{{ range_max_units }}"
+                        aria-valuenow="{{ handle_max }}"
+                        aria-label="{{ 'products.facets.to' | t }} ({{ cart.currency.symbol }})"
+                        style="--handle-at: {{ end_pct }}%;"
+                      ></button>
                     </div>
 
                     <div class="facet-price__inputs">

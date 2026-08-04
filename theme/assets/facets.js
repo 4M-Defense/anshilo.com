@@ -385,3 +385,212 @@
     initCollapsibleDesc();
   });
 })();
+
+/* ---------------------------------------------------------------------------
+ * Price slider — draggable handles over the price track
+ * -------------------------------------------------------------------------
+ *
+ * The two number inputs stay the source of truth. Dragging writes into them
+ * and fires their `input` event, which the debounced handler above already
+ * listens for — so the slider needs no render logic of its own.
+ *
+ * Everything is delegated from `document`, because the facets markup is
+ * replaced wholesale on every AJAX re-render. A listener bound to a handle
+ * would survive exactly one filter change.
+ *
+ * The direction handling is the part that matters on this store. The track
+ * fills with `inset-inline-start`, so on an RTL page it grows from the right
+ * and the low price sits on the right — which is what a Hebrew reader
+ * expects. It also means a finger moving right must *lower* the value, so the
+ * fraction is inverted whenever the computed direction is rtl. Hard-coding
+ * left-to-right here would invert the whole control on the live site.
+ * ------------------------------------------------------------------------- */
+(function () {
+  'use strict';
+
+  var DRAG = null;
+
+  function sliderOf(el) {
+    return el.closest ? el.closest('[data-price-slider]') : null;
+  }
+
+  function partsOf(slider) {
+    return {
+      max: parseFloat(slider.getAttribute('data-range-max')) || 0,
+      track: slider.querySelector('.facet-price__track'),
+      minHandle: slider.querySelector('[data-price-handle="min"]'),
+      maxHandle: slider.querySelector('[data-price-handle="max"]'),
+    };
+  }
+
+  /*
+   * השדות נלקחים לפי סדר בתוך ה-facet ולא לפי id.
+   *
+   * ה-id נבנה בליקוויד מ-facet_id, שהוא ייחודי לכל מסנן ולא ידוע כאן. סדר
+   * שני השדות בתוך .facet-price קבוע במבנה — מ' ואז עד — ולכן הוא המפתח
+   * היציב היחיד בלי לשכפל את לוגיקת ה-id לצד הלקוח.
+   */
+  function inputs(slider) {
+    var facet = slider.closest('.facet-price');
+    var list = facet ? facet.querySelectorAll('[data-price-input]') : [];
+    return { min: list[0] || null, max: list[1] || null };
+  }
+
+  /** הערך הנוכחי של שדה, או קצה הטווח כשהוא ריק — placeholder אינו ערך */
+  function valueOf(input, fallback) {
+    if (!input) return fallback;
+    var v = parseFloat(input.value);
+    return isNaN(v) ? fallback : v;
+  }
+
+  function paint(slider, minV, maxV) {
+    var p = partsOf(slider);
+    if (!p.max) return;
+    var a = Math.max(0, Math.min(100, (minV / p.max) * 100));
+    var b = Math.max(0, Math.min(100, (maxV / p.max) * 100));
+    if (p.track) {
+      p.track.style.setProperty('--range-start', a + '%');
+      p.track.style.setProperty('--range-span', Math.max(0, b - a) + '%');
+    }
+    if (p.minHandle) {
+      p.minHandle.style.setProperty('--handle-at', a + '%');
+      p.minHandle.setAttribute('aria-valuenow', String(Math.round(minV)));
+    }
+    if (p.maxHandle) {
+      p.maxHandle.style.setProperty('--handle-at', b + '%');
+      p.maxHandle.setAttribute('aria-valuenow', String(Math.round(maxV)));
+    }
+  }
+
+  /**
+   * מיקום המצביע כשבר על הציר, עם היפוך ב-RTL.
+   *
+   * הכיוון נקרא מ-getComputedStyle ולא מבדיקה של dir על html: הוא יכול
+   * להיות מוגדר על אב כלשהו, וזה מה שהדפדפן באמת מיישם.
+   */
+  function fractionAt(track, clientX) {
+    var rect = track.getBoundingClientRect();
+    if (!rect.width) return 0;
+    var f = (clientX - rect.left) / rect.width;
+    if (getComputedStyle(track).direction === 'rtl') f = 1 - f;
+    return Math.max(0, Math.min(1, f));
+  }
+
+  /** מעדכן שדה ומודיע עליו, כדי שהרענון המושהה הקיים יתפוס */
+  function commit(input, value) {
+    if (!input) return;
+    var next = String(Math.round(value));
+    if (input.value === next) return;
+    input.value = next;
+    input.dispatchEvent(new Event('input', { bubbles: true }));
+  }
+
+  document.addEventListener('pointerdown', function (event) {
+    var handle = event.target.closest ? event.target.closest('[data-price-handle]') : null;
+    if (!handle) return;
+    var slider = sliderOf(handle);
+    if (!slider) return;
+    var p = partsOf(slider);
+    if (!p.max || !p.track) return;
+
+    event.preventDefault();
+    DRAG = { handle: handle, slider: slider, which: handle.getAttribute('data-price-handle') };
+    handle.setAttribute('data-dragging', '');
+    /*
+     * לוכדים את המצביע כדי שהגרירה תמשיך גם כשהאצבע יוצאת מהידית — בלעדיו
+     * כל תנועה מהירה מפילה את הגרירה אחרי כמה פיקסלים.
+     */
+    if (handle.setPointerCapture) {
+      try {
+        handle.setPointerCapture(event.pointerId);
+      } catch (e) {
+        /* לא קריטי, הגרירה עדיין עובדת דרך המאזין על document */
+      }
+    }
+  });
+
+  document.addEventListener('pointermove', function (event) {
+    if (!DRAG) return;
+    var p = partsOf(DRAG.slider);
+    var io = inputs(DRAG.slider);
+    if (!p.max || !p.track) return;
+
+    var value = fractionAt(p.track, event.clientX) * p.max;
+    var minV = valueOf(io.min, 0);
+    var maxV = valueOf(io.max, p.max);
+
+    /*
+     * הידיות לא עוברות זו את זו. בלי זה מתקבל טווח הפוך, והשרת מחזיר אפס
+     * מוצרים על משהו שנראה למשתמש כמו בחירה סבירה לגמרי.
+     */
+    if (DRAG.which === 'min') minV = Math.min(value, maxV);
+    else maxV = Math.max(value, minV);
+
+    paint(DRAG.slider, minV, maxV);
+    commit(io.min, minV);
+    commit(io.max, maxV);
+  });
+
+  function endDrag() {
+    if (!DRAG) return;
+    DRAG.handle.removeAttribute('data-dragging');
+    DRAG = null;
+  }
+  document.addEventListener('pointerup', endDrag);
+  document.addEventListener('pointercancel', endDrag);
+
+  /* מקלדת — סליידר בלי חצים אינו נגיש, ו-role="slider" מבטיח שיחפשו אותם */
+  document.addEventListener('keydown', function (event) {
+    var handle = event.target.closest ? event.target.closest('[data-price-handle]') : null;
+    if (!handle) return;
+    var slider = sliderOf(handle);
+    if (!slider) return;
+    var p = partsOf(slider);
+    var io = inputs(slider);
+    if (!p.max) return;
+
+    var step = event.shiftKey ? p.max / 10 : Math.max(1, p.max / 100);
+    var dir = 0;
+    if (event.key === 'ArrowUp' || event.key === 'ArrowRight') dir = 1;
+    else if (event.key === 'ArrowDown' || event.key === 'ArrowLeft') dir = -1;
+    else if (event.key === 'Home') dir = 'min';
+    else if (event.key === 'End') dir = 'max';
+    else return;
+
+    /* בעברית חץ ימינה מקטין, בדיוק כמו שהאצבע זזה */
+    if (typeof dir === 'number' && getComputedStyle(slider).direction === 'rtl') dir = -dir;
+
+    var minV = valueOf(io.min, 0);
+    var maxV = valueOf(io.max, p.max);
+    var which = handle.getAttribute('data-price-handle');
+
+    if (dir === 'min') {
+      if (which === 'min') minV = 0;
+      else maxV = minV;
+    } else if (dir === 'max') {
+      if (which === 'min') minV = maxV;
+      else maxV = p.max;
+    } else if (which === 'min') {
+      minV = Math.max(0, Math.min(minV + dir * step, maxV));
+    } else {
+      maxV = Math.min(p.max, Math.max(maxV + dir * step, minV));
+    }
+
+    event.preventDefault();
+    paint(slider, minV, maxV);
+    commit(io.min, minV);
+    commit(io.max, maxV);
+  });
+
+  /* הקלדה בשדות מזיזה את הידיות, אחרת הפס והמספרים מציגים דברים שונים */
+  document.addEventListener('input', function (event) {
+    if (!event.target.matches || !event.target.matches('[data-price-input]')) return;
+    if (DRAG) return;
+    var facet = event.target.closest('.facet-price');
+    var slider = facet ? facet.querySelector('[data-price-slider]') : null;
+    if (!slider) return;
+    var p = partsOf(slider);
+    var io = inputs(slider);
+    paint(slider, valueOf(io.min, 0), valueOf(io.max, p.max));
+  });
+})();

@@ -533,6 +533,7 @@
     "footer": {
       "payment_methods": "אמצעי תשלום",
       "policies": {
+        "cancellation_notice": "הודעה על ביטול עסקה",
         "contact": "פרטי תקשורת",
         "legal": "הצהרה משפטית",
         "privacy": "מדיניות פרטיות",
