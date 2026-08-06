@@ -2481,3 +2481,76 @@ them. That cannot be done from here: `publications` requires the `read_publicati
 scope and the token answers
 `Access denied for publications field`. It is a bulk action in the admin, or a browser
 agent task.
+
+### 26.31 The pipeline deployed itself. The slider and the Hebrew titles are live.
+
+The four secrets went in, and the next commit that touched `theme/` did the rest with
+nobody pressing anything — which is what "everything updates by itself everywhere" was
+supposed to mean. Run 31074487771: `changes` → `theme` success, push reporting
+`{"theme":{"name":"shilov8theme","role":"live"}}`, then the `theme-deployed` tag created.
+
+**So the live storefront now carries the price slider**, after weeks of it existing only
+in the repo, plus the Hebrew page titles below.
+
+One trap worth recording: **`anshilo.com` served the old page for several minutes after
+the deploy while `3007b3-4.myshopify.com` already served the new one.** The first check
+after the run said the slider was absent and the title still English, and the honest
+reading of that would have been "the push did not land". It had landed. `?cb=` did not
+bypass it either. Check the myshopify domain before concluding a deploy failed.
+
+### 26.32 The bug brief, measured before touched
+
+A long bug brief arrived describing eight tasks. Most of its numbers were exact, some
+were stale because earlier rounds had already fixed them, and one was off by a factor of
+forty.
+
+| brief | measured |
+|---|---|
+| 2,357 images, 0% alt | 2,357 exactly. 20 had alt (1%) |
+| 233 elementor / 247 woocommerce / 100 data-settings / 16 dce | 233 / 247 / **99** / 16 |
+| 14 duplicate SKUs | **15** — the brief omits 9431 |
+| 9 duplicate titles | 9 exactly |
+| 11 products with no image | 11 exactly |
+| 48 empty descriptions | **46** |
+| 1,619 products with no tag | 1,619 exactly |
+| categories: "systematic pass over all 1,791" | **45 wrong.** Category and productType were fixed to zero in round 17; what remains is 26 in Vacuum Accessories, 16 in Hedge Trimmer Accessories, 3 in Fire Alarm Control Panels |
+
+**Done:** alt text on all 2,357, verified at 100% by the API and by real Hebrew `alt`
+attributes on the live page. Hebrew `<title>` on eight pages. `docs/products-without-images.md`
+with admin links for the eleven.
+
+**Not done, and why: dimension-drawing detection.** The brief wanted drawings labelled
+`שרטוט מידות`. That needs the pixels — filenames say nothing (0 of 80 sampled) and only
+70 of 2,357 images are wide enough in aspect to be candidates, which a banner also is.
+`תמונה 2` describes less but is never false; calling a banner a dimension drawing lies to
+a screen reader, and this store publishes an accessibility statement. The 35 wide
+non-primary images are listed in `alt-wide-images.json` for a human.
+
+### 26.33 The WooCommerce markup is five times wider than the brief says
+
+`scripts/clean-description-html.js` is an allow-list cleaner: semantic tags survive,
+everything else has its wrapper deleted and its text kept, and `script`/`style`/`iframe`
+are removed with their contents rather than just unwrapped. It refuses to touch a product
+whose plain text would change — **measured across the whole catalogue, that rejected zero
+products**, so the cleaning is provably text-preserving.
+
+Scoping to elementor/woocommerce only would catch 247. Scoping to any leftover wrapper —
+`<div>`, `class=`, `data-id=`, `data-mce-fragment`, inline `style` — catches **1,376
+products and removes 785,492 characters of markup.** The extras are real junk from the
+same migration: `data-mce-fragment="1"` on every tag, `style="text-align: right"`
+duplicating what RTL already does, and a `<div id="gtx-trans" style="position:absolute;
+left:375px">` left behind by Google Translate that can visibly displace content.
+
+**Not run.** The brief asked for five before/after samples and approval before a mass run,
+and the honest version of that approval request includes the fact that the true scope is
+1,376 and not 247.
+
+### 26.34 What the current token cannot do
+
+`urlRedirects` answers `Access denied` and `publications` answers the same. The
+client-credentials token belongs to `Shilo Image Tools`
+(`write_files, write_products, read_files, read_products`), so **task 8a (the
+`/pages/about` redirect, confirmed 404 while the Hebrew page returns 200) and unpublishing
+the 95 zero-price products from the Google channel both need `write_content` /
+`read_publications`** — a wider token, the admin UI, or a browser agent. Theme work is
+unaffected: that goes through Theme Access.
