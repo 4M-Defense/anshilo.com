@@ -2554,3 +2554,38 @@ client-credentials token belongs to `Shilo Image Tools`
 the 95 zero-price products from the Google channel both need `write_content` /
 `read_publications`** — a wider token, the admin UI, or a browser agent. Theme work is
 unaffected: that goes through Theme Access.
+
+### 26.35 The Nisani crawl finished after 41 hours. It cannot help the 95, and here is why.
+
+PID 29336 exited on 2026-08-06 and wrote `mobile-app/nisani-catalogue.json` — **2,773
+products, every one priced, 1,041 carrying a SKU.** §26.23 predicted the yield would be
+"close to worthless" by analogy with Aspaka's 80-of-2,943-with-no-prices, and that
+prediction was wrong: the crawl is a complete, priced catalogue. It is the first new
+price source since the platform gate closed.
+
+**It still fills zero of the 95.** Added to `SOURCES` and re-run: 1,035 SKUs indexed,
+95 still unsourced. Measured why, rather than assumed:
+
+| | SKU lengths |
+|---|---|
+| the 87 SKUs behind the 95 zero-price products | 5 chars ×53, 4 chars ×32, 6 chars ×2 |
+| Nisani's 1,019 SKUs | 8 chars ×1002, 11 ×5, 13 ×3, 5 ×2 |
+
+**Overlap: zero.** Not one SKU in common.
+
+This corrects a load-bearing assumption in §26.4, which says "four Fetaya resellers all
+run the same Konimbo platform, so one crawler covers them with a domain swap". Running
+Konimbo is not the same as reselling Fetaya. Nisani sells Nisko and its own lines under
+an 8-digit numbering system of its own, and no amount of crawling it reaches a Fetaya
+part number.
+
+**So crawling more Konimbo sites will not price the 95.** That route is closed on
+identity grounds, not on access grounds — which is a stronger closure than the gate,
+because it would still be closed if the gate lifted tomorrow. The remaining routes are
+unchanged and both go through the supplier: a price list from the Fetaya rep, or a dealer
+login Dvir opens himself.
+
+The catalogue is worth keeping anyway — 2,773 priced electrical products from a supplier
+whose lines the store partly carries, useful the next time an import is considered. It
+is gitignored like every other `*-catalogue.json`, so it lives on disk only; the
+`SOURCES` entry that references it is committed.
