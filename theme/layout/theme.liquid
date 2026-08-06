@@ -23,11 +23,60 @@
       on a lang="he-IL" page. The <h1> in main-cart.liquid is already Hebrew via
       'cart.general.title', so the document title is made to match it.
     {%- endcomment -%}
-    {%- if template.name == 'cart' -%}
-      {%- assign doc_title = 'cart.general.title' | t -%}
-    {%- else -%}
-      {%- assign doc_title = page_title -%}
-    {%- endif -%}
+    {%- comment -%}
+      אותה בעיה חוזרת בשמונה עמודים נוספים, ומאותו שורש: page_title מגיע
+      מהמחרוזות של שופיפיי עצמה ולא מהתרגומים של התבנית, ולכן על עמוד
+      lang="he-IL" תג ה-title יוצא אנגלי בעוד ה-H1 עברי. זה נראה שבור בתוצאות
+      החיפוש של גוגל, שקוראות את ה-title ולא את ה-H1.
+
+      הרשימה נמדדה על האתר החי: /collections/all החזיר "Products",
+      /collections החזיר "Collections", ארבעת עמודי המדיניות החזירו את השמות
+      האנגליים שנשארו בברירת המחדל של הממשק, ו-/404 החזיר "404 Not Found".
+
+      כל המחרוזות העבריות כבר קיימות בקבצי התרגום ומשמשות את הכותרות בגוף
+      העמוד — כאן הן פשוט מוחלות גם על ה-title, כך שהשניים מסכימים.
+
+      המדיניות מזוהה לפי request.path ולא לפי אובייקט policy, שאינו זמין
+      בפריסה. אותו מיפוי-לפי-handle שכבר עושים snippets/legal-nav.liquid
+      ו-templates/policy.liquid, וכאן עם page_title כנפילה אחורה כדי שסוג
+      מדיניות שהתבנית לא מכירה עדיין יציג משהו.
+    {%- endcomment -%}
+    {%- liquid
+      assign doc_title = page_title
+
+      if template.name == 'cart'
+        assign doc_title = 'cart.general.title' | t
+      elsif template.name == '404'
+        assign doc_title = 'general.error_404.title' | t
+      elsif template.name == 'list-collections'
+        assign doc_title = 'general.breadcrumbs.collections' | t
+      elsif template.name == 'search'
+        assign doc_title = 'general.search.title' | t
+        if search.performed and search.terms != blank
+          assign doc_title = doc_title | append: ': ' | append: search.terms
+        endif
+      elsif template.name == 'collection' and collection.handle == 'all'
+        assign doc_title = 'general.collections.all_products' | t
+      elsif request.path contains '/policies/'
+        assign policy_handle = request.path | split: '/' | last
+        case policy_handle
+          when 'refund-policy'
+            assign doc_title = 'sections.footer.policies.refund' | t
+          when 'shipping-policy'
+            assign doc_title = 'sections.footer.policies.shipping' | t
+          when 'privacy-policy'
+            assign doc_title = 'sections.footer.policies.privacy' | t
+          when 'terms-of-service'
+            assign doc_title = 'sections.footer.policies.terms' | t
+          when 'legal-notice'
+            assign doc_title = 'sections.footer.policies.legal' | t
+          when 'contact-information'
+            assign doc_title = 'sections.footer.policies.contact' | t
+          when 'subscription-policy'
+            assign doc_title = 'sections.footer.policies.subscription' | t
+        endcase
+      endif
+    -%}
     <title>
       {{ doc_title }}
       {%- if current_tags %} &ndash; {{ 'general.meta.tagged' | t: tags: current_tags | join: ', ' }}{% endif -%}

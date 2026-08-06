@@ -372,6 +372,9 @@
       "twitter": "Twitter",
       "whatsapp": "WhatsApp",
       "youtube": "YouTube"
+    },
+    "collections": {
+      "all_products": "All products"
     }
   },
   "gift_cards": {
