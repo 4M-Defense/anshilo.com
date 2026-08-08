@@ -488,7 +488,18 @@ const WRONG_BRANCH =
  * היא מחליפה אותו בתשובה מהכללים.
  */
 const GOOGLE_BLOCKED_BRANCH =
-  /Knob Handles|Pot Racks|Iron Accessories|Smoke Detectors|Patio Heaters|Air Conditioners|Tobacco|Dog Supplies|Dog Kennel|Motor Vehicle/;
+  /Knob Handles|Pot Racks|Iron Accessories|Smoke Detectors|Patio Heaters|Air Conditioners|Tobacco|Dog Supplies|Dog Kennel|Motor Vehicle|Vacuum Accessories|Hedge Trimmer|Fire Alarm Control Panels/;
+
+/*
+ * שלושת האחרונים נוספו ב-8.8.2026 אחרי שנמדד ש-45 מוצרים פעילים עוד יושבים
+ * בהם: 29 תחת Vacuum Accessories, 16 תחת Hedge Trimmer Accessories ו-3 תחת
+ * Fire Alarm Control Panels. אלה מפסקים, שקעים, בתי מנורה, מנעולי ייל ומאמ"ת
+ * — מנוע הסיווג האוטומטי של ההגירה פיזר אותם, והם שרדו את הסבב הקודם רק
+ * מפני שהרשימה כאן לא הכירה את הענפים.
+ *
+ * החלפה נעשית רק כשגם כלל תחום מתאים נמצא, ולכן שקיות לשואב קרשר — שהן
+ * *באמת* אביזר לשואב — נשארות במקומן אלא אם כלל אמר אחרת.
+ */
 
 async function main() {
   if (!ADMIN_TOKEN) {
