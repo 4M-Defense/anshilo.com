@@ -499,6 +499,56 @@ def check_untrusted_liquid_is_escaped() -> None:
         ok("כל השדות בשליטת המשתמש עוברים בריחה לפני הדפסה")
 
 
+def check_unpriced_items_are_not_addable() -> None:
+    """מוצר בלי מחיר לא נכנס לעגלה — שופיפיי תכבד את ה-₪0 שהוגדר לו."""
+    # שלוש דרכי ההוספה לעגלה, וההגנה שכל אחת חייבת לשאת
+    guards = [
+        (
+            "theme/snippets/product-card.liquid",
+            re.compile(r"card_variant\.price\s*>\s*0"),
+            "כפתור ההוספה המהירה בכרטיס לא מותנה במחיר",
+        ),
+        (
+            "theme/assets/section-main-product.js",
+            re.compile(r"variant\.available\s*&&\s*variant\.price\s*>\s*0"),
+            "החלפת ווריאנט בדף המוצר מחזירה כפתור קנייה בלי לבדוק מחיר",
+        ),
+        (
+            "theme/assets/quick-order.js",
+            re.compile(r"hit\.available\s*&&\s*Number\(hit\.price\)\s*>\s*0"),
+            "ההזמנה המהירה מוסיפה לפי מקט בלי לבדוק מחיר",
+        ),
+    ]
+    for relative, pattern, message in guards:
+        path = os.path.join(ROOT, relative)
+        if not os.path.isfile(path):
+            warn(relative, "הקובץ חסר — הבדיקה לא רצה")
+            continue
+        if pattern.search(read(path)):
+            ok(f"{relative}: מוצר בלי מחיר אינו ניתן להוספה לעגלה")
+        else:
+            err(relative, message)
+
+
+def check_catalog_text_is_escaped_in_liquid() -> None:
+    """שם היצרן והכותרת מגיעים מהקטלוג ונכנסים לתוצאות חיפוש דרך innerHTML."""
+    fields = re.compile(r"\{\{-?\s*((?:product|item)\.(?:vendor|title))\s*")
+    hits: list[str] = []
+    for path in walk("theme/snippets", (".liquid",)) + walk("theme/sections", (".liquid",)):
+        for num, line in lines_of(read(path)):
+            for match in fields.finditer(line):
+                tail = line[match.end():]
+                closing = tail.find("}}")
+                filters = tail[:closing] if closing != -1 else tail
+                if not any(f"| {name}" in filters or f"|{name}" in filters for name in SAFE_FILTERS):
+                    hits.append(f"{rel(path)}:{num} → {match.group(1)}")
+    if hits:
+        for place in hits:
+            err(place, "טקסט מהקטלוג מודפס בלי בריחה — הוא נטען לתוצאות החיפוש דרך innerHTML")
+    else:
+        ok("שם היצרן וכותרת המוצר עוברים בריחה בכל מקום")
+
+
 def check_quick_order_json_is_encoded() -> None:
     """התבנית שמחזירה JSON נבנית ביד — כל מחרוזת שם חייבת לעבור | json."""
     path = os.path.join(ROOT, "theme", "templates", "search.quick-order.liquid")
@@ -550,7 +600,10 @@ CHECKS = [
     ("סקריפטים חיצוניים", check_no_external_scripts),
     ("כתובות javascript:", check_no_javascript_urls),
     ("בריחה בשדות משתמש", check_untrusted_liquid_is_escaped),
+    ("בריחה בטקסט מהקטלוג", check_catalog_text_is_escaped_in_liquid),
     ("קידוד תבנית ה-JSON", check_quick_order_json_is_encoded),
+    # מסחר
+    ("מוצר בלי מחיר בעגלה", check_unpriced_items_are_not_addable),
 ]
 
 

@@ -312,7 +312,8 @@
             "saveAmount": {{ 'products.product.save_amount' | t: amount: '[amount]' | json }},
             "inCartOne": {{ 'products.product.quantity_in_cart' | t: count: 1 | json }},
             "inCartOther": {{ 'products.product.quantity_in_cart' | t: count: 987 | replace: '987', '[count]' | json }},
-            "copied": {{ 'general.share.copied' | t | json }}
+            "copied": {{ 'general.share.copied' | t | json }},
+            "callForPrice": {{ 'products.price.call_for_price' | t | json }}
           }
         </script>
       </div>

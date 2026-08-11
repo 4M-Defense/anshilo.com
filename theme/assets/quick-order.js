@@ -220,9 +220,18 @@
       ? '<span class="quick-order__match-variant">' + escapeHtml(hit.variant_title) + '</span>'
       : '';
 
-    var stock = hit.available
-      ? '<span class="stock-dot">במלאי</span>'
-      : '<span class="stock-dot stock-dot--out">אזל מהמלאי</span>';
+    /* A resolved SKU still needs a price before it can be ordered. Part of the
+       catalogue is published at ₪0, and this form posts the variant id straight
+       to /cart/add — Shopify would take the ₪0 as the real price. Those SKUs are
+       shown, so the contractor sees the item exists, but they route to the phone
+       the same way the product page does. */
+    var buyable = hit.available && Number(hit.price) > 0;
+
+    var stock = !hit.available
+      ? '<span class="stock-dot stock-dot--out">אזל מהמלאי</span>'
+      : buyable
+        ? '<span class="stock-dot">במלאי</span>'
+        : '<span class="stock-dot stock-dot--out">מחיר בטלפון</span>';
 
     matchCell.innerHTML =
       thumb +
@@ -232,10 +241,10 @@
       stock +
       '</span>';
 
-    row.dataset.variantId = hit.available ? String(hit.variant_id) : '';
+    row.dataset.variantId = buyable ? String(hit.variant_id) : '';
     row.dataset.price = String(hit.price);
-    row.classList.toggle('is-resolved', !!hit.available);
-    row.classList.toggle('is-missing', !hit.available);
+    row.classList.toggle('is-resolved', buyable);
+    row.classList.toggle('is-missing', !buyable);
     this.refreshRow(row);
   };
 
