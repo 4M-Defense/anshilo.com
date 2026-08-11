@@ -15,7 +15,7 @@ import {
 import { getCollectionProducts, type CollectionSort } from '@/api/client';
 import type { Collection, PageInfo, ProductCardData } from '@/api/types';
 import { EmptyState, ErrorView, ProductCard, Skeleton, SkeletonProductCard } from '@/components';
-import { colors, radius, spacing, typography } from '@/theme';
+import { colors, productGrid, radius, spacing, typography } from '@/theme';
 
 const PAGE_SIZE = 24;
 /** תיאור ארוך מזה מקבל "קרא עוד" */
@@ -44,7 +44,7 @@ export default function CollectionScreen() {
   const handle = typeof params.handle === 'string' ? params.handle : '';
   const router = useRouter();
   const { width } = useWindowDimensions();
-  const cardWidth = (width - spacing.lg * 2 - spacing.md) / 2;
+  const { columns, cardWidth } = productGrid(width);
 
   const [meta, setMeta] = useState<Collection | null>(null);
   const [screenState, setScreenState] = useState<ScreenState>('loading');
@@ -313,7 +313,8 @@ export default function CollectionScreen() {
           ref={listRef}
           data={listLoading ? [] : products}
           keyExtractor={(item) => item.id}
-          numColumns={2}
+          numColumns={columns}
+          key={columns}
           renderItem={renderProduct}
           columnWrapperStyle={styles.columnWrapper}
           contentContainerStyle={styles.listContent}

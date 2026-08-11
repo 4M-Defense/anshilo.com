@@ -38,7 +38,7 @@ import {
 import { STORE_INFO, TEL_URL, WHATSAPP_URL } from '@/config';
 import { useCart } from '@/state/CartContext';
 import { useFavorites } from '@/state/FavoritesContext';
-import { colors, radius, shadows, spacing, typography } from '@/theme';
+import { READABLE_MAX_WIDTH, colors, radius, shadows, spacing, typography } from '@/theme';
 
 /* ---------- המרת descriptionHtml לטקסט קריא ---------- */
 
@@ -782,6 +782,11 @@ const styles = StyleSheet.create({
   body: {
     padding: spacing.lg,
     gap: spacing.md,
+    /* על אייפד לרוחב שורת תיאור הייתה נמתחת על פני 1366px ונעשית קשה לקריאה.
+       הגבלת הרוחב ומרכוזו משאירים את הטלפון כמו שהיה ומיישרים את הטאבלט. */
+    width: '100%',
+    maxWidth: READABLE_MAX_WIDTH,
+    alignSelf: 'center',
   },
   metaRow: {
     flexDirection: 'row',

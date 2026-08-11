@@ -17,7 +17,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { searchProducts } from '@/api/client';
 import type { PageInfo, ProductCardData } from '@/api/types';
 import { EmptyState, ErrorView, Icon, ProductCard, SkeletonProductCard } from '@/components';
-import { colors, radius, spacing, typography } from '@/theme';
+import { colors, productGrid, radius, spacing, typography } from '@/theme';
 
 const PAGE_SIZE = 24;
 const DEBOUNCE_MS = 350;
@@ -75,7 +75,7 @@ function SearchChip({
 export default function SearchScreen() {
   const insets = useSafeAreaInsets();
   const { width } = useWindowDimensions();
-  const cardWidth = (width - spacing.lg * 2 - spacing.md) / 2;
+  const { columns, cardWidth } = productGrid(width);
 
   const [text, setText] = useState('');
   const trimmed = text.trim();
@@ -370,7 +370,8 @@ export default function SearchScreen() {
           <FlatList
             data={results}
             keyExtractor={(item) => item.id}
-            numColumns={2}
+            numColumns={columns}
+            key={columns}
             renderItem={renderCard}
             columnWrapperStyle={styles.columnWrapper}
             contentContainerStyle={styles.listContent}
