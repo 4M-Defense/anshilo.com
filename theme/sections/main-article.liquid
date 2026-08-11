@@ -246,7 +246,7 @@
                 type="text"
                 name="comment[author]"
                 id="CommentAuthor"
-                value="{{ form.author }}"
+                value="{{ form.author | escape_once }}"
                 autocomplete="name"
                 required
               >
@@ -260,7 +260,7 @@
                 type="email"
                 name="comment[email]"
                 id="CommentEmail"
-                value="{{ form.email }}"
+                value="{{ form.email | escape_once }}"
                 autocomplete="email"
                 spellcheck="false"
                 autocapitalize="off"
@@ -280,7 +280,7 @@
               id="CommentBody"
               rows="5"
               required
-            >{{ form.body }}</textarea>
+            >{{ form.body | escape_once }}</textarea>
           </div>
 
           {%- if blog.moderated? -%}

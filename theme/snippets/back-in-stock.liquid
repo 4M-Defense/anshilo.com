@@ -60,7 +60,7 @@
             class="field__input"
             type="email"
             name="contact[email]"
-            value="{{ form.email | default: customer.email }}"
+            value="{{ form.email | default: customer.email | escape_once }}"
             placeholder="האימייל שלכם"
             autocomplete="email"
             required

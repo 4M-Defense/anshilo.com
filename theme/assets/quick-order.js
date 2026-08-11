@@ -27,6 +27,30 @@
     return format.replace(match[0], value).replace(/<[^>]*>/g, '');
   }
 
+  /* Every row below is built as an HTML string from the JSON search view, so any
+     catalogue text that reaches it — title, variant title, SKU, image and product
+     URL — has to be neutralised first. The JSON filter in the Liquid view escapes
+     for JSON, not for HTML: a product titled `<img src=x onerror=…>` survives
+     JSON.parse intact and would run the moment it lands in innerHTML. A single
+     compromised app with write_products is enough to plant one. */
+  function escapeHtml(value) {
+    return String(value == null ? '' : value)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+  }
+
+  /* Same idea for URLs, plus the scheme check: `javascript:` in an href is a
+     click away from running. Only the relative and https product/image URLs the
+     view actually returns are let through. */
+  function safeUrl(value) {
+    var url = String(value == null ? '' : value).trim();
+    if (/^(https:)?\/\//i.test(url) || url.charAt(0) === '/') return escapeHtml(url);
+    return '';
+  }
+
   function debounce(fn, wait) {
     var t;
     return function () {
@@ -179,7 +203,7 @@
         matchCell.innerHTML =
           '<span class="quick-order__miss">' +
           '<span class="quick-order__miss-title">מקט לא נמצא בקטלוג</span>' +
-          '<a class="link fs-xs" href="/search?q=' + encodeURIComponent(term) + '">חיפוש חופשי</a>' +
+          '<a class="link fs-xs" href="/search?q=' + escapeHtml(encodeURIComponent(term)) + '">חיפוש חופשי</a>' +
           '</span>';
         self.refreshTotals();
       });
@@ -187,12 +211,13 @@
 
   QuickOrder.prototype.applyMatch = function (row, hit) {
     var matchCell = row.querySelector('[data-quick-order-match]');
-    var thumb = hit.image
-      ? '<span class="quick-order__thumb"><img src="' + hit.image + '" alt="" width="44" height="44" loading="lazy"></span>'
+    var image = safeUrl(hit.image);
+    var thumb = image
+      ? '<span class="quick-order__thumb"><img src="' + image + '" alt="" width="44" height="44" loading="lazy"></span>'
       : '<span class="quick-order__thumb quick-order__thumb--empty" aria-hidden="true"></span>';
 
     var variantLine = hit.variant_title && hit.variant_title !== 'Default Title'
-      ? '<span class="quick-order__match-variant">' + hit.variant_title + '</span>'
+      ? '<span class="quick-order__match-variant">' + escapeHtml(hit.variant_title) + '</span>'
       : '';
 
     var stock = hit.available
@@ -202,7 +227,7 @@
     matchCell.innerHTML =
       thumb +
       '<span class="quick-order__match-text">' +
-      '<a class="quick-order__match-title" href="' + hit.url + '">' + hit.title + '</a>' +
+      '<a class="quick-order__match-title" href="' + safeUrl(hit.url) + '">' + escapeHtml(hit.title) + '</a>' +
       variantLine +
       stock +
       '</span>';
@@ -218,10 +243,16 @@
     var matchCell = row.querySelector('[data-quick-order-match]');
     var options = results.slice(0, 4).map(function (r) {
       var label = r.title + (r.variant_title && r.variant_title !== 'Default Title' ? ' · ' + r.variant_title : '');
-      return '<button type="button" class="chip chip--suggestion" data-quick-order-pick=\'' +
-        JSON.stringify(r).replace(/'/g, '&#39;') + '\'>' + label + '</button>';
+      /* The payload rides in an attribute, so it needs attribute escaping and not
+         just the single-quote swap this used to do: a `<` inside a title closed
+         nothing here, but an unescaped `&` corrupted the JSON on read-back, and
+         the label beside it went in as raw markup. */
+      return '<button type="button" class="chip chip--suggestion" data-quick-order-pick="' +
+        escapeHtml(JSON.stringify(r)) + '">' + escapeHtml(label) + '</button>';
     }).join('');
 
+    /* security-checked: every value inside `options` went through escapeHtml in
+       the map above, so the only unescaped text here is this file's own markup. */
     matchCell.innerHTML =
       '<span class="quick-order__suggest">' +
       '<span class="text-meta">אין התאמה מדויקת - התכוונתם ל:</span>' +
