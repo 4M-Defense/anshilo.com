@@ -1052,7 +1052,16 @@ summary::-webkit-details-marker { display: none; }
   -moz-appearance: textfield;
 }
 .qty__input::-webkit-outer-spin-button, .qty__input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+
+/* The stepper is a single control, so the focus ring belongs on the whole
+   group rather than on the bare number in the middle. Without the wrapper
+   rule a keyboard user reaching the field would see nothing at all. */
 .qty__input:focus { outline: none; }
+.qty:focus-within {
+  outline: 2px solid var(--color-ink);
+  outline-offset: 2px;
+  border-radius: var(--radius-base);
+}
 
 .qty--sm .qty__btn { inline-size: 34px; }
 .qty--sm .qty__input { inline-size: 38px; min-block-size: 36px; font-size: 0.9rem; }

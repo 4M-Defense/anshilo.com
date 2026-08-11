@@ -213,11 +213,12 @@ export default function CollectionScreen() {
               accessibilityLabel={`מיון: ${opt.label}`}
               accessibilityState={{ selected: active }}
               onPress={() => changeSort(opt.key)}
+              hitSlop={spacing.sm}
               style={[styles.chip, active && styles.chipActive]}
             >
               <Text
                 style={[styles.chipLabel, active && styles.chipLabelActive]}
-                allowFontScaling={false}
+                maxFontSizeMultiplier={1.5}
               >
                 {opt.label}
               </Text>

@@ -69,7 +69,8 @@ function CategoryTile({
         ) : (
           <Text
             style={[styles.letter, { fontSize: height * 0.34 }]}
-            allowFontScaling={false}
+            accessible={false}
+            importantForAccessibility="no"
           >
             {collection.title.trim().charAt(0)}
           </Text>

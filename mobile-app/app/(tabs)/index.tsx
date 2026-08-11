@@ -170,7 +170,8 @@ function CollectionTile({
           />
         ) : (
           <View style={styles.collectionLetterWrap}>
-            <Text style={styles.collectionLetter} allowFontScaling={false}>
+            <Text style={styles.collectionLetter} accessible={false}>
+            importantForAccessibility="no"
               {letter}
             </Text>
           </View>
@@ -523,7 +524,7 @@ export default function HomeScreen() {
           {STORE_INFO.hours.map((row) => (
             <View key={row.days} style={styles.hoursRow}>
               <Text style={styles.hoursDays}>{row.days}</Text>
-              <Text style={styles.hoursValue} allowFontScaling={false}>
+              <Text style={styles.hoursValue} maxFontSizeMultiplier={2}>
                 {row.hours}
               </Text>
             </View>

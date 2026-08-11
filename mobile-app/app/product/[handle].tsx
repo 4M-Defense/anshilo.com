@@ -535,7 +535,7 @@ export default function ProductScreen() {
                             isSelected && styles.pillTextSelected,
                             !available && !isSelected && styles.pillTextUnavailable,
                           ]}
-                          allowFontScaling={false}
+                          maxFontSizeMultiplier={2}
                         >
                           {value.name}
                         </Text>

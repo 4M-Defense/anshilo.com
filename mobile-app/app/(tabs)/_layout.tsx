@@ -18,7 +18,7 @@ function CartTabIcon({ color, size, focused }: TabIconProps) {
       <Icon name={focused ? 'cart' : 'cart-outline'} size={size} color={color} />
       {itemCount > 0 && (
         <View style={styles.badge}>
-          <Text style={styles.badgeText} allowFontScaling={false}>
+          <Text style={styles.badgeText} maxFontSizeMultiplier={1.5}>
             {itemCount > 99 ? '99+' : String(itemCount)}
           </Text>
         </View>

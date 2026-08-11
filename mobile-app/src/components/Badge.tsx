@@ -45,7 +45,7 @@ export function Badge({ label, variant = 'neutral', style }: BadgeProps) {
         style,
       ]}
     >
-      <Text style={[styles.label, { color: v.fg }]} numberOfLines={1} allowFontScaling={false}>
+      <Text style={[styles.label, { color: v.fg }]} numberOfLines={1} maxFontSizeMultiplier={1.5}>
         {label}
       </Text>
     </View>

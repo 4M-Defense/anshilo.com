@@ -37,12 +37,12 @@ function OrderCard({ order }: { order: CustomerOrder }) {
     <View style={styles.orderCard}>
       <View style={styles.orderHead}>
         <Text style={styles.orderName}>{order.name}</Text>
-        <Text style={styles.orderTotal} allowFontScaling={false}>
+        <Text style={styles.orderTotal} maxFontSizeMultiplier={2}>
           {formatMoney(order.totalPrice)}
         </Text>
       </View>
       <View style={styles.orderMetaRow}>
-        <Text style={styles.orderDate} allowFontScaling={false}>
+        <Text style={styles.orderDate} maxFontSizeMultiplier={2}>
           {formatDate(order.processedAt)}
         </Text>
         {status != null && <Text style={styles.orderStatus}>{status}</Text>}

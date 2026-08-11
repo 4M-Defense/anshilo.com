@@ -64,7 +64,7 @@ function SearchChip({
       <Text
         style={[styles.chipText, popular && styles.chipTextPopular]}
         numberOfLines={1}
-        allowFontScaling={false}
+        maxFontSizeMultiplier={1.5}
       >
         {label}
       </Text>
@@ -279,7 +279,7 @@ export default function SearchScreen() {
             autoCorrect={false}
             autoCapitalize="none"
             accessibilityLabel="שדה חיפוש מוצרים"
-            allowFontScaling={false}
+            maxFontSizeMultiplier={2}
           />
           {text !== '' && (
             <Pressable
