@@ -13,7 +13,14 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Image } from 'expo-image';
 import { Icon, Rule, SectionHeader } from '@/components';
-import { DIRECTIONS_URL, STORE_INFO, STORE_LOGO, TEL_URL, WHATSAPP_URL } from '@/config';
+import {
+  DIRECTIONS_URL,
+  POLICY_URLS,
+  STORE_INFO,
+  STORE_LOGO,
+  TEL_URL,
+  WHATSAPP_URL,
+} from '@/config';
 import { useAuth } from '@/state/AuthContext';
 import { colors, radius, shadows, spacing, typography } from '@/theme';
 
@@ -199,6 +206,36 @@ export default function MoreScreen() {
           כל מוצר על המדף וישמח לעזור לכם למצוא בדיוק את מה שאתם צריכים, בין אם אתם בונים בית
           ובין אם מחליפים ברז. מוזמנים לבקר, להתקשר או לכתוב לנו - אצלנו תמיד יש מי שמקשיב.
         </Text>
+      </View>
+
+      {/* מדיניות — חובה שיהיו נגישים מתוך האפליקציה, לא רק באתר */}
+      <SectionHeader title="מידע ומדיניות" />
+      <View style={styles.card}>
+        <ActionRow
+          first
+          icon="lock-closed-outline"
+          label="מדיניות פרטיות"
+          sublabel="איזה מידע נאסף ומה נעשה בו"
+          onPress={() => openLink(POLICY_URLS.privacy)}
+        />
+        <ActionRow
+          icon="document-text-outline"
+          label="תקנון ותנאי שימוש"
+          sublabel="התנאים שחלים על הזמנה דרך האתר והאפליקציה"
+          onPress={() => openLink(POLICY_URLS.terms)}
+        />
+        <ActionRow
+          icon="return-down-back-outline"
+          label="ביטול עסקה והחזרים"
+          sublabel="הזכות לבטל, מועדים ואופן ההחזר"
+          onPress={() => openLink(POLICY_URLS.refund)}
+        />
+        <ActionRow
+          icon="cube-outline"
+          label="משלוחים ואיסוף עצמי"
+          sublabel="זמני אספקה, דמי משלוח ואיסוף מהחנות"
+          onPress={() => openLink(POLICY_URLS.shipping)}
+        />
       </View>
 
       {/* פוטר גרסה */}

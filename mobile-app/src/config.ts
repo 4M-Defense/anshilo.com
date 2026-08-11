@@ -151,6 +151,20 @@ export const STORE_INFO = {
 } as const;
 
 /**
+ * עמודי המדיניות של החנות.
+ *
+ * אלה עמודי ה-policies הסטנדרטיים של Shopify, ולכן העריכה שלהם נעשית בממשק
+ * הניהול ולא כאן. חובה שיהיו נגישים מתוך האפליקציה: גם App Store וגם
+ * Google Play דורשים קישור למדיניות פרטיות בכל אפליקציה שמטפלת בנתוני משתמש.
+ */
+export const POLICY_URLS = {
+  privacy: `${STORE_INFO.website}/policies/privacy-policy`,
+  terms: `${STORE_INFO.website}/policies/terms-of-service`,
+  refund: `${STORE_INFO.website}/policies/refund-policy`,
+  shipping: `${STORE_INFO.website}/policies/shipping-policy`,
+} as const;
+
+/**
  * קישור התקשרות — תמיד מהמספר בלי מקפים.
  * (`STORE_INFO.phone` הוא לתצוגה בלבד; `tel:` צריך את `phoneDial`.)
  */
