@@ -99,17 +99,22 @@ def check_theme_policy_links() -> None:
 
 
 def check_accessibility_statement() -> None:
-    """Israeli service-accessibility regulation expects a published statement."""
-    footer = os.path.join(THEME, "sections", "footer.liquid")
-    has_slot = os.path.exists(footer) and "accessibility" in read(footer).lower()
-    if has_slot:
-        warn("accessibility-statement", "theme/sections/footer.liquid",
-             "the footer has a slot for an accessibility-statement link, but whether the page "
-             "exists and is filled in can only be confirmed in Shopify admin. Shopify's own policy "
-             "list has no accessibility type, so this has to be a normal page")
-    else:
-        fail("accessibility-statement", "theme/sections/footer.liquid",
-             "no accessibility-statement link in the footer")
+    """Israeli service-accessibility regulation expects a published statement.
+
+    This check cannot see the answer. The statement is an ordinary Shopify page
+    reached through a menu, and neither pages nor menus live in this repository
+    — a run against the code alone therefore proves nothing either way. An
+    earlier version of this check read its own blindness as absence and
+    reported the statement missing when it had been published all along, so it
+    now says what it actually knows.
+    """
+    warn("accessibility-statement", "Shopify admin",
+         "an accessibility statement is required of a business serving the public "
+         "(תקנות שוויון זכויות לאנשים עם מוגבלות — התאמות נגישות לשירות). It lives as a "
+         "Shopify page linked from a menu, so neither its existence nor its content can be "
+         "confirmed from this repository. Verified present on 2026-08-15 at "
+         "/pages/הצהרת-נגישות-1, linked from the footer via link-list-3 — re-confirm in admin "
+         "rather than trusting this line")
 
 
 def check_price_display() -> None:

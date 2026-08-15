@@ -128,11 +128,14 @@ def check_no_secrets_in_tracked_files() -> None:
 
 def check_git_history_clean() -> None:
     """סוד שנמחק מהקוד עדיין חי בהיסטוריה — שם צריך לחפש אותו."""
+    # ההיסטוריה מכילה גם בלובים בינאריים — תמונות, PDF, גופנים. פענוח קפדני
+    # של UTF-8 קורס עליהם באמצע הסריקה, וסריקת סודות שקרסה נראית בדיוק כמו
+    # סריקה שעברה. errors="replace" מבטיח שהסריקה מגיעה עד סופה.
     try:
         out = subprocess.run(
             ["git", "-C", ROOT, "log", "--all", "-p", "--no-color"],
-            capture_output=True, text=True, check=True, timeout=300,
-        ).stdout
+            capture_output=True, check=True, timeout=300,
+        ).stdout.decode("utf-8", errors="replace")
     except (subprocess.SubprocessError, OSError):
         warn("git", "לא ניתן היה לקרוא את היסטוריית git — בדיקת ההיסטוריה לא רצה")
         return
