@@ -83,17 +83,17 @@
 
         <div class="field">
           <label class="field__label" for="{{ form_id }}-name">שם</label>
-          <input id="{{ form_id }}-name" class="field__input" type="text" name="contact[שם]" value="{{ form.name | default: customer.name }}" autocomplete="name" required>
+          <input id="{{ form_id }}-name" class="field__input" type="text" name="contact[שם]" value="{{ form.name | default: customer.name | escape_once }}" autocomplete="name" required>
         </div>
 
         <div class="field">
           <label class="field__label" for="{{ form_id }}-email">אימייל</label>
-          <input id="{{ form_id }}-email" class="field__input" type="email" name="contact[email]" value="{{ form.email | default: customer.email }}" autocomplete="email" required>
+          <input id="{{ form_id }}-email" class="field__input" type="email" name="contact[email]" value="{{ form.email | default: customer.email | escape_once }}" autocomplete="email" required>
         </div>
 
         <div class="field">
           <label class="field__label" for="{{ form_id }}-phone">טלפון</label>
-          <input id="{{ form_id }}-phone" class="field__input" type="tel" name="contact[טלפון]" value="{{ form.phone | default: customer.phone }}" dir="ltr" autocomplete="tel">
+          <input id="{{ form_id }}-phone" class="field__input" type="tel" name="contact[טלפון]" value="{{ form.phone | default: customer.phone | escape_once }}" dir="ltr" autocomplete="tel">
         </div>
 
         <div class="field">

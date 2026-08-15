@@ -13,7 +13,14 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Image } from 'expo-image';
 import { Icon, Rule, SectionHeader } from '@/components';
-import { DIRECTIONS_URL, STORE_INFO, STORE_LOGO, TEL_URL, WHATSAPP_URL } from '@/config';
+import {
+  DIRECTIONS_URL,
+  POLICY_URLS,
+  STORE_INFO,
+  STORE_LOGO,
+  TEL_URL,
+  WHATSAPP_URL,
+} from '@/config';
 import { useAuth } from '@/state/AuthContext';
 import { colors, radius, shadows, spacing, typography } from '@/theme';
 
@@ -183,7 +190,7 @@ export default function MoreScreen() {
         {STORE_INFO.hours.map((slot) => (
           <View key={slot.days} style={styles.hoursRow}>
             <Text style={styles.hoursDays}>{slot.days}</Text>
-            <Text style={styles.hoursValue} allowFontScaling={false}>
+            <Text style={styles.hoursValue} maxFontSizeMultiplier={2}>
               {slot.hours}
             </Text>
           </View>
@@ -201,8 +208,38 @@ export default function MoreScreen() {
         </Text>
       </View>
 
+      {/* מדיניות — חובה שיהיו נגישים מתוך האפליקציה, לא רק באתר */}
+      <SectionHeader title="מידע ומדיניות" />
+      <View style={styles.card}>
+        <ActionRow
+          first
+          icon="lock-closed-outline"
+          label="מדיניות פרטיות"
+          sublabel="איזה מידע נאסף ומה נעשה בו"
+          onPress={() => openLink(POLICY_URLS.privacy)}
+        />
+        <ActionRow
+          icon="document-text-outline"
+          label="תקנון ותנאי שימוש"
+          sublabel="התנאים שחלים על הזמנה דרך האתר והאפליקציה"
+          onPress={() => openLink(POLICY_URLS.terms)}
+        />
+        <ActionRow
+          icon="return-down-back-outline"
+          label="ביטול עסקה והחזרים"
+          sublabel="הזכות לבטל, מועדים ואופן ההחזר"
+          onPress={() => openLink(POLICY_URLS.refund)}
+        />
+        <ActionRow
+          icon="cube-outline"
+          label="משלוחים ואיסוף עצמי"
+          sublabel="זמני אספקה, דמי משלוח ואיסוף מהחנות"
+          onPress={() => openLink(POLICY_URLS.shipping)}
+        />
+      </View>
+
       {/* פוטר גרסה */}
-      <Text style={styles.version} allowFontScaling={false}>
+      <Text style={styles.version} maxFontSizeMultiplier={1.5}>
         {`${STORE_INFO.name} · גרסה ${Constants.nativeApplicationVersion ?? '1.0.0'}`}
       </Text>
     </ScrollView>

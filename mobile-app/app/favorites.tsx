@@ -14,7 +14,7 @@ import { getProductByHandle } from '@/api/client';
 import type { ProductCardData } from '@/api/types';
 import { EmptyState, ErrorView, Icon, ProductCard, SkeletonProductCard } from '@/components';
 import { useFavorites } from '@/state/FavoritesContext';
-import { colors, radius, spacing, typography } from '@/theme';
+import { colors, productGrid, radius, spacing, typography } from '@/theme';
 
 function errorText(err: unknown): string {
   return err instanceof Error && err.message !== ''
@@ -31,7 +31,7 @@ export default function FavoritesScreen() {
   const router = useRouter();
   const { favorites } = useFavorites();
   const { width } = useWindowDimensions();
-  const cardWidth = (width - spacing.lg * 2 - spacing.md) / 2;
+  const { columns, cardWidth } = productGrid(width);
 
   const [status, setStatus] = useState<'loading' | 'error' | 'ready'>('loading');
   const [message, setMessage] = useState('');
@@ -181,7 +181,8 @@ export default function FavoritesScreen() {
       <FlatList
         data={display}
         keyExtractor={(item) => item.id}
-        numColumns={2}
+        numColumns={columns}
+        key={columns}
         renderItem={renderCard}
         columnWrapperStyle={styles.columnWrapper}
         contentContainerStyle={styles.listContent}

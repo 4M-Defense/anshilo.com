@@ -1,0 +1,89 @@
+name: בדיקות
+
+# הביקורות שוות משהו רק אם מישהו מריץ אותן. כאן זה קורה מעצמו: בכל דחיפה
+# ובכל בקשת משיכה, לכל ענף. אם משהו נשבר — רואים את זה לפני שהוא מגיע לחנות.
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  theme:
+    name: אתר — אבטחה, נגישות, מכשירים, חובות
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      # כל בדיקה רצה בנפרד כדי שהדוח יראה איזו מהן נפלה, ולא רק "משהו נכשל".
+      # continue-on-error מכוון: רוצים את התמונה המלאה בריצה אחת, ולכן
+      # הסיכום בסוף הוא זה שקובע אם המשימה נכשלת.
+      - name: אבטחה
+        id: security
+        continue-on-error: true
+        run: python3 tools/security-check.py
+
+      - name: נגישות — ת"י 5568
+        id: a11y
+        continue-on-error: true
+        run: python3 tools/a11y-check.py
+
+      - name: התאמה למכשירים
+        id: responsive
+        continue-on-error: true
+        run: python3 tools/responsive-check.py
+
+      - name: חובות רגולציה וחנויות
+        id: compliance
+        continue-on-error: true
+        run: python3 tools/compliance-check.py
+
+      - name: ולידציה של התמה
+        id: validator
+        continue-on-error: true
+        run: python3 theme/tools/validate.py
+
+      - name: סיכום
+        run: |
+          fail=0
+          for step in "אבטחה:${{ steps.security.outcome }}" \
+                      "נגישות:${{ steps.a11y.outcome }}" \
+                      "מכשירים:${{ steps.responsive.outcome }}" \
+                      "חובות:${{ steps.compliance.outcome }}" \
+                      "תמה:${{ steps.validator.outcome }}"; do
+            name="${step%%:*}"; outcome="${step##*:}"
+            if [ "$outcome" = "success" ]; then
+              echo "עבר   $name"
+            else
+              echo "נכשל  $name"
+              fail=1
+            fi
+          done
+          exit $fail
+
+  app:
+    name: אפליקציה — טיפוסים ובדיקות
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: mobile-app
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: mobile-app/package-lock.json
+
+      - name: התקנת תלויות
+        run: npm ci
+
+      - name: בדיקת טיפוסים
+        run: npx tsc --noEmit
+
+      - name: בדיקות יחידה
+        run: npm test -- --ci

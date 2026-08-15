@@ -1,6 +1,16 @@
 import { useCallback, useEffect, useState } from 'react';
-import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import {
+  ActivityIndicator,
+  Alert,
+  Linking,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
+} from 'react-native';
 import { formatMoney } from '@/api/client';
+import { STORE_INFO } from '@/config';
 import {
   CUSTOMER_ORDERS_QUERY,
   CustomerAuthError,
@@ -37,12 +47,12 @@ function OrderCard({ order }: { order: CustomerOrder }) {
     <View style={styles.orderCard}>
       <View style={styles.orderHead}>
         <Text style={styles.orderName}>{order.name}</Text>
-        <Text style={styles.orderTotal} allowFontScaling={false}>
+        <Text style={styles.orderTotal} maxFontSizeMultiplier={2}>
           {formatMoney(order.totalPrice)}
         </Text>
       </View>
       <View style={styles.orderMetaRow}>
-        <Text style={styles.orderDate} allowFontScaling={false}>
+        <Text style={styles.orderDate} maxFontSizeMultiplier={2}>
           {formatDate(order.processedAt)}
         </Text>
         {status != null && <Text style={styles.orderStatus}>{status}</Text>}
@@ -62,6 +72,50 @@ function OrderCard({ order }: { order: CustomerOrder }) {
 
 export default function AccountScreen() {
   const { status, profile, error, busy, signIn, signOut, getAccessToken } = useAuth();
+
+  /**
+   * בקשת מחיקת חשבון.
+   *
+   * Shopify לא חושפת מחיקת לקוח דרך Customer Account API, ולכן האפליקציה
+   * אינה יכולה למחוק את הרשומה בעצמה. מה שהיא כן עושה: פותחת בקשת מחיקה
+   * מזוהה מול החנות, ומנתקת מיד — כך שהמכשיר אינו מחזיק עוד טוקן.
+   *
+   * מחיקה אמיתית בלחיצה אחת תדרוש נקודת קצה בצד שרת שמשתמשת ב-Admin API.
+   * ראו docs/COMPLIANCE.md.
+   */
+  const requestAccountDeletion = useCallback(() => {
+    Alert.alert(
+      'מחיקת החשבון',
+      'נמחק את החשבון ואת הפרטים האישיים שלכם. היסטוריית ההזמנות תישמר רק ' +
+        'ככל שהחוק מחייב אותנו לשמור מסמכי עסקה. הפעולה אינה הפיכה.\n\n' +
+        'נאשר לכם את הביצוע בדואר אלקטרוני.',
+      [
+        { text: 'ביטול', style: 'cancel' },
+        {
+          text: 'שליחת בקשת מחיקה',
+          style: 'destructive',
+          onPress: () => {
+            const who = profile?.emailAddress ?? profile?.displayName ?? '';
+            const subject = encodeURIComponent('בקשה למחיקת חשבון');
+            const body = encodeURIComponent(
+              `אני מבקש/ת למחוק את חשבוני ואת הפרטים האישיים שלי.\n\n` +
+                `מזהה החשבון: ${who}\n` +
+                `נשלח מתוך אפליקציית ${STORE_INFO.name}.`
+            );
+            Linking.openURL(`mailto:${STORE_INFO.email}?subject=${subject}&body=${body}`).catch(
+              () => {
+                Alert.alert(
+                  'לא הצלחנו לפתוח את הדואר',
+                  `אפשר לשלוח בקשת מחיקה לכתובת ${STORE_INFO.email} או להתקשר ל-${STORE_INFO.phone}.`
+                );
+              }
+            );
+            signOut();
+          },
+        },
+      ]
+    );
+  }, [profile, signOut]);
   const [orders, setOrders] = useState<CustomerOrder[] | null>(null);
   const [ordersError, setOrdersError] = useState('');
   const [loadingOrders, setLoadingOrders] = useState(false);
@@ -204,6 +258,19 @@ export default function AccountScreen() {
         loading={busy}
         style={styles.signOutButton}
       />
+
+      {/* מחיקת חשבון — אפל דורשת שכל אפליקציה שמאפשרת יצירת חשבון תציע גם
+          למחוק אותו מתוך האפליקציה עצמה (הנחיה 5.1.1(v)). */}
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLabel="מחיקת החשבון והנתונים שלי"
+        onPress={requestAccountDeletion}
+        hitSlop={spacing.sm}
+        style={({ pressed }) => [styles.deleteRow, pressed && styles.deletePressed]}
+      >
+        <Icon name="trash-outline" size={16} color={colors.danger} />
+        <Text style={styles.deleteText}>מחיקת החשבון והנתונים שלי</Text>
+      </Pressable>
     </ScrollView>
   );
 }
@@ -371,4 +438,18 @@ const styles = StyleSheet.create({
   retry: { fontSize: typography.small, fontWeight: '800', color: colors.danger },
 
   signOutButton: { marginTop: spacing.sm },
+  deleteRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: spacing.xs,
+    marginTop: spacing.lg,
+    minHeight: 44,
+  },
+  deletePressed: { opacity: 0.6 },
+  deleteText: {
+    fontSize: typography.small,
+    color: colors.danger,
+    textDecorationLine: 'underline',
+  },
 });

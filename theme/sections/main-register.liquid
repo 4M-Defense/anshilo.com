@@ -85,7 +85,7 @@
               type="email"
               id="RegisterEmail"
               name="customer[email]"
-              value="{{ form.email }}"
+              value="{{ form.email | escape_once }}"
               autocomplete="email"
               autocorrect="off"
               autocapitalize="off"

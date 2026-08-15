@@ -171,7 +171,7 @@
 
         <div class="field">
           <label class="field__label" for="AddressPhone_new">{{ 'customer.addresses.phone' | t }}</label>
-          <input class="field__input" type="tel" id="AddressPhone_new" name="address[phone]" value="{{ form.phone }}" autocomplete="tel" pattern="[0-9\-+() ]*" dir="ltr">
+          <input class="field__input" type="tel" id="AddressPhone_new" name="address[phone]" value="{{ form.phone | escape_once }}" autocomplete="tel" pattern="[0-9\-+() ]*" dir="ltr">
         </div>
 
         <div class="checkbox-row">
@@ -346,7 +346,7 @@
 
                 <div class="field">
                   <label class="field__label" for="AddressPhone_{{ form.id }}">{{ 'customer.addresses.phone' | t }}</label>
-                  <input class="field__input" type="tel" id="AddressPhone_{{ form.id }}" name="address[phone]" value="{{ form.phone }}" autocomplete="tel" pattern="[0-9\-+() ]*" dir="ltr">
+                  <input class="field__input" type="tel" id="AddressPhone_{{ form.id }}" name="address[phone]" value="{{ form.phone | escape_once }}" autocomplete="tel" pattern="[0-9\-+() ]*" dir="ltr">
                 </div>
 
                 <div class="checkbox-row">

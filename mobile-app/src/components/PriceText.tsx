@@ -42,7 +42,7 @@ export function PriceText({ price, compareAt, size = 'md', showSave = false }: P
             styles.callForPrice,
             { fontSize: callSize, lineHeight: Math.round(callSize * 1.4) },
           ]}
-          allowFontScaling={false}
+          maxFontSizeMultiplier={2}
         >
           {CALL_FOR_PRICE_LABEL}
         </Text>
@@ -59,21 +59,21 @@ export function PriceText({ price, compareAt, size = 'md', showSave = false }: P
     <View style={styles.row}>
       <Text
         style={[styles.price, { fontSize: s.price, color: onSale ? colors.accent : colors.ink }]}
-        allowFontScaling={false}
+        maxFontSizeMultiplier={2}
       >
         {formatMoney(price)}
       </Text>
       {onSale && (
         <Text
           style={[styles.compare, { fontSize: s.compare }]}
-          allowFontScaling={false}
+          maxFontSizeMultiplier={2}
           accessibilityLabel={`מחיר קודם ${formatMoney(compareAt)}`}
         >
           {formatMoney(compareAt)}
         </Text>
       )}
       {onSale && showSave && savePercent > 0 && (
-        <Text style={styles.save} allowFontScaling={false}>
+        <Text style={styles.save} maxFontSizeMultiplier={2}>
           {/* ‎ — סימן LTR כדי שהמינוס יוצג לפני המספר גם ב-RTL */}
           {`‎-${savePercent}%`}
         </Text>

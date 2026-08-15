@@ -146,7 +146,16 @@
 
       {%- if quick_add_enabled and product.available -%}
         <div class="product-card__quick-add">
-          {%- if product.variants.size == 1 and product.selling_plan_groups.size == 0 -%}
+          {%- comment -%}
+            An unpriced variant must never get a one-click add button. `price.liquid`
+            already refuses to print ₪0.00 and asks the shopper to call instead, but
+            that guard only covers the number on the card — this form posts
+            card_variant.id straight to /cart/add, and Shopify honours the ₪0 the
+            merchant configured. With free self-pickup the whole order settles at
+            nothing. Unpriced items fall through to the product page, which is where
+            the "call for price" ask lives.
+          {%- endcomment -%}
+          {%- if product.variants.size == 1 and product.selling_plan_groups.size == 0 and card_variant.price > 0 -%}
             <product-form>
               <form method="post" action="{{ routes.cart_add_url }}" accept-charset="UTF-8" enctype="multipart/form-data">
                 <input type="hidden" name="form_type" value="product">
@@ -170,7 +179,7 @@
 
     <div class="product-card__content">
       {%- if vendor_enabled and product.vendor != blank -%}
-        <span class="product-card__vendor">{{ product.vendor }}</span>
+        <span class="product-card__vendor">{{ product.vendor | escape }}</span>
       {%- endif -%}
 
       <h3 class="product-card__title">

@@ -504,8 +504,17 @@
       renderPrice(variant);
       renderStock(variant);
       renderSku(variant);
-      setButtonState(addBtn, addBtnText, variant.available, strings.soldOut || '');
-      setButtonState(stickyBtn, stickyBtnText, variant.available, strings.soldOut || '');
+      /* Availability alone is not enough to open the buy button. The server render
+         withholds it for an unpriced variant (main-product.liquid asks the shopper
+         to call instead), and switching variants must not hand it back: Shopify
+         would accept the ₪0 the merchant configured and the order settles at
+         nothing. A variant with no price gets the same "call us" label here. */
+      var buyable = variant.available && variant.price > 0;
+      var blockedText = variant.available
+        ? strings.callForPrice || strings.unavailable || ''
+        : strings.soldOut || '';
+      setButtonState(addBtn, addBtnText, buyable, blockedText);
+      setButtonState(stickyBtn, stickyBtnText, buyable, blockedText);
       updateUrl(variant);
       updateStickyImage(variant);
       if (inCartWrap) {
