@@ -84,7 +84,10 @@
    the image already matches the box. */
 .article-card__media {
   aspect-ratio: 4 / 3;
-  background: var(--color-surface-sunken);
+  /* White, not the sunken grey: every article image is a product shot cut out
+     on white, so a grey frame around it reads as a white box floating inside a
+     grey one. Matching the photo's own background makes the edge disappear. */
+  background: var(--color-surface);
   border-block-end: 1px solid var(--color-border);
 }
 
