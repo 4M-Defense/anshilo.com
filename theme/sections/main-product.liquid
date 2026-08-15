@@ -83,6 +83,7 @@
 
     <div class="product-layout">
       <div class="product-layout__media">
+        {% render 'vendor-badge', product: product, size: 84, class: 'product-page__importer' %}
         {% render 'product-media-gallery',
           product: product,
           section_id: section.id,

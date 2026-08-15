@@ -435,6 +435,17 @@
   margin-block-start: 0.55rem;
 }
 
+/* Official-importer seal over the gallery corner. The wrapper needs its own
+   positioning context on mobile (desktop already makes it sticky). */
+.product-layout__media { position: relative; }
+
+.product-page__importer {
+  position: absolute;
+  inset-block-start: 0.9rem;
+  inset-inline-end: 0.9rem;
+  z-index: 3;
+}
+
 .product-info__sku {
   margin: 0;
   font-size: 0.83rem;

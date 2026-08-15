@@ -144,6 +144,8 @@
         {% render 'product-labels', product: product, limit: 2 %}
       </div>
 
+      {% render 'vendor-badge', product: product, size: 52, class: 'product-card__importer' %}
+
       {%- if quick_add_enabled and product.available -%}
         <div class="product-card__quick-add">
           {%- comment -%}
