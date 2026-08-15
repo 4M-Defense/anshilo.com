@@ -7,7 +7,17 @@
     "newsletter": {
       "type": "newsletter",
       "settings": {}
+    },
+    "article_products": {
+      "type": "article-products",
+      "settings": {
+        "heading": "מוצרים מהמאמר"
+      }
     }
   },
-  "order": ["main", "newsletter"]
+  "order": [
+    "main",
+    "article_products",
+    "newsletter"
+  ]
 }
