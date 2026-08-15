@@ -16,8 +16,12 @@
    article it introduces, and white matches the cut-out background the photos
    already have. */
 .article-hero__media {
-  aspect-ratio: 16 / 9;
-  max-block-size: 420px;
+  /* An explicit height rather than a ratio with a max-height on top of it:
+     the two together left the box at its full 16:9 height, so a contained
+     product floated in the middle of an enormous white field and read as
+     badly placed. A fixed band centres the object in a frame the size of a
+     header rather than the size of the article. */
+  block-size: clamp(200px, 34vw, 380px);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-card);
   background: var(--color-surface);
@@ -25,7 +29,8 @@
 
 .article-hero__media > img {
   object-fit: contain;
-  padding: clamp(0.75rem, 2vw, 1.5rem);
+  object-position: center;
+  padding: clamp(0.75rem, 2vw, 1.25rem);
 }
 
 /* ---------- Header ---------- */
