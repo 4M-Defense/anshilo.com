@@ -3,7 +3,7 @@
     "name": "א.נ. שילו",
     "slug": "anshilo-shop",
     "version": "1.0.1",
-    "orientation": "portrait",
+    "orientation": "default",
     "icon": "./assets/icon.png",
     "scheme": [
       "anshilo",

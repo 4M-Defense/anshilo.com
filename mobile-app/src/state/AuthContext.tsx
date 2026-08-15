@@ -175,6 +175,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (result.type !== 'success') {
         throw new CustomerAuthError('ההתחברות לא הושלמה. נסו שוב.');
       }
+
+      /* הסכמה shop.{shop_id}.app אינה בלעדית לנו — אפליקציה אחרת במכשיר יכולה
+         לרשום אותה ולשגר אלינו תשובת התחברות משלה. PKCE מונע ממנה להשתמש בקוד
+         *שלנו*, אבל לא מונע את הכיוון ההפוך: שתדחוף לנו קוד של חשבון *שלה*,
+         וכך הלקוח יגלוש בשקט בתוך חשבון של תוקף ויזין לתוכו כתובת ותשלום.
+         ה-state מוגרל לכל בקשה, ולכן השוואה אליו פוסלת כל תשובה שלא נולדה כאן. */
+      if (request.state && result.params.state !== request.state) {
+        throw new CustomerAuthError('תשובת ההתחברות לא תואמת לבקשה. נסו שוב.');
+      }
+
       const code = result.params.code;
       if (typeof code !== 'string' || code === '') {
         const denied = result.params.error_description ?? result.params.error;

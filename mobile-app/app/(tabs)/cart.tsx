@@ -452,7 +452,7 @@ export default function CartScreen() {
         <View style={styles.summaryDivider} />
         <View style={styles.summaryRow}>
           <Text style={styles.totalLabel}>סה״כ לתשלום</Text>
-          <Text style={styles.totalValue} allowFontScaling={false}>
+          <Text style={styles.totalValue} maxFontSizeMultiplier={2}>
             {formatMoney(cart.cost.totalAmount)}
           </Text>
         </View>

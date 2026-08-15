@@ -27,10 +27,9 @@
 
     const items = Array.from(gallery.querySelectorAll('.product-gallery__item'));
     const thumbs = Array.from(gallery.querySelectorAll('[data-thumb]'));
-    const counters = Array.from(root.querySelectorAll('[data-gallery-counter]'));
+    const counters = Array.from(root.querySelectorAll('[data-gallery-counter], [data-zoom-counter]'));
     const zoom = root.querySelector('[data-product-zoom]');
     const zoomItems = zoom ? Array.from(zoom.querySelectorAll('[data-zoom-item]')) : [];
-    const zoomCounters = Array.from(root.querySelectorAll('[data-zoom-counter]'));
 
     if (!items.length) return null;
 
@@ -45,7 +44,6 @@
 
       items.forEach((item) => {
         const active = item.dataset.mediaId === id;
-        const wasActive = item.classList.contains('is-active');
         item.classList.toggle('is-active', active);
         if (active) {
           item.removeAttribute('aria-hidden');
@@ -54,14 +52,6 @@
           item.querySelectorAll('video').forEach((v) => {
             try { v.pause(); } catch (e) { /* noop */ }
           });
-          /* External video embeds (YouTube/Vimeo iframes) keep playing when
-             hidden via CSS — reload the src of the frame we just left. */
-          if (wasActive) {
-            item.querySelectorAll('iframe').forEach((f) => {
-              const src = f.getAttribute('src');
-              if (src) f.setAttribute('src', src);
-            });
-          }
         }
         /* Keep hidden frames out of the tab order. */
         const trigger = item.querySelector('.product-gallery__zoom');
@@ -76,17 +66,10 @@
         thumb.classList.toggle('is-active', active);
         thumb.setAttribute('aria-current', active ? 'true' : 'false');
         if (active) {
-          /* Align the thumb inside its own rail only — scrollIntoView also
-             scrolls the document and yanks the page under the shopper's
-             finger when the rail is partially off-screen. */
-          const rail = thumb.closest('[data-gallery-thumbs]');
-          if (rail) {
-            const railRect = rail.getBoundingClientRect();
-            const thumbRect = thumb.getBoundingClientRect();
-            let dx = 0;
-            if (thumbRect.left < railRect.left) dx = thumbRect.left - railRect.left;
-            else if (thumbRect.right > railRect.right) dx = thumbRect.right - railRect.right;
-            if (dx !== 0) rail.scrollBy({ left: dx, behavior: 'smooth' });
+          const rect = gallery.getBoundingClientRect();
+          const inViewport = rect.bottom > 0 && rect.top < window.innerHeight;
+          if (inViewport) {
+            thumb.scrollIntoView({ block: 'nearest', inline: 'nearest', behavior: 'smooth' });
           }
         }
       });
@@ -97,15 +80,6 @@
         if (active) frame.removeAttribute('aria-hidden');
         else frame.setAttribute('aria-hidden', 'true');
       });
-
-      /* The overlay only holds images, so its counter reports the position
-         inside zoomItems, not the all-media index. */
-      const zoomIndex = zoomItems.findIndex((frame) => frame.dataset.mediaId === id);
-      if (zoomIndex !== -1) {
-        zoomCounters.forEach((counter) => {
-          counter.textContent = zoomIndex + 1;
-        });
-      }
 
       counters.forEach((counter) => {
         counter.textContent = index + 1;
@@ -216,10 +190,6 @@
     const stickyBtn = root.querySelector('[data-sticky-add]');
     const stickyBtnText = root.querySelector('[data-sticky-add-text]');
     const stickyImage = root.querySelector('[data-sticky-image]');
-    const buyWrap = root.querySelector('[data-buy-buttons-wrap]');
-    const requestWrap = root.querySelector('[data-request-price-wrap]');
-    const callPriceTpl = root.querySelector('[data-call-price-template]');
-    const backInStock = root.querySelector('[data-back-in-stock]');
 
     const gallery = initGallery(root);
 
@@ -527,47 +497,24 @@
         if (stockEl) stockEl.innerHTML = '';
         if (saveBadge) saveBadge.hidden = true;
         if (inCartWrap) inCartWrap.hidden = true;
-        if (backInStock) backInStock.hidden = true;
         return;
       }
 
       if (idInput) idInput.value = variant.id;
-
-      /* An unpriced (₪0) variant must never be purchasable: swap the buy
-         buttons (sticky bar included) for the quote request and restore the
-         "call for price" display instead of rendering ₪0.00. Disabling the
-         hidden buttons is defense-in-depth, so the sticky bar's form-attached
-         submit can never fire for it. */
-      const unpriced = variant.price === 0;
-      if (buyWrap) buyWrap.hidden = unpriced;
-      if (requestWrap) requestWrap.hidden = !unpriced;
-      if (unpriced) {
-        if (priceEl && callPriceTpl) priceEl.innerHTML = callPriceTpl.innerHTML;
-        if (saveBadge) saveBadge.hidden = true;
-        setButtonState(addBtn, addBtnText, false, strings.unavailable || '');
-        setButtonState(stickyBtn, stickyBtnText, false, strings.unavailable || '');
-      } else {
-        renderPrice(variant);
-        setButtonState(addBtn, addBtnText, variant.available, strings.soldOut || '');
-        setButtonState(stickyBtn, stickyBtnText, variant.available, strings.soldOut || '');
-      }
-
-      /* Keep the back-in-stock card in step with the selection: hide it for a
-         purchasable variant and re-point its hidden contact fields, so the
-         shop is notified about the variant the shopper actually asked for.
-         (The card only exists when the landing variant was sold out.) */
-      if (backInStock) {
-        backInStock.hidden = variant.available;
-        const bisTitle = backInStock.querySelector('[data-bis-variant-title]');
-        if (bisTitle) bisTitle.value = variant.title || '';
-        const bisSku = backInStock.querySelector('[data-bis-sku]');
-        if (bisSku) bisSku.value = variant.sku || '';
-        const bisLink = backInStock.querySelector('[data-bis-link]');
-        if (bisLink) bisLink.value = bisLink.value.replace(/variant=\d+/, 'variant=' + variant.id);
-      }
-
+      renderPrice(variant);
       renderStock(variant);
       renderSku(variant);
+      /* Availability alone is not enough to open the buy button. The server render
+         withholds it for an unpriced variant (main-product.liquid asks the shopper
+         to call instead), and switching variants must not hand it back: Shopify
+         would accept the ₪0 the merchant configured and the order settles at
+         nothing. A variant with no price gets the same "call us" label here. */
+      var buyable = variant.available && variant.price > 0;
+      var blockedText = variant.available
+        ? strings.callForPrice || strings.unavailable || ''
+        : strings.soldOut || '';
+      setButtonState(addBtn, addBtnText, buyable, blockedText);
+      setButtonState(stickyBtn, stickyBtnText, buyable, blockedText);
       updateUrl(variant);
       updateStickyImage(variant);
       if (inCartWrap) {

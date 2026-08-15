@@ -96,7 +96,7 @@
                 type="text"
                 id="ContactFormName"
                 name="contact[name]"
-                value="{% if form.name %}{{ form.name }}{% elsif customer %}{{ customer.name }}{% endif %}"
+                value="{% if form.name %}{{ form.name | escape_once }}{% elsif customer %}{{ customer.name | escape_once }}{% endif %}"
                 autocomplete="name"
                 required
               >
@@ -109,7 +109,7 @@
                 type="tel"
                 id="ContactFormPhone"
                 name="contact[phone]"
-                value="{{ form.phone }}"
+                value="{{ form.phone | escape_once }}"
                 autocomplete="tel"
                 pattern="[0-9\-+\(\) ]*"
                 dir="ltr"
@@ -126,7 +126,7 @@
               type="email"
               id="ContactFormEmail"
               name="contact[email]"
-              value="{% if form.email %}{{ form.email }}{% elsif customer %}{{ customer.email }}{% endif %}"
+              value="{% if form.email %}{{ form.email | escape_once }}{% elsif customer %}{{ customer.email | escape_once }}{% endif %}"
               autocomplete="email"
               spellcheck="false"
               autocapitalize="off"
@@ -146,7 +146,7 @@
               name="contact[body]"
               rows="6"
               required
-            >{{ form.body }}</textarea>
+            >{{ form.body | escape_once }}</textarea>
           </div>
 
           <div class="contact-form__submit">

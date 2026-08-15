@@ -212,7 +212,7 @@ export default function MoreScreen() {
         {hours.map((slot) => (
           <View key={slot.days} style={styles.hoursRow}>
             <Text style={styles.hoursDays}>{slot.days}</Text>
-            <Text style={styles.hoursValue} allowFontScaling={false}>
+            <Text style={styles.hoursValue} maxFontSizeMultiplier={2}>
               {slot.hours}
             </Text>
           </View>
@@ -261,7 +261,7 @@ export default function MoreScreen() {
       </View>
 
       {/* פוטר גרסה */}
-      <Text style={styles.version} allowFontScaling={false}>
+      <Text style={styles.version} maxFontSizeMultiplier={1.5}>
         {`${STORE_INFO.name} · גרסה ${APP_VERSION}`}
       </Text>
     </ScrollView>

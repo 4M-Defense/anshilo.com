@@ -104,6 +104,31 @@ export const spacing = {
   xxxl: 48,
 } as const;
 
+/* ==================== רשת מוצרים ==================== */
+
+/**
+ * כמה עמודות נכנסות ברוחב נתון, וכמה רחב כל כרטיס.
+ *
+ * שני כרטיסים קבועים נראים נכון בטלפון, אבל על אייפד לרוחב הם היו מתנפחים
+ * ל-575px כל אחד. במקום לקבע מספר, נגזור אותו מרוחב החלון סביב הרוחב שבו
+ * הכרטיס תוכנן — כך אותו קוד משרת טלפון קטן, אייפד, מסך מפוצל ומכשיר מתקפל,
+ * ומגיב לסיבוב בלי שינוי נוסף.
+ *
+ * חשוב: כשמספר העמודות משתנה חייבים להעביר אותו גם כ-key ל-FlatList,
+ * אחרת React Native זורק שגיאה במקום לצייר מחדש.
+ */
+export function productGrid(width: number): { columns: number; cardWidth: number } {
+  const TARGET_CARD = 190;
+  const usable = width - spacing.lg * 2;
+  const fits = Math.floor((usable + spacing.md) / (TARGET_CARD + spacing.md));
+  const columns = Math.max(2, Math.min(6, fits));
+  const cardWidth = (usable - spacing.md * (columns - 1)) / columns;
+  return { columns, cardWidth };
+}
+
+/** הרוחב שמעבר לו שורת טקסט נעשית ארוכה מדי לקריאה נוחה. */
+export const READABLE_MAX_WIDTH = 720;
+
 /* ==================== מגע וקווים ==================== */
 
 export const layout = {
@@ -381,12 +406,15 @@ export const shadows = {
  *
  * הסף נבחר לפי רוחב כרטיס נוח ולא לפי שמות מכשירים: כרטיס מוצר קריא הוא
  * בסביבות 160 עד 240 נקודות, ומכאן נגזרות העמודות.
+ *
+ * במיזוג נפגשו כאן שתי מימושים לאותה בעיה — ספי רוחב קבועים מצד אחד,
+ * וגזירה רציפה מרוחב הכרטיס המתוכנן מצד שני. השארנו מקור אמת אחד
+ * (`productGrid`), כי יש לו כיסוי בדיקות על 14 רוחבי מכשירים ובודק
+ * (`tools/responsive-check.py`) שקורא ממנו את הקבוע ומאמת אותו. הפונקציה
+ * הזו נשארת כמעטפת כדי שכל מקומות הקריאה הקיימים ימשיכו לעבוד.
  */
 export function gridColumns(width: number): number {
-  if (width >= 1200) return 5;
-  if (width >= 900) return 4;
-  if (width >= 600) return 3;
-  return 2;
+  return productGrid(width).columns;
 }
 
 /**

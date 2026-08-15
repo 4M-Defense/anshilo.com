@@ -45,7 +45,16 @@ import {
 import { useCart } from '@/state/CartContext';
 import { useSettings } from '@/state/SettingsContext';
 import { useFavorites } from '@/state/FavoritesContext';
-import { alignEnd, colors, radius, rtlText, shadows, spacing, typography } from '@/theme';
+import {
+  READABLE_MAX_WIDTH,
+  alignEnd,
+  colors,
+  radius,
+  rtlText,
+  shadows,
+  spacing,
+  typography,
+} from '@/theme';
 
 /* ---------- המרת descriptionHtml לטקסט קריא ---------- */
 
@@ -637,7 +646,7 @@ export default function ProductScreen() {
                             isSelected && styles.pillTextSelected,
                             !available && !isSelected && styles.pillTextUnavailable,
                           ]}
-                          allowFontScaling={false}
+                          maxFontSizeMultiplier={2}
                         >
                           {value.name}
                         </Text>
@@ -946,6 +955,11 @@ const styles = StyleSheet.create({
   body: {
     padding: spacing.lg,
     gap: spacing.md,
+    /* על אייפד לרוחב שורת תיאור הייתה נמתחת על פני 1366px ונעשית קשה לקריאה.
+       הגבלת הרוחב ומרכוזו משאירים את הטלפון כמו שהיה ומיישרים את הטאבלט. */
+    width: '100%',
+    maxWidth: READABLE_MAX_WIDTH,
+    alignSelf: 'center',
   },
   metaRow: {
     flexDirection: 'row',

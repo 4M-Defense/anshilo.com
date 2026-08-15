@@ -182,16 +182,16 @@
             <dl class="account-dl">
               <div class="account-dl__row">
                 <dt class="account-dl__label">{{ 'general.contact.name' | t }}</dt>
-                <dd class="account-dl__value">{{ customer.name }}</dd>
+                <dd class="account-dl__value">{{ customer.name | escape_once }}</dd>
               </div>
               <div class="account-dl__row">
                 <dt class="account-dl__label">{{ 'customer.login_page.email' | t }}</dt>
-                <dd class="account-dl__value account-dl__value--ltr">{{ customer.email }}</dd>
+                <dd class="account-dl__value account-dl__value--ltr">{{ customer.email | escape_once }}</dd>
               </div>
               {%- if customer.phone != blank -%}
                 <div class="account-dl__row">
                   <dt class="account-dl__label">{{ 'general.contact.phone' | t }}</dt>
-                  <dd class="account-dl__value account-dl__value--ltr">{{ customer.phone }}</dd>
+                  <dd class="account-dl__value account-dl__value--ltr">{{ customer.phone | escape_once }}</dd>
                 </div>
               {%- endif -%}
             </dl>

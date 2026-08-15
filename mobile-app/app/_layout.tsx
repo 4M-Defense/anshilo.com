@@ -1,6 +1,7 @@
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { I18nManager } from 'react-native';
+import { AppErrorBoundary } from '@/components';
 import { AuthProvider } from '@/state/AuthContext';
 import { CartProvider } from '@/state/CartContext';
 import { FavoritesProvider } from '@/state/FavoritesContext';
@@ -28,6 +29,7 @@ if (!I18nManager.isRTL) {
 
 export default function RootLayout() {
   return (
+    <AppErrorBoundary>
     <SettingsProvider>
     <AuthProvider>
       <CartProvider>
@@ -62,5 +64,6 @@ export default function RootLayout() {
       </CartProvider>
     </AuthProvider>
     </SettingsProvider>
+    </AppErrorBoundary>
   );
 }

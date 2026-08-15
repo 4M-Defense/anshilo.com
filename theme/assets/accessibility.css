@@ -1,5 +1,7 @@
 /* =========================================================
    Shilo Pro — Accessibility widget
+   validator: literal-colours-ok — the high-contrast mode below deliberately
+   hardcodes black, white and link-blue; using tokens would defeat its purpose.
    Replaces the paid Sense RTL accessibility block.
    Two halves:
    1. The widget UI (button + panel) — tokens only.

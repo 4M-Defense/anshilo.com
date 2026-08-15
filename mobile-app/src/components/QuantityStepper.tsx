@@ -46,7 +46,7 @@ export function QuantityStepper({
         <Icon name="add" size={18} color={canIncrease ? colors.ink : colors.borderStrong} />
       </Pressable>
       <View style={styles.divider} />
-      <Text style={styles.value} allowFontScaling={false} accessibilityLabel={`כמות: ${value}`}>
+      <Text style={styles.value} maxFontSizeMultiplier={2} accessibilityLabel={`כמות: ${value}`}>
         {value}
       </Text>
       <View style={styles.divider} />

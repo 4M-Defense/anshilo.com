@@ -34,7 +34,13 @@ export function CollectionImage({
   if (image == null) {
     return (
       <View style={[styles.wrap, styles.empty, style]}>
-        <Text style={[styles.letter, { fontSize: letterSize }]} allowFontScaling={false}>
+        <Text
+          style={[styles.letter, { fontSize: letterSize }]}
+          /* אות דקורטיבית שמחליפה תמונה חסרה — גרפיקה ולא טקסט,
+             ולכן מוסתרת מקוראי מסך במקום להיקרא כאות בודדת. */
+          accessible={false}
+          importantForAccessibility="no"
+        >
           {title.trim().charAt(0)}
         </Text>
       </View>

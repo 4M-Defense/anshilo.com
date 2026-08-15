@@ -27,6 +27,40 @@
     return format.replace(match[0], value).replace(/<[^>]*>/g, '');
   }
 
+  /* Every row below is built as an HTML string from the JSON search view, so any
+     catalogue text that reaches it — title, variant title, SKU, image and product
+     URL — has to be neutralised first. The JSON filter in the Liquid view escapes
+     for JSON, not for HTML: a product titled `<img src=x onerror=…>` survives
+     JSON.parse intact and would run the moment it lands in innerHTML. A single
+     compromised app with write_products is enough to plant one. */
+  function escapeHtml(value) {
+    return String(value == null ? '' : value)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+  }
+
+  /* Same idea for URLs, plus the scheme check: `javascript:` in an href is a
+     click away from running. Only the relative and https product/image URLs the
+     view actually returns are let through. */
+  function safeUrl(value) {
+    var url = String(value == null ? '' : value).trim();
+    if (/^(https:)?\/\//i.test(url) || url.charAt(0) === '/') return escapeHtml(url);
+    return '';
+  }
+
+  function debounce(fn, wait) {
+    var t;
+    return function () {
+      var args = arguments;
+      var self = this;
+      clearTimeout(t);
+      t = setTimeout(function () { fn.apply(self, args); }, wait);
+    };
+  }
+
   function QuickOrder(root) {
     this.root = root;
     this.rowsHost = root.querySelector('[data-quick-order-rows]');
@@ -57,9 +91,6 @@
       if (event.target.closest('[data-quick-order-clear]')) { self.clear(); return; }
       if (event.target.closest('[data-quick-order-submit]')) { self.submit(); return; }
 
-      var retry = event.target.closest('[data-quick-order-retry]');
-      if (retry) { self.lookup(retry.closest('[data-quick-order-row]')); return; }
-
       var step = event.target.closest('[data-quick-order-step]');
       if (step) {
         var row = step.closest('[data-quick-order-row]');
@@ -79,17 +110,15 @@
       }
     });
 
+    var lookup = debounce(function (row) { self.lookup(row); }, DEBOUNCE);
+
     this.rowsHost.addEventListener('input', function (event) {
       var row = event.target.closest('[data-quick-order-row]');
       if (!row) return;
       if (event.target.matches('[data-quick-order-sku]')) {
         row.dataset.variantId = '';
         row.dataset.price = '';
-        /* Timer lives on the row: a single shared debounce let typing in the
-           next row (scanner / fast typist) cancel this row's pending lookup,
-           silently dropping it from the order. */
-        clearTimeout(row._lookupTimer);
-        row._lookupTimer = setTimeout(function () { self.lookup(row); }, DEBOUNCE);
+        lookup(row);
       }
       if (event.target.matches('[data-quick-order-qty]')) self.refreshRow(row);
     });
@@ -130,7 +159,6 @@
   };
 
   QuickOrder.prototype.resetRow = function (row) {
-    clearTimeout(row._lookupTimer);
     row.querySelector('[data-quick-order-sku]').value = '';
     row.querySelector('[data-quick-order-qty]').value = 1;
     row.querySelector('[data-quick-order-match]').innerHTML = '';
@@ -149,15 +177,16 @@
     row.classList.remove('is-resolved', 'is-missing');
     row.querySelector('[data-quick-order-line-total]').textContent = '';
 
-    if (!term) { matchCell.innerHTML = ''; this.refreshTotals(); return Promise.resolve(); }
+    if (!term) { matchCell.innerHTML = ''; this.refreshTotals(); return; }
 
     row.classList.add('is-loading');
     matchCell.innerHTML = '<span class="quick-order__match-loading"><span class="spinner" aria-hidden="true"></span></span>';
 
     var url = '/search?type=product&view=quick-order&q=' + encodeURIComponent(term);
 
-    return fetch(url, { headers: { Accept: 'application/json' } })
-      .then(function (res) { return res.ok ? res.json() : Promise.reject(new Error('HTTP ' + res.status)); })
+    fetch(url, { headers: { Accept: 'application/json' } })
+      .then(function (res) { return res.ok ? res.json() : { results: [] }; })
+      .catch(function () { return { results: [] }; })
       .then(function (data) {
         row.classList.remove('is-loading');
         var results = (data && data.results) || [];
@@ -174,21 +203,7 @@
         matchCell.innerHTML =
           '<span class="quick-order__miss">' +
           '<span class="quick-order__miss-title">מקט לא נמצא בקטלוג</span>' +
-          '<a class="link fs-xs" href="/search?q=' + encodeURIComponent(term) + '">חיפוש חופשי</a>' +
-          '</span>';
-        self.refreshTotals();
-      })
-      .catch(function () {
-        /* Throttled/offline lookups are NOT "not in catalogue" — show a
-           retryable network-error state instead of the miss message. */
-        row.classList.remove('is-loading');
-        row.classList.add('is-missing');
-        row.dataset.variantId = '';
-        row.dataset.price = '';
-        matchCell.innerHTML =
-          '<span class="quick-order__miss">' +
-          '<span class="quick-order__miss-title">שגיאת רשת - לא ניתן היה לבדוק את המקט</span>' +
-          '<button type="button" class="link fs-xs" data-quick-order-retry>נסו שוב</button>' +
+          '<a class="link fs-xs" href="/search?q=' + escapeHtml(encodeURIComponent(term)) + '">חיפוש חופשי</a>' +
           '</span>';
         self.refreshTotals();
       });
@@ -196,30 +211,40 @@
 
   QuickOrder.prototype.applyMatch = function (row, hit) {
     var matchCell = row.querySelector('[data-quick-order-match]');
-    var thumb = hit.image
-      ? '<span class="quick-order__thumb"><img src="' + hit.image + '" alt="" width="44" height="44" loading="lazy"></span>'
+    var image = safeUrl(hit.image);
+    var thumb = image
+      ? '<span class="quick-order__thumb"><img src="' + image + '" alt="" width="44" height="44" loading="lazy"></span>'
       : '<span class="quick-order__thumb quick-order__thumb--empty" aria-hidden="true"></span>';
 
     var variantLine = hit.variant_title && hit.variant_title !== 'Default Title'
-      ? '<span class="quick-order__match-variant">' + hit.variant_title + '</span>'
+      ? '<span class="quick-order__match-variant">' + escapeHtml(hit.variant_title) + '</span>'
       : '';
 
-    var stock = hit.available
-      ? '<span class="stock-dot">במלאי</span>'
-      : '<span class="stock-dot stock-dot--out">אזל מהמלאי</span>';
+    /* A resolved SKU still needs a price before it can be ordered. Part of the
+       catalogue is published at ₪0, and this form posts the variant id straight
+       to /cart/add — Shopify would take the ₪0 as the real price. Those SKUs are
+       shown, so the contractor sees the item exists, but they route to the phone
+       the same way the product page does. */
+    var buyable = hit.available && Number(hit.price) > 0;
+
+    var stock = !hit.available
+      ? '<span class="stock-dot stock-dot--out">אזל מהמלאי</span>'
+      : buyable
+        ? '<span class="stock-dot">במלאי</span>'
+        : '<span class="stock-dot stock-dot--out">מחיר בטלפון</span>';
 
     matchCell.innerHTML =
       thumb +
       '<span class="quick-order__match-text">' +
-      '<a class="quick-order__match-title" href="' + hit.url + '">' + hit.title + '</a>' +
+      '<a class="quick-order__match-title" href="' + safeUrl(hit.url) + '">' + escapeHtml(hit.title) + '</a>' +
       variantLine +
       stock +
       '</span>';
 
-    row.dataset.variantId = hit.available ? String(hit.variant_id) : '';
+    row.dataset.variantId = buyable ? String(hit.variant_id) : '';
     row.dataset.price = String(hit.price);
-    row.classList.toggle('is-resolved', !!hit.available);
-    row.classList.toggle('is-missing', !hit.available);
+    row.classList.toggle('is-resolved', buyable);
+    row.classList.toggle('is-missing', !buyable);
     this.refreshRow(row);
   };
 
@@ -227,10 +252,16 @@
     var matchCell = row.querySelector('[data-quick-order-match]');
     var options = results.slice(0, 4).map(function (r) {
       var label = r.title + (r.variant_title && r.variant_title !== 'Default Title' ? ' · ' + r.variant_title : '');
-      return '<button type="button" class="chip chip--suggestion" data-quick-order-pick=\'' +
-        JSON.stringify(r).replace(/'/g, '&#39;') + '\'>' + label + '</button>';
+      /* The payload rides in an attribute, so it needs attribute escaping and not
+         just the single-quote swap this used to do: a `<` inside a title closed
+         nothing here, but an unescaped `&` corrupted the JSON on read-back, and
+         the label beside it went in as raw markup. */
+      return '<button type="button" class="chip chip--suggestion" data-quick-order-pick="' +
+        escapeHtml(JSON.stringify(r)) + '">' + escapeHtml(label) + '</button>';
     }).join('');
 
+    /* security-checked: every value inside `options` went through escapeHtml in
+       the map above, so the only unescaped text here is this file's own markup. */
     matchCell.innerHTML =
       '<span class="quick-order__suggest">' +
       '<span class="text-meta">אין התאמה מדויקת - התכוונתם ל:</span>' +
@@ -251,9 +282,9 @@
 
   QuickOrder.prototype.refreshRow = function (row) {
     var price = parseInt(row.dataset.price, 10);
-    var qty = parseInt(row.querySelector('[data-quick-order-qty]').value, 10) || 0;
+    var qty = parseInt(row.querySelector('[data-quick-order-qty]').value, 10) || 1;
     var cell = row.querySelector('[data-quick-order-line-total]');
-    if (row.dataset.variantId && !isNaN(price) && qty > 0) cell.textContent = formatMoney(price * qty);
+    if (row.dataset.variantId && !isNaN(price)) cell.textContent = formatMoney(price * qty);
     else cell.textContent = '';
     this.refreshTotals();
   };
@@ -270,7 +301,7 @@
     var total = 0;
 
     rows.forEach(function (row) {
-      var qty = parseInt(row.querySelector('[data-quick-order-qty]').value, 10) || 0;
+      var qty = parseInt(row.querySelector('[data-quick-order-qty]').value, 10) || 1;
       var price = parseInt(row.dataset.price, 10) || 0;
       items += qty;
       total += price * qty;
@@ -300,7 +331,6 @@
 
     var self = this;
     var added = 0;
-    var queue = [];
 
     lines.slice(0, MAX_ROWS).forEach(function (line) {
       var parts = line.split(/[\s,;\t]+/).filter(Boolean);
@@ -312,17 +342,9 @@
       if (!row) return;
       row.querySelector('[data-quick-order-sku]').value = sku;
       row.querySelector('[data-quick-order-qty]').value = qty;
-      queue.push(row);
+      self.lookup(row);
       added += 1;
     });
-
-    /* Firing all lookups at once (up to MAX_ROWS storefront renders) trips
-       Shopify's throttling; drain the queue at 4 concurrent requests. */
-    function next() {
-      var row = queue.shift();
-      return row ? self.lookup(row).then(next, next) : Promise.resolve();
-    }
-    for (var i = 0; i < 4; i += 1) next();
 
     var skipped = lines.length - added;
     this.switchTab('rows');
@@ -356,38 +378,41 @@
     var items = rows.map(function (row) {
       return {
         id: parseInt(row.dataset.variantId, 10),
-        quantity: parseInt(row.querySelector('[data-quick-order-qty]').value, 10) || 0
+        quantity: parseInt(row.querySelector('[data-quick-order-qty]').value, 10) || 1
       };
     });
-    items = items.filter(function (i) { return i.quantity > 0; });
-    if (!items.length) return;
 
     var self = this;
     this.submitBtn.classList.add('btn--loading');
     this.submitBtn.disabled = true;
 
-    /* Route through the shared cart pipeline: it re-renders the drawer
-       sections, updates the header bubbles, opens the drawer itself and maps
-       Shopify's English /cart/add errors to the Hebrew cartStrings. A bespoke
-       fetch here left the drawer opening with stale (often empty) contents. */
-    window.ShiloCart.add(items, true)
-      .then(function () {
+    var routes = window.routes || {};
+    fetch(routes.cart_add_url || '/cart/add', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Accept: 'application/javascript' },
+      body: JSON.stringify({ items: items, sections_url: window.location.pathname })
+    })
+      .then(function (res) { return res.json().then(function (body) { return { ok: res.ok, body: body }; }); })
+      .then(function (result) {
         self.submitBtn.classList.remove('btn--loading');
         self.submitBtn.disabled = false;
-        self.setStatus(items.length + ' מקטים נוספו לעגלה בהצלחה.', 'success');
-        if (!(window.themeSettings && window.themeSettings.cartType === 'drawer')) {
-          window.location.href = (window.routes && window.routes.cart_url) || '/cart';
+
+        if (!result.ok) {
+          self.setStatus((result.body && result.body.description) || 'לא הצלחנו להוסיף את הפריטים. נסו שוב.', 'error');
+          return;
         }
+
+        self.setStatus(items.length + ' מקטים נוספו לעגלה בהצלחה.', 'success');
+        document.dispatchEvent(new CustomEvent('cart:refresh', { bubbles: true }));
+
+        var drawerTrigger = document.querySelector('[data-drawer-open="CartDrawer"]');
+        if (window.themeSettings && window.themeSettings.cartType === 'drawer' && drawerTrigger) drawerTrigger.click();
+        else window.location.href = (window.routes && window.routes.cart_url) || '/cart';
       })
-      .catch(function (err) {
+      .catch(function () {
         self.submitBtn.classList.remove('btn--loading');
         self.submitBtn.disabled = false;
-        /* Multi-item /cart/add is all-or-nothing: one over-stock row rejects
-           the whole batch, so say so explicitly. */
-        self.setStatus(
-          (window.cartErrorText(err) || 'לא הצלחנו להוסיף את הפריטים. נסו שוב.') + ' אף אחד מהפריטים לא נוסף לעגלה.',
-          'error'
-        );
+        self.setStatus('שגיאת רשת. בדקו את החיבור ונסו שוב.', 'error');
       });
   };
 

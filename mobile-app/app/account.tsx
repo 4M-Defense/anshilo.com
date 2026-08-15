@@ -47,12 +47,12 @@ function OrderCard({ order }: { order: CustomerOrder }) {
     <View style={styles.orderCard}>
       <View style={styles.orderHead}>
         <Text style={styles.orderName}>{rtlText(order.name)}</Text>
-        <Text style={styles.orderTotal} allowFontScaling={false}>
+        <Text style={styles.orderTotal} maxFontSizeMultiplier={2}>
           {formatMoney(order.totalPrice)}
         </Text>
       </View>
       <View style={styles.orderMetaRow}>
-        <Text style={styles.orderDate} allowFontScaling={false}>
+        <Text style={styles.orderDate} maxFontSizeMultiplier={2}>
           {rtlText(formatDate(order.processedAt))}
         </Text>
         {status != null && <Text style={styles.orderStatus}>{status}</Text>}
@@ -72,6 +72,7 @@ function OrderCard({ order }: { order: CustomerOrder }) {
 
 export default function AccountScreen() {
   const { status, profile, error, busy, signIn, signOut, getAccessToken } = useAuth();
+
   const [orders, setOrders] = useState<CustomerOrder[] | null>(null);
   const [ordersError, setOrdersError] = useState('');
   const [loadingOrders, setLoadingOrders] = useState(false);
@@ -270,8 +271,8 @@ export default function AccountScreen() {
       />
 
       {/*
-        מחיקת חשבון — חובה של אפל, ולכן חייבת להיות נגישה ולא קבורה.
-        מופרדת חזותית מהתנתקות: שתיהן "יציאה", אבל רק אחת בלתי הפיכה.
+        מחיקת חשבון — חובה של אפל (הנחיה 5.1.1(v)), ולכן חייבת להיות נגישה
+        ולא קבורה. מופרדת חזותית מהתנתקות: שתיהן "יציאה", אבל רק אחת בלתי הפיכה.
       */}
       <Pressable
         accessibilityRole="button"
@@ -456,6 +457,8 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     gap: spacing.xs,
     paddingVertical: spacing.sm,
+    /* יעד מגע — לא לרדת מ-44 נקודות (WCAG 2.5.5) */
+    minHeight: 44,
   },
   deletePressed: { opacity: 0.6 },
   deleteText: {
@@ -464,5 +467,6 @@ const styles = StyleSheet.create({
     color: colors.danger,
     textAlign: 'center',
     writingDirection: 'rtl',
+    textDecorationLine: 'underline',
   },
 });

@@ -280,7 +280,7 @@ export default function CollectionScreen() {
           />
           <Text
             style={[styles.chipLabel, appliedCount > 0 && styles.chipLabelActive]}
-            allowFontScaling={false}
+            maxFontSizeMultiplier={1.5}
           >
             {appliedCount > 0 ? `סינון · ${appliedCount}` : 'סינון'}
           </Text>
@@ -293,7 +293,7 @@ export default function CollectionScreen() {
             style={[styles.chip, styles.clearChip]}
           >
             <Icon name="close" size={13} color={colors.danger} />
-            <Text style={[styles.chipLabel, styles.clearChipLabel]} allowFontScaling={false}>
+            <Text style={[styles.chipLabel, styles.clearChipLabel]} maxFontSizeMultiplier={1.5}>
               נקה
             </Text>
           </Pressable>
@@ -307,11 +307,12 @@ export default function CollectionScreen() {
               accessibilityLabel={`מיון: ${opt.label}`}
               accessibilityState={{ selected: active }}
               onPress={() => changeSort(opt.key)}
+              hitSlop={spacing.sm}
               style={[styles.chip, active && styles.chipActive]}
             >
               <Text
                 style={[styles.chipLabel, active && styles.chipLabelActive]}
-                allowFontScaling={false}
+                maxFontSizeMultiplier={1.5}
               >
                 {opt.label}
               </Text>

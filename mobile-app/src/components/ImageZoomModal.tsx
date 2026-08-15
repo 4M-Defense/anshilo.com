@@ -346,7 +346,7 @@ export function ImageZoomModal({ images, initialIndex, fallbackAlt, onClose }: I
 
         {count > 1 && (
           <View style={[styles.counter, { bottom: insets.bottom + spacing.lg }]}>
-            <Text style={styles.counterText} allowFontScaling={false}>
+            <Text style={styles.counterText} maxFontSizeMultiplier={1.5}>
               {page + 1} / {count}
             </Text>
           </View>

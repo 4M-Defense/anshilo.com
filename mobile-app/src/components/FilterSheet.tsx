@@ -161,10 +161,10 @@ function PriceRangeSlider({
   return (
     <View>
       <View style={styles.sliderValues}>
-        <Text style={styles.sliderValue} allowFontScaling={false}>
+        <Text style={styles.sliderValue} maxFontSizeMultiplier={2}>
           {`₪${lo.toLocaleString('en-US')}`}
         </Text>
-        <Text style={styles.sliderValue} allowFontScaling={false}>
+        <Text style={styles.sliderValue} maxFontSizeMultiplier={2}>
           {`₪${hi.toLocaleString('en-US')}`}
         </Text>
       </View>
@@ -357,8 +357,9 @@ export function FilterSheet({
                     keyboardType="numeric"
                     placeholder="0"
                     placeholderTextColor={colors.textMuted}
+                    accessibilityLabel="מחיר מינימלי"
                     style={styles.priceInput}
-                    allowFontScaling={false}
+                    maxFontSizeMultiplier={2}
                   />
                 </View>
                 <View style={styles.priceField}>
@@ -370,8 +371,9 @@ export function FilterSheet({
                     keyboardType="numeric"
                     placeholder="₪"
                     placeholderTextColor={colors.textMuted}
+                    accessibilityLabel="מחיר מקסימלי"
                     style={styles.priceInput}
-                    allowFontScaling={false}
+                    maxFontSizeMultiplier={2}
                   />
                 </View>
               </View>
@@ -410,7 +412,7 @@ export function FilterSheet({
                       >
                         {rtlText(value.label)}
                       </Text>
-                      <Text style={styles.valueCount} allowFontScaling={false}>
+                      <Text style={styles.valueCount} maxFontSizeMultiplier={1.5}>
                         {value.count}
                       </Text>
                     </Pressable>

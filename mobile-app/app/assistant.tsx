@@ -421,7 +421,7 @@ export default function AssistantScreen() {
 
       {/* גילוי נאות — העוזר ממליץ, עמוד המוצר קובע */}
       <View style={styles.disclaimerRow}>
-        <Text style={styles.disclaimerText} numberOfLines={1} allowFontScaling={false}>
+        <Text style={styles.disclaimerText} numberOfLines={1} maxFontSizeMultiplier={2}>
           העוזר עשוי לטעות — המחיר והמלאי הקובעים הם בעמוד המוצר.
         </Text>
       </View>
@@ -516,7 +516,7 @@ export default function AssistantScreen() {
               style={styles.input}
               multiline
               accessibilityLabel="שדה שאלה למומחה"
-              allowFontScaling={false}
+              maxFontSizeMultiplier={2}
             />
             <Pressable
               accessibilityRole="button"

@@ -65,7 +65,7 @@
 
                   <span class="predictive-results__info">
                     {%- if product.vendor != blank -%}
-                      <span class="predictive-results__vendor">{{ product.vendor }}</span>
+                      <span class="predictive-results__vendor">{{ product.vendor | escape }}</span>
                     {%- endif -%}
                     <span class="predictive-results__title">{{ product.title | escape }}</span>
                     {% render 'price', product: product, class: 'predictive-results__price' %}
@@ -209,7 +209,7 @@
 
                   <span class="predictive-results__info">
                     {%- if item.vendor != blank -%}
-                      <span class="predictive-results__vendor">{{ item.vendor }}</span>
+                      <span class="predictive-results__vendor">{{ item.vendor | escape }}</span>
                     {%- endif -%}
                     <span class="predictive-results__title">{{ item.title | escape }}</span>
                     {% render 'price', product: item, class: 'predictive-results__price' %}

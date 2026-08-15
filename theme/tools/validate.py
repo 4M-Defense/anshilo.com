@@ -50,6 +50,66 @@ def read(path: str) -> str:
         return fh.read()
 
 
+def read_json(path: str):
+    """Parse a theme JSON file, tolerating the comments Shopify itself writes.
+
+    Shopify allows `/* … */` in template, settings and locale JSON, and its own
+    admin adds an auto-generated header in that form when settings are pulled
+    down. Strict json.loads rejects those files even though the theme runs, so
+    the comments are stripped exactly as the platform strips them.
+    """
+    raw = read(path)
+    try:
+        return json.loads(raw)
+    except json.JSONDecodeError:
+        return json.loads(re.sub(r"/\*.*?\*/", "", raw, flags=re.S))
+
+
+def literal_colours(src: str) -> set[str]:
+    """Hex colours in `src` that ought to have been a custom property.
+
+    Three places a literal is the correct answer, and flagging them only
+    trains the reader to skim past the warning list:
+
+    1. The line that *defines* a token — `--color-on-ink: #eef1f6` cannot
+       itself be written as a token.
+    2. `@media print` — the screen tokens are not what a printed page wants.
+    3. A stylesheet that opts out with `/* validator: literal-colours-ok */`,
+       for the high-contrast overrides whose whole job is to defeat tokens.
+    """
+    if "validator: literal-colours-ok" in src:
+        return set()
+
+    # Blank out every @media print block so its literals are not seen.
+    scrubbed = []
+    i = 0
+    while True:
+        start = src.find("@media print", i)
+        if start < 0:
+            scrubbed.append(src[i:])
+            break
+        scrubbed.append(src[i:start])
+        brace = src.find("{", start)
+        if brace < 0:
+            break
+        depth, j = 1, brace + 1
+        while j < len(src) and depth:
+            if src[j] == "{":
+                depth += 1
+            elif src[j] == "}":
+                depth -= 1
+            j += 1
+        i = j
+    body = "".join(scrubbed)
+
+    found: set[str] = set()
+    for line in body.splitlines():
+        if re.search(r"--[\w-]+\s*:", line):     # a token definition
+            continue
+        found.update(re.findall(r"#[0-9a-fA-F]{3,8}\b", line))
+    return found
+
+
 # --------------------------------------------------------------------------
 # Inventories
 # --------------------------------------------------------------------------
@@ -83,7 +143,7 @@ if os.path.exists(locale_path):
                     flatten(v, f"{prefix}{k}.")
             else:
                 LOCALE_KEYS.add(prefix.rstrip("."))
-        flatten(json.loads(read(locale_path)))
+        flatten(read_json(locale_path))
     except json.JSONDecodeError as exc:
         err(rel(locale_path), f"invalid JSON — {exc}")
 
@@ -96,7 +156,7 @@ for path in walk("templates", (".json",)) + walk("config", (".json",)) + walk(
     "locales", (".json",)
 ) + walk("sections", (".json",)):
     try:
-        json.loads(read(path))
+        read_json(path)
     except json.JSONDecodeError as exc:
         err(rel(path), f"invalid JSON — {exc}")
 
@@ -288,7 +348,7 @@ for path in LIQUID_FILES:
     if "gift_card.liquid" in name:
         continue
 
-    for match in set(re.findall(r"#[0-9a-fA-F]{3,8}\b", src)):
+    for match in literal_colours(src):
         low = match.lower()
         if low in {"#fff", "#ffffff", "#000", "#000000"} or low in ALLOWED_HEX:
             continue
@@ -327,7 +387,7 @@ for path in walk("assets", (".css",)):
     if re.search(r"#F97316|#EA580C", src, re.I):
         err(name, "contains the retired v1 orange accent")
 
-    for match in set(re.findall(r"#[0-9a-fA-F]{3,8}\b", src)):
+    for match in literal_colours(src):
         low = match.lower()
         if low in {"#fff", "#ffffff", "#000", "#000000"} or low in ALLOWED_HEX:
             continue
@@ -346,7 +406,7 @@ for path in walk("assets", (".css",)):
 for path in walk("templates", (".json",)) + walk("sections", (".json",)):
     name = rel(path)
     try:
-        data = json.loads(read(path))
+        data = read_json(path)
     except json.JSONDecodeError:
         continue
     sections = data.get("sections", {}) or {}

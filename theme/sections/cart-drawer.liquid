@@ -227,7 +227,7 @@
                 form="CartDrawerCheckout-{{ section.id }}"
                 data-cart-note
                 placeholder="{{ 'cart.general.note_placeholder' | t }}"
-              >{{ cart.note }}</textarea>
+              >{{ cart.note | escape_once }}</textarea>
             </div>
           </details>
         {%- endif -%}

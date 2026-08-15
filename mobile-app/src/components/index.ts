@@ -1,4 +1,5 @@
 /** ייצוא מרוכז של רכיבי ה-UI המשותפים */
+export { AppErrorBoundary } from './AppErrorBoundary';
 export { Badge, type BadgeProps, type BadgeVariant } from './Badge';
 export { Button, type ButtonProps, type ButtonVariant } from './Button';
 export { CollectionImage, type CollectionImageProps } from './CollectionImage';
