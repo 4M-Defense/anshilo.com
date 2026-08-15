@@ -77,51 +77,6 @@
     </div>
   </div>
 
-  {%- comment -%}
-    Products related to the article, chosen per article in admin through the
-    `custom.related_products` metafield.
-
-    The list lives in a metafield rather than inside the article body on
-    purpose: the body stays plain prose that anyone can edit without breaking
-    markup, a product that is renamed or unpublished drops out on its own
-    instead of leaving a dead link mid-sentence, and the cards stay identical
-    to the ones on every other page because they come from the same snippet.
-
-    Unavailable products are skipped rather than rendered, so an article never
-    sends a reader to something that cannot be bought.
-  {%- endcomment -%}
-  {%- if section.settings.show_related_products and article.metafields.custom.related_products != blank -%}
-    {%- assign related = article.metafields.custom.related_products.value -%}
-    {%- assign buyable_count = 0 -%}
-    {%- for product in related -%}
-      {%- if product != blank and product.available -%}
-        {%- assign buyable_count = buyable_count | plus: 1 -%}
-      {%- endif -%}
-    {%- endfor -%}
-
-    {%- if buyable_count > 0 -%}
-      <section class="section section--tight article-products" aria-labelledby="ArticleProducts-{{ section.id }}">
-        <div class="container">
-          <div class="section-header">
-            <div class="section-header__text">
-              <h2 class="section-header__heading" id="ArticleProducts-{{ section.id }}">
-                {{ section.settings.related_heading | default: 'מוצרים מהמאמר' | escape }}
-              </h2>
-            </div>
-          </div>
-
-          <div class="grid grid--4">
-            {%- for product in related limit: 4 -%}
-              {%- if product != blank and product.available -%}
-                {% render 'product-card', product: product, lazy: true %}
-              {%- endif -%}
-            {%- endfor -%}
-          </div>
-        </div>
-      </section>
-    {%- endif -%}
-  {%- endif -%}
-
   {%- assign show_tags_row = false -%}
   {%- if section.settings.show_tags and article.tags.size > 0 -%}
     {%- assign show_tags_row = true -%}
@@ -367,19 +322,6 @@
       "id": "show_tags",
       "label": "הצגת תגיות",
       "default": true
-    },
-    {
-      "type": "checkbox",
-      "id": "show_related_products",
-      "label": "הצגת מוצרים מהמאמר",
-      "info": "המוצרים נבחרים לכל מאמר בנפרד, בשדה \"מוצרים קשורים\" שבעריכת המאמר. מוצר שאזל או שאינו זמין לא יוצג.",
-      "default": true
-    },
-    {
-      "type": "text",
-      "id": "related_heading",
-      "label": "כותרת מדור המוצרים",
-      "default": "מוצרים מהמאמר"
     },
     {
       "type": "checkbox",
