@@ -1,3 +1,12 @@
+/*
+ * ------------------------------------------------------------
+ * IMPORTANT: The contents of this file are auto-generated.
+ *
+ * This file may be updated by the Shopify admin language editor
+ * or related systems. Please exercise caution as any changes
+ * made to this file may be overwritten.
+ * ------------------------------------------------------------
+ */
 {
   "accessibility_widget": {
     "big_cursor": "סמן גדול",
@@ -289,6 +298,11 @@
       "subtitle": "העמוד שחיפשתם הועבר או שאינו קיים. אולי תמצאו את מה שחיפשתם בקטלוג שלנו.",
       "title": "העמוד לא נמצא"
     },
+    "legal": {
+      "contact_text": "לא ברור משהו במסמך? נשמח להסביר בטלפון או במייל.",
+      "lead": "המסמך הזה חל על השימוש באתר ועל הזמנות שבוצעו דרכו.",
+      "nav_label": "מסמכים ומידע על החברה"
+    },
     "meta": {
       "page": "עמוד {{ page }}",
       "tagged": "מסונן לפי: {{ tags }}"
@@ -358,6 +372,9 @@
       "twitter": "טוויטר",
       "whatsapp": "וואטסאפ",
       "youtube": "יוטיוב"
+    },
+    "collections": {
+      "all_products": "כל המוצרים"
     }
   },
   "gift_cards": {
@@ -476,6 +493,8 @@
       "include_taxes": "המחיר כולל מע\"מ.",
       "low_stock": {
         "one": "נותרה יחידה אחרונה במלאי",
+        "two": "נותרו {{ count }} יחידות אחרונות במלאי",
+        "many": "נותרו {{ count }} יחידות אחרונות במלאי",
         "other": "נותרו {{ count }} יחידות אחרונות במלאי"
       },
       "media": {
@@ -484,11 +503,14 @@
         "open_media": "הגדלת תמונה {{ index }}"
       },
       "new": "חדש",
+      "official_importer": "יבואן רשמי",
       "on_sale": "מבצע",
       "out_of_stock": "אזל מהמלאי",
       "pickup_available": "איסוף עצמי זמין מהחנות בקרית ענבים",
       "quantity_in_cart": {
         "one": "פריט אחד כבר בעגלה",
+        "two": "{{ count }} פריטים כבר בעגלה",
+        "many": "{{ count }} פריטים כבר בעגלה",
         "other": "{{ count }} פריטים כבר בעגלה"
       },
       "quantity_label": "כמות",

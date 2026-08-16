@@ -324,7 +324,13 @@
   transition: opacity var(--duration-base) ease, visibility 0s var(--duration-base);
 }
 
-.product-zoom__frame.is-active {
+/* Gated on .is-open, not just .is-active. `visibility: visible` on a descendant
+   overrides the closed modal's `hidden`, so without the gate the active frame and
+   its image stayed visible to assistive technology — a screen reader could reach
+   the zoom images of a dialog that was never opened — and stayed hit-testable,
+   covering the page beneath. Painting is still driven by .is-active, so the frame
+   the script selects is the one that appears when the dialog opens. */
+.product-zoom.is-open .product-zoom__frame.is-active {
   opacity: 1;
   visibility: visible;
   transition: opacity var(--duration-base) ease;
@@ -433,6 +439,21 @@
   flex-wrap: wrap;
   gap: 0.4rem;
   margin-block-start: 0.55rem;
+}
+
+/* Official-importer seal over the gallery corner. The wrapper needs its own
+   positioning context on mobile only (desktop already makes it sticky, and an
+   unconditional `relative` would override that sticky and leave its
+   inset-block-start offset applied). */
+@media (max-width: 989.98px) {
+  .product-layout__media { position: relative; }
+}
+
+.product-page__importer {
+  position: absolute;
+  inset-block-start: 0.9rem;
+  inset-inline-end: 0.9rem;
+  z-index: 3;
 }
 
 .product-info__sku {

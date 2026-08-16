@@ -17,11 +17,71 @@
       <link rel="icon" type="image/png" href="{{ settings.favicon | image_url: width: 96, height: 96 }}">
     {%- endif -%}
 
+    {%- comment -%}
+      On /cart, Shopify supplies page_title from its own platform strings rather than
+      from the theme's locales, and it comes through in English ("Your Shopping Cart")
+      on a lang="he-IL" page. The <h1> in main-cart.liquid is already Hebrew via
+      'cart.general.title', so the document title is made to match it.
+    {%- endcomment -%}
+    {%- comment -%}
+      אותה בעיה חוזרת בשמונה עמודים נוספים, ומאותו שורש: page_title מגיע
+      מהמחרוזות של שופיפיי עצמה ולא מהתרגומים של התבנית, ולכן על עמוד
+      lang="he-IL" תג ה-title יוצא אנגלי בעוד ה-H1 עברי. זה נראה שבור בתוצאות
+      החיפוש של גוגל, שקוראות את ה-title ולא את ה-H1.
+
+      הרשימה נמדדה על האתר החי: /collections/all החזיר "Products",
+      /collections החזיר "Collections", ארבעת עמודי המדיניות החזירו את השמות
+      האנגליים שנשארו בברירת המחדל של הממשק, ו-/404 החזיר "404 Not Found".
+
+      כל המחרוזות העבריות כבר קיימות בקבצי התרגום ומשמשות את הכותרות בגוף
+      העמוד — כאן הן פשוט מוחלות גם על ה-title, כך שהשניים מסכימים.
+
+      המדיניות מזוהה לפי request.path ולא לפי אובייקט policy, שאינו זמין
+      בפריסה. אותו מיפוי-לפי-handle שכבר עושים snippets/legal-nav.liquid
+      ו-templates/policy.liquid, וכאן עם page_title כנפילה אחורה כדי שסוג
+      מדיניות שהתבנית לא מכירה עדיין יציג משהו.
+    {%- endcomment -%}
+    {%- liquid
+      assign doc_title = page_title
+
+      if template.name == 'cart'
+        assign doc_title = 'cart.general.title' | t
+      elsif template.name == '404'
+        assign doc_title = 'general.error_404.title' | t
+      elsif template.name == 'list-collections'
+        assign doc_title = 'general.breadcrumbs.collections' | t
+      elsif template.name == 'search'
+        assign doc_title = 'general.search.title' | t
+        if search.performed and search.terms != blank
+          assign doc_title = doc_title | append: ': ' | append: search.terms
+        endif
+      elsif template.name == 'collection' and collection.handle == 'all'
+        assign doc_title = 'general.collections.all_products' | t
+      elsif request.path contains '/policies/'
+        assign policy_handle = request.path | split: '/' | last
+        case policy_handle
+          when 'refund-policy'
+            assign doc_title = 'sections.footer.policies.refund' | t
+          when 'shipping-policy'
+            assign doc_title = 'sections.footer.policies.shipping' | t
+          when 'privacy-policy'
+            assign doc_title = 'sections.footer.policies.privacy' | t
+          when 'terms-of-service'
+            assign doc_title = 'sections.footer.policies.terms' | t
+          when 'legal-notice'
+            assign doc_title = 'sections.footer.policies.legal' | t
+          when 'contact-information'
+            assign doc_title = 'sections.footer.policies.contact' | t
+          when 'subscription-policy'
+            assign doc_title = 'sections.footer.policies.subscription' | t
+        endcase
+      endif
+    -%}
     <title>
-      {{ page_title }}
+      {{ doc_title }}
       {%- if current_tags %} &ndash; {{ 'general.meta.tagged' | t: tags: current_tags | join: ', ' }}{% endif -%}
       {%- if current_page != 1 %} &ndash; {{ 'general.meta.page' | t: page: current_page }}{% endif -%}
-      {%- unless page_title contains shop.name %} &ndash; {{ shop.name }}{% endunless -%}
+      {%- unless doc_title contains shop.name %} &ndash; {{ shop.name }}{% endunless -%}
     </title>
 
     {% if page_description %}
@@ -168,6 +228,15 @@
         --color-accent-rgb: {{ settings.color_accent.rgb | replace: ' ', ', ' }};
         --color-accent-soft: {{ settings.color_accent | color_mix: '#ffffff', 8 }};
         --color-accent-tint: {{ settings.color_accent | color_mix: '#ffffff', 14 }};
+        {%- comment -%}
+          Accent text sitting ON one of the two accent washes above. The accent
+          itself is only 4.47:1 on --color-accent-soft and 4.06:1 on
+          --color-accent-tint, both under the 4.5:1 that WCAG 2.0 AA — and so
+          ת"י 5568 — requires for body-size text. The hover shade clears it on
+          both (6.07:1 and 5.52:1) at the same hue, so it is the readable ink for
+          these surfaces rather than a hover-only colour.
+        {%- endcomment -%}
+        --color-accent-ink: {{ settings.color_accent_hover }};
 
         /* ---- Structure ---- */
         --color-ink: {{ settings.color_ink }};
@@ -198,7 +267,7 @@
         --color-sale: {{ settings.color_sale }};
         --color-highlight: {{ settings.color_highlight }};
         --color-highlight-rgb: {{ settings.color_highlight.rgb | replace: ' ', ', ' }};
-        --color-tile-bg: {{ settings.color_tile_bg | default: settings.color_highlight }};
+        --color-tile-bg: {{ settings.color_tile_bg | default: '#EFE9DF' }};
 
         --color-on-accent: #ffffff;
         --color-on-ink: #eef1f6;
@@ -280,7 +349,93 @@
     {% sections 'header-group' %}
 
     <main id="MainContent" class="main-content" role="main" tabindex="-1">
-      {{ content_for_layout }}
+      {%- comment -%}
+        The four /policies/* documents are the one page type this theme cannot give
+        a template to: `policy` is not in Shopify's list of supported templates, so
+        a templates/policy.liquid is simply ignored and Shopify prints the document
+        itself into content_for_layout, wrapped in its own .shopify-policy__* divs.
+
+        Two things had to be fixed from out here rather than from a template:
+
+        1. Shopify's own heading prints policy.title, and those titles are the
+           English admin defaults ("Refund policy", "Terms of service") — English
+           headings above Hebrew text. The real title is resolved from the locale by
+           handle instead, exactly as the footer and snippets/legal-nav.liquid do,
+           and Shopify's heading is hidden in section-page.css.
+        2. The document arrived with no container and no reading measure, running
+           the full width of the viewport.
+
+        The wrapper only appears on policy pages, so every other page keeps its
+        template's own layout untouched.
+      {%- endcomment -%}
+      {%- if request.page_type == 'policy' -%}
+        {%- liquid
+          assign policy_handle = request.path | split: '/' | last
+          case policy_handle
+            when 'refund-policy'
+              assign policy_label = 'sections.footer.policies.refund' | t
+            when 'shipping-policy'
+              assign policy_label = 'sections.footer.policies.shipping' | t
+            when 'privacy-policy'
+              assign policy_label = 'sections.footer.policies.privacy' | t
+            when 'terms-of-service'
+              assign policy_label = 'sections.footer.policies.terms' | t
+            when 'contact-information'
+              assign policy_label = 'sections.footer.policies.contact' | t
+            when 'subscription-policy'
+              assign policy_label = 'sections.footer.policies.subscription' | t
+            when 'legal-notice'
+              assign policy_label = 'sections.footer.policies.legal' | t
+            else
+              assign policy_label = blank
+          endcase
+        -%}
+        {{ 'section-page.css' | asset_url | stylesheet_tag }}
+        <section class="section main-page main-page--policy">
+          <div class="container container--text">
+            {%- if settings.show_breadcrumbs -%}
+              <nav class="breadcrumbs main-page__crumbs" aria-label="{{ 'general.breadcrumbs.label' | t }}">
+                <a href="{{ routes.root_url }}">{{ 'general.breadcrumbs.home' | t }}</a>
+                <span class="breadcrumbs__sep" aria-hidden="true">
+                  {% render 'icon', name: 'chevron-right', size: 14, class: 'icon--dir' %}
+                </span>
+                <span class="breadcrumbs__current" aria-current="page">{{ policy_label | escape }}</span>
+              </nav>
+            {%- endif -%}
+
+            {%- if policy_label != blank -%}
+              <header class="main-page__head">
+                <h1 class="main-page__title blueprint-underline">{{ policy_label | escape }}</h1>
+                <p class="main-page__lead">{{ 'general.legal.lead' | t }}</p>
+              </header>
+            {%- endif -%}
+
+            <div class="main-page__content rte rte--legal">
+              {{ content_for_layout }}
+            </div>
+
+            {% render 'legal-nav', current_url: request.path %}
+
+            <div class="main-page__footer">
+              <p class="main-page__footer-text">{{ 'general.legal.contact_text' | t }}</p>
+              {%- if settings.store_phone != blank -%}
+                <a href="tel:{{ settings.store_phone | remove: '-' | remove: ' ' }}" class="btn btn--outline btn--sm">
+                  {% render 'icon', name: 'phone', size: 16 %}
+                  <span class="main-page__phone">{{ settings.store_phone }}</span>
+                </a>
+              {%- endif -%}
+              {%- if settings.store_email != blank -%}
+                <a href="mailto:{{ settings.store_email }}" class="btn btn--ghost btn--sm">
+                  {% render 'icon', name: 'mail', size: 16 %}
+                  <span class="main-page__phone">{{ settings.store_email }}</span>
+                </a>
+              {%- endif -%}
+            </div>
+          </div>
+        </section>
+      {%- else -%}
+        {{ content_for_layout }}
+      {%- endif -%}
     </main>
 
     {% sections 'footer-group' %}
@@ -316,5 +471,18 @@
       <li id="a11y-refresh-page-message">{{ 'general.accessibility.refresh_page' | t }}</li>
       <li id="a11y-new-window-message">{{ 'general.accessibility.link_opens_new_tab' | t }}</li>
     </ul>
+
+    {%- comment -%}
+      המומחה של שילו — AI shopping assistant widget (snippets/ai-assistant.liquid).
+      Only rendered when the assistant server URL is configured in theme settings.
+
+      This line is the whole reason the site assistant had never once appeared.
+      The snippet was deployed and the layout that called it only ever existed in
+      the repo: v7 and v8 were built without it, while gaining the /policies/*
+      block above that the repo never had. Neither copy was a superset, so this
+      file is the merge of the two. Do not resolve a future divergence here by
+      overwriting one side with the other — diff them.
+    {%- endcomment -%}
+    {% if settings.assistant_enabled and settings.assistant_url != blank %}{% render 'ai-assistant' %}{% endif %}
   </body>
 </html>

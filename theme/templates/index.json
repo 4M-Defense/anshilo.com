@@ -3,10 +3,15 @@
     "hero": {
       "type": "image-banner",
       "settings": {
+        "image": "shopify://shop_images/unnamed.jpg",
+        "mobile_image": "shopify://shop_images/unnamed_04c330e3-6366-4b4c-bf13-c62e53b13266.jpg",
+        "collection": "",
         "height": "large",
-        "overlay_opacity": 55,
-        "eyebrow": "מאז 1990 · קיבוץ קרית ענבים",
-        "heading": "חומרי בניין, כלי עבודה ואספקה טכנית - הכל במקום אחד",
+        "overlay_opacity": 25,
+        "motion_intensity": "full",
+        "show_detail_drawing": true,
+        "eyebrow": "מאז 1992 · קיבוץ קרית ענבים",
+        "heading": "חומרי בניין, מחסן עצים ואספקה טכנית - הכל תחת קורת גג אחת",
         "subheading": "יותר מ-30 שנה שאנשי מקצוע, קבלנים ובעלי בתים סומכים עלינו. 1,900 מוצרים במלאי, מהמותגים המובילים בעולם, עם ייעוץ של צוות שמכיר את השטח.",
         "alignment": "start",
         "show_search": true,
@@ -17,24 +22,19 @@
         "show_chips": true,
         "chip_1": "30+ שנות ניסיון בענף",
         "chip_2": "משלוחים לכל הארץ",
-        "chip_3": "ייעוץ מקצועי חינם",
-        "motion_intensity": "full",
-        "show_detail_drawing": true
+        "chip_3": "ייעוץ מקצועי חינם"
       }
     },
     "category_rail": {
       "type": "category-rail",
-      "settings": {
-        "heading": "המחלקות שלנו",
-        "show_count": true,
-        "tile_style": "image"
-      },
       "blocks": {
         "r1": {
           "type": "collection",
           "settings": {
             "collection": "כלי-עבודה",
-            "icon": "hammer"
+            "icon": "hammer",
+            "photo_blend": false,
+            "title": ""
           }
         },
         "r2": {
@@ -42,28 +42,35 @@
           "settings": {
             "collection": "כלים-נטענים",
             "icon": "battery",
-            "photo_blend": true
+            "photo_blend": true,
+            "title": ""
           }
         },
         "r3": {
           "type": "collection",
           "settings": {
             "collection": "שקעים-ומפסקים",
-            "icon": "bolt"
+            "icon": "bolt",
+            "photo_blend": false,
+            "title": ""
           }
         },
         "r4": {
           "type": "collection",
           "settings": {
             "collection": "תאורה",
-            "icon": "lightbulb"
+            "icon": "lightbulb",
+            "photo_blend": false,
+            "title": ""
           }
         },
         "r5": {
           "type": "collection",
           "settings": {
             "collection": "אינסטלציה",
-            "icon": "pipe"
+            "icon": "pipe",
+            "photo_blend": false,
+            "title": ""
           }
         },
         "r6": {
@@ -71,14 +78,17 @@
           "settings": {
             "collection": "ברזים",
             "icon": "droplet",
-            "photo_blend": true
+            "photo_blend": true,
+            "title": ""
           }
         },
         "r7": {
           "type": "collection",
           "settings": {
             "collection": "צבע",
-            "icon": "paint-roller"
+            "icon": "paint-roller",
+            "photo_blend": true,
+            "title": ""
           }
         },
         "r8": {
@@ -86,35 +96,45 @@
           "settings": {
             "collection": "סולמות",
             "icon": "ladder",
-            "photo_blend": true
+            "photo_blend": true,
+            "title": ""
           }
         },
         "r9": {
           "type": "collection",
           "settings": {
             "collection": "ניקיון-ותחזוקת-הבית",
-            "icon": "spray"
+            "icon": "spray",
+            "photo_blend": false,
+            "title": ""
           }
         },
         "r10": {
           "type": "collection",
           "settings": {
             "collection": "ציוד-טכני",
-            "icon": "hard-hat"
+            "icon": "hard-hat",
+            "photo_blend": false,
+            "title": ""
           }
         },
         "r11": {
           "type": "collection",
           "settings": {
             "collection": "קמפינג",
-            "icon": "tent"
+            "icon": "tent",
+            "photo_blend": false,
+            "title": ""
           }
         },
         "r12": {
           "type": "collection",
           "settings": {
             "collection": "עץ",
-            "icon": "planks"
+            "icon": "planks",
+            "image": "shopify://shop_images/3716982.webp",
+            "photo_blend": true,
+            "title": ""
           }
         }
       },
@@ -131,13 +151,16 @@
         "r10",
         "r11",
         "r12"
-      ]
+      ],
+      "settings": {
+        "heading": "המחלקות שלנו",
+        "show_count": true,
+        "alt_background": false,
+        "tile_style": "image"
+      }
     },
     "services": {
       "type": "services-bar",
-      "settings": {
-        "alt_background": true
-      },
       "blocks": {
         "s1": {
           "type": "service",
@@ -177,7 +200,10 @@
         "s2",
         "s3",
         "s4"
-      ]
+      ],
+      "settings": {
+        "alt_background": true
+      }
     },
     "offers": {
       "type": "featured-collection",
@@ -195,67 +221,68 @@
     },
     "departments": {
       "type": "collection-list",
-      "settings": {
-        "eyebrow": "186 קטגוריות בקטלוג",
-        "heading": "קונים לפי מחלקה",
-        "show_view_all": true,
-        "columns": 3,
-        "feature_first": false,
-        "alt_background": true
-      },
       "blocks": {
         "c1": {
           "type": "collection",
           "settings": {
-            "collection": "כלי-עבודה"
+            "collection": "כלי-עבודה",
+            "title": ""
           }
         },
         "c2": {
           "type": "collection",
           "settings": {
-            "collection": "שקעים-ומפסקים"
+            "collection": "שקעים-ומפסקים",
+            "title": ""
           }
         },
         "c3": {
           "type": "collection",
           "settings": {
-            "collection": "תאורה"
+            "collection": "תאורה",
+            "title": ""
           }
         },
         "c4": {
           "type": "collection",
           "settings": {
-            "collection": "ניקיון-ותחזוקת-הבית"
+            "collection": "ניקיון-ותחזוקת-הבית",
+            "title": ""
           }
         },
         "c5": {
           "type": "collection",
           "settings": {
-            "collection": "כלים-נטענים"
+            "collection": "כלים-נטענים",
+            "title": ""
           }
         },
         "c6": {
           "type": "collection",
           "settings": {
-            "collection": "אינסטלציה"
+            "collection": "אינסטלציה",
+            "title": ""
           }
         },
         "c7": {
           "type": "collection",
           "settings": {
-            "collection": "ציוד-טכני"
+            "collection": "ציוד-טכני",
+            "title": ""
           }
         },
         "c8": {
           "type": "collection",
           "settings": {
-            "collection": "סולמות"
+            "collection": "סולמות",
+            "title": ""
           }
         },
         "c9": {
           "type": "collection",
           "settings": {
-            "collection": "צבע"
+            "collection": "צבע",
+            "title": ""
           }
         }
       },
@@ -269,7 +296,15 @@
         "c7",
         "c8",
         "c9"
-      ]
+      ],
+      "settings": {
+        "eyebrow": "186 קטגוריות בקטלוג",
+        "heading": "קונים לפי מחלקה",
+        "show_view_all": true,
+        "columns": 3,
+        "feature_first": false,
+        "alt_background": true
+      }
     },
     "bestsellers": {
       "type": "featured-collection",
@@ -281,6 +316,7 @@
         "products_limit": 10,
         "columns": 5,
         "scroll_desktop": false,
+        "highlight": false,
         "alt_background": false
       }
     },
@@ -301,35 +337,37 @@
     },
     "brands": {
       "type": "brand-logos",
-      "settings": {
-        "heading": "המותגים שאנחנו מייצגים",
-        "alt_background": true
-      },
       "blocks": {
         "b1": {
           "type": "brand",
           "settings": {
             "collection": "makita",
-            "name": "מקיטה MAKITA"
+            "name": "מקיטה MAKITA",
+            "link": ""
           }
         },
         "b2": {
           "type": "brand",
           "settings": {
-            "collection": "פתיה"
+            "collection": "פתיה",
+            "name": "",
+            "link": ""
           }
         },
         "b3": {
           "type": "brand",
           "settings": {
             "collection": "חגית",
-            "name": "סולמות חגית"
+            "name": "סולמות חגית",
+            "link": ""
           }
         },
         "b4": {
           "type": "brand",
           "settings": {
-            "collection": "אקווילה"
+            "collection": "אקווילה",
+            "name": "",
+            "link": ""
           }
         },
         "b5": {
@@ -337,93 +375,112 @@
           "settings": {
             "collection": "רסטוליום",
             "logo": "shopify://shop_images/logos-brands-rustoleum.jpg",
-            "name": "רסטוליום"
+            "name": "רסטוליום",
+            "link": ""
           }
         },
         "b6": {
           "type": "brand",
           "settings": {
             "collection": "מילווקי",
-            "name": "מילווקי MILWAUKEE"
+            "name": "מילווקי MILWAUKEE",
+            "link": ""
           }
         },
         "b7": {
           "type": "brand",
           "settings": {
             "collection": "yale",
-            "name": "ייל YALE"
+            "name": "ייל YALE",
+            "link": ""
           }
         },
         "b8": {
           "type": "brand",
           "settings": {
             "collection": "איגלו",
-            "name": "איגלו IGLOO"
+            "name": "איגלו IGLOO",
+            "link": ""
           }
         },
         "b9": {
           "type": "brand",
           "settings": {
-            "collection": "בונה"
+            "collection": "בונה",
+            "name": "",
+            "link": ""
           }
         },
         "b10": {
           "type": "brand",
           "settings": {
             "collection": "האנטר",
-            "name": "האנטר HUNTER"
+            "name": "האנטר HUNTER",
+            "link": ""
           }
         },
         "b11": {
           "type": "brand",
           "settings": {
             "collection": "קרשר",
-            "name": "קרשר KARCHER"
+            "name": "קרשר KARCHER",
+            "link": ""
           }
         },
         "b12": {
           "type": "brand",
           "settings": {
             "collection": "סימנס",
-            "name": "סימנס SIEMENS"
+            "name": "סימנס SIEMENS",
+            "link": ""
           }
         },
         "b13": {
           "type": "brand",
           "settings": {
             "collection": "ניסקו",
-            "name": "ניסקו NISKO"
+            "name": "ניסקו NISKO",
+            "link": ""
           }
         },
         "b14": {
           "type": "brand",
           "settings": {
             "collection": "grohe",
-            "name": "גרו GROHE"
+            "name": "גרו GROHE",
+            "link": ""
           }
         },
         "b15": {
           "type": "brand",
           "settings": {
-            "collection": "קראוס"
+            "collection": "קראוס",
+            "name": "",
+            "link": ""
           }
         },
         "b16": {
           "type": "brand",
           "settings": {
-            "collection": "פלוד"
+            "collection": "פלוד",
+            "name": "",
+            "link": ""
           }
         },
         "b17": {
           "type": "brand",
           "settings": {
-            "collection": "טמבור"
+            "collection": "טמבור",
+            "name": "",
+            "link": ""
           }
         },
         "b18": {
           "type": "brand",
           "settings": {
-            "collection": "בלאנדסטון"
+            "collection": "בלאנדסטון",
+            "name": "",
+            "link": ""
           }
         }
       },
@@ -446,7 +503,11 @@
         "b16",
         "b17",
         "b18"
-      ]
+      ],
+      "settings": {
+        "heading": "המותגים שאנחנו מייצגים",
+        "alt_background": true
+      }
     },
     "new_arrivals": {
       "type": "featured-collection",
@@ -458,6 +519,7 @@
         "products_limit": 10,
         "columns": 5,
         "scroll_desktop": false,
+        "highlight": false,
         "alt_background": false
       }
     },
@@ -465,14 +527,14 @@
       "type": "image-with-text",
       "settings": {
         "collection": "עץ",
+        "media_fit": "cover",
         "flip": true,
         "eyebrow": "מחסן העצים",
         "heading": "עץ, לוחות וקורות - בחיתוך לפי מידה",
         "text": "<p>במחסן העצים שלנו תמצאו עץ גושני, לוחות, קורות ופרופילים - עם חיתוך מדויק לפי המידות שאתם צריכים. הצוות מלווה אתכם משלב התכנון ועד ההעמסה על הרכב, בדיוק כמו שאנחנו עושים כאן כבר יותר מ-30 שנה.</p>",
         "button_label": "לקטלוג העץ",
         "button_link": "/collections/עץ",
-        "alt_background": true,
-        "media_fit": "cover"
+        "alt_background": true
       }
     },
     "about": {
@@ -480,7 +542,7 @@
       "settings": {
         "eyebrow": "מי אנחנו",
         "heading": "בית מסחר לחומרי בניין ואספקה טכנית - עם ותק של מעל 30 שנה",
-        "text": "<p>א.נ. שילו בע\"מ הוא הבית של אנשי המקצוע: חנות חומרי בניין, מחלקת אספקה טכנית ומחסן עצים, הכל במתחם אחד בקיבוץ קרית ענבים. אצלנו תמצאו את המותגים המובילים בעולם, מחירים הוגנים וצוות שמכיר כל מוצר מהשטח - לא ממחסן.</p>",
+        "text": "<p>א.נ. שילו בע\"מ הוא הבית של אנשי המקצוע: חנות חומרי בניין, אספקה טכנית ומחסן עצים, הכל במתחם אחד בקיבוץ קרית ענבים. אצלנו תמצאו את המותגים המובילים בעולם, מחירים הוגנים וצוות שמכיר כל מוצר מהשטח.</p>",
         "button_label": "עוד עלינו",
         "button_link": "/pages/אודות-א-נ-שילו-בעמ",
         "width": "normal",

@@ -37,9 +37,15 @@
         <span
           class="pagination__item pagination__item--current"
           aria-current="page"
-          aria-label="{{ 'general.pagination.current_page' | t: number: part.title }}"
         >
-          {{- part.title -}}
+          {%- comment -%}
+            The name is carried as content rather than aria-label: aria-label is not
+            valid on a plain span, which the HTML validator flags (4.1.1). Same
+            announcement as before - the full sentence is read, the bare digit is
+            hidden so it is not read twice.
+          {%- endcomment -%}
+          <span class="visually-hidden">{{ 'general.pagination.current_page' | t: number: part.title }}</span>
+          <span aria-hidden="true">{{- part.title -}}</span>
         </span>
       {%- else -%}
         <span class="pagination__item pagination__item--gap" aria-hidden="true">{{ part.title }}</span>
