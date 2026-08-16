@@ -8,18 +8,13 @@
   inside the sticky wrapper (see the note in section-header.css) and would otherwise
   resolve against whatever the nearest positioned ancestor happens to be.
 {%- endcomment -%}
-{%- unless section.settings.enable_sticky -%}
-  <style>
-    #shopify-section-{{ section.id }} {
-      position: static;
-      block-size: auto;
-    }
-    #shopify-section-{{ section.id }} .site-header {
-      position: relative;
-      inline-size: auto;
-    }
-  </style>
-{%- endunless -%}
+{%- comment -%}
+  This used to be an inline <style> block keyed on section.id. Shopify wraps every
+  section in a div, and a <style> element is not valid as a child of a div, so it
+  was one of the HTML validation errors on every page (4.1.1). The rules moved to
+  section-header.css, which reaches the wrapper with :has() instead of needing the
+  id interpolated — see the note there. All that is left here is the flag.
+{%- endcomment -%}
 
 {%- liquid
   assign menu = section.settings.menu
@@ -69,7 +64,7 @@
 -%}
 
 <header
-  class="site-header"
+  class="site-header{% unless section.settings.enable_sticky %} site-header--static{% endunless %}"
   {% if section.settings.enable_sticky %}data-sticky-header{% endif %}
 >
   {%- comment -%} Row 1 — slim utility strip on ink {%- endcomment -%}
@@ -146,7 +141,8 @@
               <input
                 id="HeaderSearchInput-desktop-{{ section.id }}"
                 class="header-search__input"
-                type="search"
+                type="text"
+                inputmode="search"
                 name="q"
                 value="{{ search.terms | escape }}"
                 placeholder="{{ 'general.search.placeholder' | t }}"
@@ -257,7 +253,8 @@
             <input
               id="HeaderSearchInput-mobile-{{ section.id }}"
               class="header-search__input"
-              type="search"
+              type="text"
+                inputmode="search"
               name="q"
               value="{{ search.terms | escape }}"
               placeholder="{{ 'general.search.placeholder' | t }}"
@@ -341,24 +338,12 @@
                 endfor
 
                 comment
-                  Thumbs are all-or-nothing PER SIBLING GROUP: a row of entries
-                  where some carry an image and some do not reads as broken, so
-                  the group only gets thumbs when every member resolves a real
-                  collection image. Product-image fallbacks were evaluated
-                  against the live catalogue and rejected: two pairs of sibling
-                  departments share the exact same first product (ניקוי כללי /
-                  ניקוי רצפות; רסטוליום / תרסיסי צבע), which would render the
-                  same photo twice in one panel. The 14 menu collections still
-                  missing images are listed in docs/STORE-HEALTH.md — once the
-                  owner uploads them, the thumbs appear on their own.
+                  Every entry gets a thumb (owner request): the collection's
+                  own image, else a product photo picked by the row's index —
+                  snippets/nav-thumb.liquid carries the offset logic that keeps
+                  sibling collections sharing a first product from showing the
+                  same photo twice in one panel.
                 endcomment
-                assign group_thumbs = true
-                for child in link.links
-                  unless child.type == 'collection_link' and child.object.image != blank
-                    assign group_thumbs = false
-                    break
-                  endunless
-                endfor
               -%}
               <li class="site-nav__item{% if has_mega %} site-nav__item--mega{% endif %}">
                 <details class="site-nav__dropdown" data-disclosure data-nav-dropdown>
@@ -374,9 +359,7 @@
                           {%- for child in link.links -%}
                             <div class="site-nav__col">
                               <a class="site-nav__col-title{% if child.active or child.child_active %} is-active{% endif %}" href="{{ child.url }}">
-                                {%- if group_thumbs -%}
-                                  {% render 'nav-thumb', link: child, size: 40 %}
-                                {%- endif -%}
+                                {% render 'nav-thumb', link: child, size: 40, position: forloop.index0 %}
                                 <span>{{ child.title | escape }}</span>
                                 {% render 'icon', name: 'arrow-right', size: 13, class: 'icon--dir' %}
                               </a>
@@ -425,13 +408,11 @@
                         {%- for child in link.links -%}
                           <li>
                             <a
-                              class="site-nav__sublink{% if group_thumbs %} site-nav__sublink--thumbed{% endif %}{% if child.active %} is-active{% endif %}"
+                              class="site-nav__sublink site-nav__sublink--thumbed{% if child.active %} is-active{% endif %}"
                               href="{{ child.url }}"
                               {% if child.active %}aria-current="page"{% endif %}
                             >
-                              {%- if group_thumbs -%}
-                                {% render 'nav-thumb', link: child, size: 34 %}
-                              {%- endif -%}
+                              {% render 'nav-thumb', link: child, size: 34, position: forloop.index0 %}
                               <span>{{ child.title | escape }}</span>
                             </a>
                           </li>

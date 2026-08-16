@@ -124,15 +124,36 @@
     if (items.length < 2) return;
 
     var interval = parseInt(track.getAttribute('data-rotate-interval'), 10) || 5000;
-    var reduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     var index = 0;
     var timer = null;
+
+    /* Evaluated on every start(), not once at init. The visitor can turn motion off
+       from the accessibility menu at any point in the session, and this bar swaps
+       its content on a timer — accessibility.css can flatten the crossfade but it
+       cannot stop a setInterval, so nothing here was under the visitor's control
+       before. WCAG 2.2.2 wants a mechanism to pause auto-updating content; the
+       widget is that mechanism, and this is what makes it reach the bar. */
+    function reduced() {
+      var root = document.documentElement.classList;
+      return (
+        root.contains('a11y-motion') ||
+        root.contains('no-animations') ||
+        (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches)
+      );
+    }
 
     function show(i) {
       index = i;
       items.forEach(function (item, n) {
-        item.classList.toggle('is-active', n === i);
-        item.setAttribute('aria-hidden', n === i ? 'false' : 'true');
+        var active = n === i;
+        item.classList.toggle('is-active', active);
+        item.setAttribute('aria-hidden', active ? 'false' : 'true');
+        /* Hidden slides fade out with opacity only, which leaves their links in
+           the tab order — keep focusability in sync with the active slide. */
+        item.querySelectorAll('a[href]').forEach(function (a) {
+          if (active) a.removeAttribute('tabindex');
+          else a.setAttribute('tabindex', '-1');
+        });
       });
     }
 
@@ -144,12 +165,24 @@
     }
 
     function start() {
-      if (reduced) return;
+      if (reduced()) return;
       stop();
       timer = setInterval(function () {
         show((index + 1) % items.length);
       }, interval);
     }
+
+    /* accessibility.js re-applies its state on every toggle and fires this, so a
+       rotation already in flight halts the moment the visitor asks it to — and
+       resumes on the first slide if they change their mind. */
+    document.addEventListener('shilo:motion', function () {
+      if (reduced()) {
+        stop();
+        show(0);
+      } else {
+        start();
+      }
+    });
 
     /* Exposed for the theme editor (block select/deselect) */
     track._pin = function (item) {
@@ -411,8 +444,20 @@
     /* Keyboard: combobox-style navigation into the results panel */
     input.addEventListener('keydown', function (e) {
       if (e.key === 'Escape') {
-        closePanel();
-        return;
+        /* The field is type="search", and the browser's own handling of Escape on
+           one of those is to clear the value — which fires `input`, which lands in
+           the empty-query branch and re-opens the panel on the popular row. So
+           Escape looked like it did nothing at all.
+
+           Closing the popup first and leaving the value alone is also what the
+           ARIA combobox pattern asks for: the first Escape dismisses the popup,
+           and only a second one clears the field. So the default is suppressed
+           only while there is a popup to dismiss. */
+        if (!panel.hidden) {
+          e.preventDefault();
+          closePanel();
+          return;
+        }
       }
       if (e.key === 'ArrowDown' && !panel.hidden) {
         var first = panel.querySelector('a[href], button:not([disabled])');
@@ -505,7 +550,19 @@
         for (var i = 0; i < dropdowns.length; i++) {
           if (dropdowns[i].open) openCount++;
         }
-        if (item.open) closeOthers(item);
+        if (item.open) {
+          closeOthers(item);
+          /* The row wraps at 990-1400px, so the CSS nth-last-child guard misses
+             flyouts on items that end the first line. Measure every open path
+             (hover, focus, native tap) with the override cleared to avoid
+             measuring an already-flipped panel. */
+          var panel = item.querySelector('.site-nav__panel--flyout');
+          if (panel) {
+            panel.classList.remove('is-edge');
+            var r = panel.getBoundingClientRect();
+            panel.classList.toggle('is-edge', r.left < 0 || r.right > document.documentElement.clientWidth);
+          }
+        }
       });
 
       if (hoverCapable) {

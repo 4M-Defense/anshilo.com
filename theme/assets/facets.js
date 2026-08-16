@@ -121,6 +121,8 @@
     // Remember UI state that the server render would reset.
     var drawer = document.getElementById(DRAWER_ID);
     var drawerWasOpen = !!(drawer && drawer.classList.contains('is-open'));
+    var drawerBody = drawer ? drawer.querySelector('.drawer__body') : null;
+    var drawerScroll = drawerBody ? drawerBody.scrollTop : 0;
 
     var openFacets = [];
     container.querySelectorAll('details[data-facet]').forEach(function (details) {
@@ -163,8 +165,12 @@
         freshDrawer.style.transition = '';
         if (window.ShiloDrawers) window.ShiloDrawers.activeDrawer = freshDrawer;
         if (window.trapFocus) window.trapFocus(freshDrawer);
+        // The swap rebuilt the drawer's scroller — put the shopper back where they were.
+        var freshBody = freshDrawer.querySelector('.drawer__body');
+        if (freshBody) freshBody.scrollTop = drawerScroll;
       }
     }
+    syncDrawerA11y();
 
     // Restore focus to the control the user was interacting with.
     if (focusMemo) {
@@ -179,7 +185,14 @@
         });
         if (!target && candidates.length) target = candidates[0];
       }
-      if (target) target.focus({ preventScroll: true });
+      if (target) {
+        target.focus({ preventScroll: true });
+        // The swap replaced the input with the server-rendered value from the
+        // *fetched* URL; put back what the shopper had typed at swap time.
+        if (target.matches('[data-price-input]') && target.value !== focusMemo.value) {
+          target.value = focusMemo.value;
+        }
+      }
     }
 
     // Reveal-on-scroll elements arrive without the observer — show them.
@@ -270,6 +283,30 @@
     params.delete('section_id');
     renderPage(params, { updateHistory: false, force: true });
   });
+
+  /* ---------- Drawer ARIA: dialog on mobile, plain sidebar on desktop ----------
+     The server always renders #FacetsDrawer as a closed dialog (aria-hidden="true"),
+     but at >=990px CSS turns it into a static, always-visible sidebar whose
+     controls stay keyboard-focusable — so the dialog ARIA must come off there
+     or screen readers never see the filters. */
+  var desktopQuery = window.matchMedia(DESKTOP);
+
+  function syncDrawerA11y() {
+    var drawer = document.getElementById(DRAWER_ID);
+    if (!drawer) return;
+    if (desktopQuery.matches) {
+      drawer.removeAttribute('aria-hidden');
+      drawer.removeAttribute('role');
+      drawer.removeAttribute('aria-modal');
+    } else {
+      drawer.setAttribute('role', 'dialog');
+      drawer.setAttribute('aria-modal', 'true');
+      drawer.setAttribute('aria-hidden', drawer.classList.contains('is-open') ? 'false' : 'true');
+    }
+  }
+
+  if (desktopQuery.addEventListener) desktopQuery.addEventListener('change', syncDrawerA11y);
+  else if (desktopQuery.addListener) desktopQuery.addListener(syncDrawerA11y); // iOS Safari <14
 
   /* ---------- Desktop: open all facet groups ---------- */
   function openDesktopFacets(scope) {
@@ -369,6 +406,7 @@
     lastQuery = initial.toString();
 
     openDesktopFacets(document);
+    syncDrawerA11y();
     initFacetLists(document);
     initCollapsibleDesc();
   }
@@ -381,7 +419,278 @@
 
   document.addEventListener('shopify:section:load', function () {
     openDesktopFacets(document);
+    syncDrawerA11y();
     initFacetLists(document);
     initCollapsibleDesc();
+  });
+})();
+
+/* ---------------------------------------------------------------------------
+ * Price slider — draggable handles over the price track
+ * -------------------------------------------------------------------------
+ *
+ * The two number inputs stay the source of truth. Dragging writes into them
+ * and fires their `input` event, which the debounced handler above already
+ * listens for — so the slider needs no render logic of its own.
+ *
+ * Everything is delegated from `document`, because the facets markup is
+ * replaced wholesale on every AJAX re-render. A listener bound to a handle
+ * would survive exactly one filter change.
+ *
+ * The direction handling is the part that matters on this store. The track
+ * fills with `inset-inline-start`, so on an RTL page it grows from the right
+ * and the low price sits on the right — which is what a Hebrew reader
+ * expects. It also means a finger moving right must *lower* the value, so the
+ * fraction is inverted whenever the computed direction is rtl. Hard-coding
+ * left-to-right here would invert the whole control on the live site.
+ * ------------------------------------------------------------------------- */
+(function () {
+  'use strict';
+
+  var DRAG = null;
+
+  function sliderOf(el) {
+    return el.closest ? el.closest('[data-price-slider]') : null;
+  }
+
+  function partsOf(slider) {
+    return {
+      max: parseFloat(slider.getAttribute('data-range-max')) || 0,
+      track: slider.querySelector('.facet-price__track'),
+      minHandle: slider.querySelector('[data-price-handle="min"]'),
+      maxHandle: slider.querySelector('[data-price-handle="max"]'),
+    };
+  }
+
+  /*
+   * השדות נלקחים לפי סדר בתוך ה-facet ולא לפי id.
+   *
+   * ה-id נבנה בליקוויד מ-facet_id, שהוא ייחודי לכל מסנן ולא ידוע כאן. סדר
+   * שני השדות בתוך .facet-price קבוע במבנה — מ' ואז עד — ולכן הוא המפתח
+   * היציב היחיד בלי לשכפל את לוגיקת ה-id לצד הלקוח.
+   */
+  function inputs(slider) {
+    var facet = slider.closest('.facet-price');
+    var list = facet ? facet.querySelectorAll('[data-price-input]') : [];
+    return { min: list[0] || null, max: list[1] || null };
+  }
+
+  /** הערך הנוכחי של שדה, או קצה הטווח כשהוא ריק — placeholder אינו ערך */
+  function valueOf(input, fallback) {
+    if (!input) return fallback;
+    var v = parseFloat(input.value);
+    return isNaN(v) ? fallback : v;
+  }
+
+  function paint(slider, minV, maxV) {
+    var p = partsOf(slider);
+    if (!p.max) return;
+    var a = Math.max(0, Math.min(100, (minV / p.max) * 100));
+    var b = Math.max(0, Math.min(100, (maxV / p.max) * 100));
+    if (p.track) {
+      p.track.style.setProperty('--range-start', a + '%');
+      p.track.style.setProperty('--range-span', Math.max(0, b - a) + '%');
+    }
+    if (p.minHandle) {
+      p.minHandle.style.setProperty('--handle-at', a + '%');
+      p.minHandle.setAttribute('aria-valuenow', String(Math.round(minV)));
+    }
+    if (p.maxHandle) {
+      p.maxHandle.style.setProperty('--handle-at', b + '%');
+      p.maxHandle.setAttribute('aria-valuenow', String(Math.round(maxV)));
+    }
+  }
+
+  /**
+   * מיקום המצביע כשבר על הציר, עם היפוך ב-RTL.
+   *
+   * הכיוון נקרא מ-getComputedStyle ולא מבדיקה של dir על html: הוא יכול
+   * להיות מוגדר על אב כלשהו, וזה מה שהדפדפן באמת מיישם.
+   */
+  function fractionAt(track, clientX) {
+    var rect = track.getBoundingClientRect();
+    if (!rect.width) return 0;
+    var f = (clientX - rect.left) / rect.width;
+    if (getComputedStyle(track).direction === 'rtl') f = 1 - f;
+    return Math.max(0, Math.min(1, f));
+  }
+
+  /**
+   * מעדכן שדה ומודיע עליו, כדי שהרענון המושהה הקיים יתפוס.
+   *
+   * ערך שנמצא על קצה הטווח נכתב כשדה **ריק** ולא כמספר. גרירה עד הסוף היא
+   * "בלי הגבלה", ולכתוב 0 במינימום או 9000 במקסימום פירושו לשלוח פרמטר
+   * סינון שאינו מסנן דבר: הכתובת מקבלת filter.v.price.gte=0, החנות מציגה
+   * צ'יפ של מסנן פעיל, ו"נקה סינון" מופיע בלי שהמשתמש סינן משהו.
+   */
+  function commit(input, value, boundary) {
+    if (!input) return;
+    var atBoundary = boundary != null && Math.round(value) === Math.round(boundary);
+    var next = atBoundary ? '' : String(Math.round(value));
+    if (input.value === next) return;
+    input.value = next;
+    input.dispatchEvent(new Event('input', { bubbles: true }));
+  }
+
+  document.addEventListener('pointerdown', function (event) {
+    var handle = event.target.closest ? event.target.closest('[data-price-handle]') : null;
+    var slider = handle ? sliderOf(handle) : sliderOf(event.target);
+    if (!slider) return;
+    var p = partsOf(slider);
+    if (!p.max || !p.track) return;
+
+    /*
+     * נגיעה בפס עצמו, ולא בידית, מקרבת אליה את הידית הסמוכה וממשיכה משם
+     * לגרירה.
+     *
+     * בלי זה הפס נראה אינטראקטיבי ואינו כזה: הידיות הן 22 פיקסלים על רקע
+     * של פס לרוחב כל המסנן, ומשתמש מקיש על הפס במקום שהוא רוצה. סליידר
+     * שמתעלם מהקשה כזאת נחשב שבור, לא מוגבל.
+     */
+    if (!handle) {
+      var io0 = inputs(slider);
+      var minNow = valueOf(io0.min, 0);
+      var maxNow = valueOf(io0.max, p.max);
+      var at = fractionAt(p.track, event.clientX) * p.max;
+      var nearMin = Math.abs(at - minNow) <= Math.abs(at - maxNow);
+      handle = nearMin ? p.minHandle : p.maxHandle;
+      if (!handle) return;
+      if (nearMin) commit(io0.min, Math.min(at, maxNow), 0);
+      else commit(io0.max, Math.max(at, minNow), p.max);
+      paint(slider, nearMin ? Math.min(at, maxNow) : minNow, nearMin ? maxNow : Math.max(at, minNow));
+      /* הפוקוס עובר לידית כדי שחצי המקלדת ימשיכו מאותה נקודה */
+      if (handle.focus) handle.focus();
+    }
+
+    event.preventDefault();
+    /*
+     * `engaged` מבחין בין גרירה לגלילת עמוד.
+     *
+     * הרצועה שמאזינה לנגיעה היא 44 פיקסלים בגובה, ועל הידיות יש
+     * touch-action: none אבל על המעטפת pan-y — כדי שאפשר יהיה לגלול את
+     * העמוד באצבע שמתחילה שם. בלי הסף הזה אותה תנועה אנכית גם גוללת וגם
+     * מזיזה את המחיר, ומשתמש שגלל את הרשימה מגלה שסינן בטעות.
+     *
+     * נגיעה על ידית נחשבת מכוונת ומתחילה גרירה מיד; נגיעה על הפס ממתינה
+     * לתנועה שהיא בעיקר אופקית.
+     */
+    var onHandle = event.target.closest && event.target.closest('[data-price-handle]');
+    DRAG = {
+      handle: handle,
+      slider: slider,
+      which: handle.getAttribute('data-price-handle'),
+      startX: event.clientX,
+      startY: event.clientY,
+      engaged: !!onHandle,
+    };
+    handle.setAttribute('data-dragging', '');
+    /*
+     * לוכדים את המצביע כדי שהגרירה תמשיך גם כשהאצבע יוצאת מהידית — בלעדיו
+     * כל תנועה מהירה מפילה את הגרירה אחרי כמה פיקסלים.
+     */
+    if (handle.setPointerCapture) {
+      try {
+        handle.setPointerCapture(event.pointerId);
+      } catch (e) {
+        /* לא קריטי, הגרירה עדיין עובדת דרך המאזין על document */
+      }
+    }
+  });
+
+  var ENGAGE_PX = 6;
+
+  document.addEventListener('pointermove', function (event) {
+    if (!DRAG) return;
+
+    /* ראו ההערה ב-pointerdown: תנועה אנכית היא גלילה, ומבטלת את הגרירה */
+    if (!DRAG.engaged) {
+      var dx = Math.abs(event.clientX - DRAG.startX);
+      var dy = Math.abs(event.clientY - DRAG.startY);
+      if (dy > dx && dy > ENGAGE_PX) { endDrag(); return; }
+      if (dx > ENGAGE_PX) DRAG.engaged = true;
+      else return;
+    }
+
+    var p = partsOf(DRAG.slider);
+    var io = inputs(DRAG.slider);
+    if (!p.max || !p.track) return;
+
+    var value = fractionAt(p.track, event.clientX) * p.max;
+    var minV = valueOf(io.min, 0);
+    var maxV = valueOf(io.max, p.max);
+
+    /*
+     * הידיות לא עוברות זו את זו. בלי זה מתקבל טווח הפוך, והשרת מחזיר אפס
+     * מוצרים על משהו שנראה למשתמש כמו בחירה סבירה לגמרי.
+     */
+    if (DRAG.which === 'min') minV = Math.min(value, maxV);
+    else maxV = Math.max(value, minV);
+
+    paint(DRAG.slider, minV, maxV);
+    commit(io.min, minV, 0);
+    commit(io.max, maxV, p.max);
+  });
+
+  function endDrag() {
+    if (!DRAG) return;
+    DRAG.handle.removeAttribute('data-dragging');
+    DRAG = null;
+  }
+  document.addEventListener('pointerup', endDrag);
+  document.addEventListener('pointercancel', endDrag);
+
+  /* מקלדת — סליידר בלי חצים אינו נגיש, ו-role="slider" מבטיח שיחפשו אותם */
+  document.addEventListener('keydown', function (event) {
+    var handle = event.target.closest ? event.target.closest('[data-price-handle]') : null;
+    if (!handle) return;
+    var slider = sliderOf(handle);
+    if (!slider) return;
+    var p = partsOf(slider);
+    var io = inputs(slider);
+    if (!p.max) return;
+
+    var step = event.shiftKey ? p.max / 10 : Math.max(1, p.max / 100);
+    var dir = 0;
+    if (event.key === 'ArrowUp' || event.key === 'ArrowRight') dir = 1;
+    else if (event.key === 'ArrowDown' || event.key === 'ArrowLeft') dir = -1;
+    else if (event.key === 'Home') dir = 'min';
+    else if (event.key === 'End') dir = 'max';
+    else return;
+
+    /* בעברית חץ ימינה מקטין, בדיוק כמו שהאצבע זזה */
+    if (typeof dir === 'number' && getComputedStyle(slider).direction === 'rtl') dir = -dir;
+
+    var minV = valueOf(io.min, 0);
+    var maxV = valueOf(io.max, p.max);
+    var which = handle.getAttribute('data-price-handle');
+
+    if (dir === 'min') {
+      if (which === 'min') minV = 0;
+      else maxV = minV;
+    } else if (dir === 'max') {
+      if (which === 'min') minV = maxV;
+      else maxV = p.max;
+    } else if (which === 'min') {
+      minV = Math.max(0, Math.min(minV + dir * step, maxV));
+    } else {
+      maxV = Math.min(p.max, Math.max(maxV + dir * step, minV));
+    }
+
+    event.preventDefault();
+    paint(slider, minV, maxV);
+    commit(io.min, minV, 0);
+    commit(io.max, maxV, p.max);
+  });
+
+  /* הקלדה בשדות מזיזה את הידיות, אחרת הפס והמספרים מציגים דברים שונים */
+  document.addEventListener('input', function (event) {
+    if (!event.target.matches || !event.target.matches('[data-price-input]')) return;
+    if (DRAG) return;
+    var facet = event.target.closest('.facet-price');
+    var slider = facet ? facet.querySelector('[data-price-slider]') : null;
+    if (!slider) return;
+    var p = partsOf(slider);
+    var io = inputs(slider);
+    paint(slider, valueOf(io.min, 0), valueOf(io.max, p.max));
   });
 })();
