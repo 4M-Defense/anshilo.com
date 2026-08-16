@@ -1,0 +1,937 @@
+{%- comment -%}
+  המומחה של שילו — site AI shopping assistant widget.
+
+  Rendered once from layout/theme.liquid, only when settings.assistant_enabled
+  is on AND settings.assistant_url is filled in. The URL is the assistant-server
+  deployment (EAS Hosting); the widget POSTs to {assistant_url}/chat with
+  { messages: [{role, content}...], source: 'site' } and renders the
+  { reply, products } response.
+
+  Self-contained on purpose: styles and vanilla JS live in this snippet, no
+  external libraries, brand look comes from the theme's CSS variables
+  (assets/base.css / layout/theme.liquid :root block).
+
+  Placement: inline-end column (visual bottom-left on this RTL storefront) —
+  the same corner as the contact dock (z-index 80), so when
+  settings.show_contact_dock is on the launcher is raised above the dock.
+  The accessibility widget owns the opposite corner (inline-start, z-index 89).
+{%- endcomment -%}
+
+{%- liquid
+  assign assistant_endpoint = settings.assistant_url | strip
+-%}
+
+<style>
+  .shilo-ai {
+    --shilo-ai-gap: 1rem;
+    font-family: var(--font-body-family);
+  }
+
+  @supports (padding: env(safe-area-inset-bottom)) {
+    .shilo-ai { --shilo-ai-gap: calc(1rem + env(safe-area-inset-bottom)); }
+  }
+
+  /* ---------- Launcher ---------- */
+  .shilo-ai__launcher {
+    position: fixed;
+    inset-block-end: var(--shilo-ai-gap);
+    inset-inline-end: 1rem;
+    z-index: 88; /* above contact dock (80), under a11y widget (89) + drawers (100) */
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.65rem 1.05rem 0.65rem 1.2rem;
+    border: 0;
+    border-radius: var(--radius-pill);
+    background: var(--color-accent);
+    color: var(--color-on-accent);
+    font-family: var(--font-heading-family);
+    font-size: 0.95rem;
+    font-weight: 700;
+    line-height: 1;
+    cursor: pointer;
+    box-shadow: var(--shadow-md);
+    transition: transform var(--duration-fast) var(--ease-out), box-shadow var(--duration-fast) ease, background var(--duration-fast) ease;
+  }
+  .shilo-ai__launcher:hover {
+    background: var(--color-accent-hover, var(--color-accent));
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-lg);
+  }
+  .shilo-ai__launcher:focus-visible {
+    outline: 2px solid var(--color-ink);
+    outline-offset: 3px;
+  }
+  .shilo-ai__launcher .icon { flex-shrink: 0; }
+
+  /* Raised above the floating contact dock (two 52px round buttons + gaps). */
+  .shilo-ai--dock-offset .shilo-ai__launcher {
+    inset-block-end: calc(var(--shilo-ai-gap) + 8.2rem);
+  }
+  /*
+   * בעמוד מוצר, כשפס ההוספה-לעגלה הדביק מופיע, ה-dock מורם ב-5.25rem
+   * (section-main-product.css) — המשגר חייב לעלות באותו סקטור, אחרת הוא
+   * מצייר מעל כפתור הוואטסאפ של ה-dock. אותו טריגר `body:has(...)` בדיוק.
+   */
+  body:has(.product-sticky-bar.is-visible) .shilo-ai--dock-offset .shilo-ai__launcher {
+    inset-block-end: calc(var(--shilo-ai-gap) + 8.2rem + 5.25rem + env(safe-area-inset-bottom));
+  }
+  body:has(.product-sticky-bar.is-visible) .shilo-ai:not(.shilo-ai--dock-offset) .shilo-ai__launcher {
+    inset-block-end: calc(var(--shilo-ai-gap) + 5.25rem + env(safe-area-inset-bottom));
+  }
+
+  /* Subtle pulse ring */
+  .shilo-ai__launcher::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    box-shadow: 0 0 0 0 rgba(var(--color-accent-rgb), 0.55);
+    animation: shilo-ai-pulse 3s var(--ease-out) infinite;
+    pointer-events: none;
+  }
+  @keyframes shilo-ai-pulse {
+    0%   { box-shadow: 0 0 0 0 rgba(var(--color-accent-rgb), 0.45); }
+    70%  { box-shadow: 0 0 0 12px rgba(var(--color-accent-rgb), 0); }
+    100% { box-shadow: 0 0 0 0 rgba(var(--color-accent-rgb), 0); }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .shilo-ai__launcher::before { animation: none; }
+  }
+  html.no-animations .shilo-ai__launcher::before { animation: none; }
+
+  .shilo-ai--open .shilo-ai__launcher { display: none; }
+
+  /* ---------- Panel ---------- */
+  .shilo-ai__panel {
+    position: fixed;
+    inset-block-end: var(--shilo-ai-gap);
+    inset-inline-end: 1rem;
+    z-index: 95; /* above the contact dock + a11y widget, under theme drawers (100) */
+    display: flex;
+    flex-direction: column;
+    inline-size: min(380px, calc(100vw - 2rem));
+    block-size: min(620px, calc(100dvh - 2rem));
+    background: var(--color-surface, var(--color-bg));
+    color: var(--color-text);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-card);
+    box-shadow: var(--shadow-lg);
+    overflow: hidden;
+  }
+  .shilo-ai__panel[hidden] { display: none; }
+
+  @media (max-width: 749px) {
+    .shilo-ai__panel {
+      inset: 0;
+      inline-size: 100%;
+      block-size: 100dvh;
+      border: 0;
+      border-radius: 0;
+    }
+  }
+
+  /* ---------- Header ---------- */
+  .shilo-ai__head {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.9rem 1.1rem;
+    background: var(--color-ink);
+    color: var(--color-on-ink);
+  }
+  .shilo-ai__head-avatar {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    inline-size: 40px;
+    block-size: 40px;
+    flex-shrink: 0;
+    border-radius: 50%;
+    background: var(--color-accent);
+    color: var(--color-on-accent);
+  }
+  .shilo-ai__head-titles { flex: 1; min-inline-size: 0; }
+  .shilo-ai__title {
+    margin: 0;
+    font-family: var(--font-heading-family);
+    font-size: 1.05rem;
+    font-weight: 800;
+    line-height: 1.2;
+    color: inherit;
+  }
+  .shilo-ai__subtitle {
+    margin: 0.1rem 0 0;
+    font-size: 0.8rem;
+    opacity: 0.75;
+  }
+  .shilo-ai__close,
+  .shilo-ai__reset {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    inline-size: 34px;
+    block-size: 34px;
+    flex-shrink: 0;
+    border: 0;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.12);
+    color: inherit;
+    cursor: pointer;
+    transition: background var(--duration-fast) ease;
+  }
+  /* [hidden] מפסיד ל-display של הכלל שמעליו בלי הדגשה מפורשת */
+  .shilo-ai__reset[hidden] { display: none; }
+  .shilo-ai__close:hover,
+  .shilo-ai__reset:hover { background: rgba(255, 255, 255, 0.24); }
+  .shilo-ai__close:focus-visible,
+  .shilo-ai__reset:focus-visible { outline: 2px solid var(--color-on-ink); outline-offset: 2px; }
+
+  /* ---------- Messages ---------- */
+  .shilo-ai__messages {
+    flex: 1;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 0.65rem;
+    padding: 1rem;
+    background: var(--color-surface-alt, var(--color-bg));
+    overscroll-behavior: contain;
+  }
+
+  .shilo-ai__msg {
+    max-inline-size: 88%;
+    padding: 0.6rem 0.85rem;
+    border-radius: var(--radius-base);
+    font-size: 0.92rem;
+    line-height: 1.55;
+  }
+  .shilo-ai__msg--bot {
+    align-self: flex-start;
+    background: var(--color-surface, var(--color-bg));
+    border: 1px solid var(--color-border);
+    border-start-start-radius: 4px;
+  }
+  .shilo-ai__msg--user {
+    align-self: flex-end;
+    background: var(--color-accent);
+    color: var(--color-on-accent);
+    border-start-end-radius: 4px;
+  }
+  .shilo-ai__msg-text {
+    margin: 0;
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+
+  /* Empty state + starter chips */
+  .shilo-ai__intro { margin: 0 0 0.35rem; font-size: 0.92rem; color: var(--color-text-muted); }
+  .shilo-ai__chips { display: flex; flex-direction: column; align-items: flex-start; gap: 0.5rem; }
+  .shilo-ai__chip {
+    border: 1px solid rgba(var(--color-accent-rgb), 0.4);
+    border-radius: var(--radius-pill);
+    background: var(--color-accent-soft, transparent);
+    color: var(--color-accent);
+    padding: 0.45rem 0.9rem;
+    font-family: inherit;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    text-align: start;
+    transition: background var(--duration-fast) ease, color var(--duration-fast) ease;
+  }
+  .shilo-ai__chip:hover { background: var(--color-accent); color: var(--color-on-accent); }
+  .shilo-ai__chip:focus-visible { outline: 2px solid var(--color-accent); outline-offset: 2px; }
+
+  /* Typing indicator */
+  .shilo-ai__typing { display: inline-flex; align-items: center; gap: 5px; padding-block: 0.35rem; }
+  .shilo-ai__typing i {
+    inline-size: 7px;
+    block-size: 7px;
+    border-radius: 50%;
+    background: var(--color-text-muted);
+    animation: shilo-ai-blink 1.2s infinite ease-in-out;
+  }
+  .shilo-ai__typing i:nth-child(2) { animation-delay: 0.18s; }
+  .shilo-ai__typing i:nth-child(3) { animation-delay: 0.36s; }
+  @keyframes shilo-ai-blink {
+    0%, 80%, 100% { opacity: 0.25; transform: translateY(0); }
+    40% { opacity: 1; transform: translateY(-3px); }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .shilo-ai__typing i { animation: none; opacity: 0.6; }
+  }
+
+  /* Product cards */
+  .shilo-ai__products {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    margin-block-start: 0.65rem;
+  }
+  .shilo-ai__product {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    padding: 0.5rem;
+    background: var(--color-surface, var(--color-bg));
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-base);
+    text-decoration: none;
+    color: var(--color-text);
+    transition: border-color var(--duration-fast) ease, box-shadow var(--duration-fast) ease;
+  }
+  .shilo-ai__product:hover {
+    border-color: rgba(var(--color-accent-rgb), 0.55);
+    box-shadow: var(--shadow-sm);
+  }
+  .shilo-ai__product:focus-visible { outline: 2px solid var(--color-accent); outline-offset: 2px; }
+  .shilo-ai__product-img {
+    inline-size: 54px;
+    block-size: 54px;
+    flex-shrink: 0;
+    object-fit: contain;
+    border-radius: var(--radius-sm);
+    background: #fff;
+    border: 1px solid var(--color-border);
+  }
+  .shilo-ai__product-img--empty {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--color-text-muted);
+    font-size: 1.2rem;
+  }
+  .shilo-ai__product-info { min-inline-size: 0; }
+  .shilo-ai__product-title {
+    display: block;
+    font-size: 0.85rem;
+    font-weight: 700;
+    line-height: 1.35;
+    color: var(--color-ink);
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+  }
+  .shilo-ai__product-vendor {
+    display: block;
+    font-size: 0.72rem;
+    color: var(--color-text-muted);
+    margin-block-start: 0.1rem;
+  }
+  .shilo-ai__product-price {
+    display: block;
+    margin-block-start: 0.15rem;
+    font-size: 0.9rem;
+    font-weight: 800;
+    color: var(--color-accent);
+  }
+  .shilo-ai__product-oos {
+    display: inline-block;
+    margin-block-start: 0.15rem;
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: var(--color-danger, #c0392b);
+  }
+
+  /* Error + retry */
+  .shilo-ai__retry {
+    display: inline-block;
+    margin-block-start: 0.5rem;
+    border: 1px solid rgba(var(--color-accent-rgb), 0.5);
+    border-radius: var(--radius-pill);
+    background: transparent;
+    color: var(--color-accent);
+    padding: 0.3rem 0.85rem;
+    font-family: inherit;
+    font-size: 0.82rem;
+    font-weight: 700;
+    cursor: pointer;
+  }
+  .shilo-ai__retry:hover { background: var(--color-accent); color: var(--color-on-accent); }
+
+  /* ---------- Footer: disclaimer + input ---------- */
+  .shilo-ai__disclaimer {
+    margin: 0;
+    padding: 0.45rem 1rem;
+    font-size: 0.72rem;
+    text-align: center;
+    color: var(--color-text-muted);
+    background: var(--color-surface, var(--color-bg));
+    border-block-start: 1px solid var(--color-border);
+  }
+  .shilo-ai__form {
+    display: flex;
+    align-items: flex-end;
+    gap: 0.5rem;
+    padding: 0.65rem 0.85rem 0.85rem;
+    background: var(--color-surface, var(--color-bg));
+  }
+  .shilo-ai__input {
+    flex: 1;
+    resize: none;
+    min-block-size: 42px;
+    max-block-size: 120px;
+    padding: 0.6rem 0.85rem;
+    border: 1px solid var(--color-border-strong, var(--color-border));
+    border-radius: var(--radius-base);
+    background: var(--color-surface-alt, var(--color-bg));
+    color: var(--color-text);
+    font-family: inherit;
+    font-size: 0.92rem;
+    line-height: 1.4;
+  }
+  .shilo-ai__input:focus-visible {
+    outline: none;
+    border-color: var(--color-accent);
+    box-shadow: 0 0 0 2px rgba(var(--color-accent-rgb), 0.2);
+  }
+  .shilo-ai__send {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    inline-size: 42px;
+    block-size: 42px;
+    flex-shrink: 0;
+    border: 0;
+    border-radius: 50%;
+    background: var(--color-accent);
+    color: var(--color-on-accent);
+    cursor: pointer;
+    transition: background var(--duration-fast) ease, transform var(--duration-fast) var(--ease-out);
+  }
+  .shilo-ai__send:hover:not(:disabled) { background: var(--color-accent-hover, var(--color-accent)); transform: scale(1.05); }
+  .shilo-ai__send:disabled { opacity: 0.5; cursor: default; }
+  .shilo-ai__send:focus-visible { outline: 2px solid var(--color-ink); outline-offset: 2px; }
+  .shilo-ai__send .icon { transform: scaleX(-1); } /* point the plane at the send direction in RTL */
+</style>
+
+<div
+  {%- liquid
+    # ה-dock מוצג רק כשיש לו לפחות פרט קשר אחד (ראו contact-dock.liquid) —
+    # ההרמה של המשגר חייבת לשקף את אותו תנאי, אחרת הוא מרחף מעל כלום
+    assign dock_renders = false
+    if settings.show_contact_dock
+      if settings.store_whatsapp != blank or settings.store_phone != blank
+        assign dock_renders = true
+      endif
+    endif
+  -%}
+  class="shilo-ai{% if dock_renders %} shilo-ai--dock-offset{% endif %}"
+  dir="rtl"
+  data-shilo-ai
+  data-endpoint="{{ assistant_endpoint | escape }}"
+>
+  <button
+    type="button"
+    class="shilo-ai__launcher"
+    data-ai-launcher
+    aria-haspopup="dialog"
+    aria-expanded="false"
+    aria-controls="ShiloAssistantPanel"
+  >
+    <svg class="icon" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
+      <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/>
+      <circle cx="8.5" cy="11.5" r="0.6" fill="currentColor" stroke="none"/>
+      <circle cx="12" cy="11.5" r="0.6" fill="currentColor" stroke="none"/>
+      <circle cx="15.5" cy="11.5" r="0.6" fill="currentColor" stroke="none"/>
+    </svg>
+    <span class="shilo-ai__launcher-label">המומחה של שילו</span>
+  </button>
+
+  <div
+    id="ShiloAssistantPanel"
+    class="shilo-ai__panel"
+    role="dialog"
+    aria-modal="true"
+    aria-label="המומחה של שילו — יועץ הקנייה החכם"
+    hidden
+    data-ai-panel
+  >
+    <div class="shilo-ai__head">
+      <span class="shilo-ai__head-avatar" aria-hidden="true">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" focusable="false">
+          <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/>
+        </svg>
+      </span>
+      <div class="shilo-ai__head-titles">
+        <h2 class="shilo-ai__title">המומחה של שילו</h2>
+        <p class="shilo-ai__subtitle">יועץ הקנייה החכם</p>
+      </div>
+      {%- comment -%}
+        השיחה נשמרת ב-localStorage ולכן היא שורדת סגירת דפדפן. זה הכפתור
+        שמאפשר להיפטר ממנה במכוון — בלעדיו אין דרך להתחיל נקי, והשיחה
+        הישנה נפתחת שוב ושוב. מוסתר כשאין שיחה.
+      {%- endcomment -%}
+      <button type="button" class="shilo-ai__reset" data-ai-reset aria-label="התחלת שיחה חדשה" title="שיחה חדשה" hidden>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
+          <path d="M3 2v6h6"/>
+          <path d="M3.51 15a9 9 0 1 0 2.13-9.36L3 8"/>
+        </svg>
+      </button>
+      <button type="button" class="shilo-ai__close" data-ai-close aria-label="סגירת חלון העוזר">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true" focusable="false">
+          <path d="M18 6 6 18M6 6l12 12"/>
+        </svg>
+      </button>
+    </div>
+
+    <div class="shilo-ai__messages" data-ai-messages aria-live="polite" aria-label="שיחה עם המומחה של שילו"></div>
+
+    <p class="shilo-ai__disclaimer">העוזר עשוי לטעות — המחיר הקובע בעמוד המוצר</p>
+
+    <form class="shilo-ai__form" data-ai-form>
+      <textarea
+        class="shilo-ai__input"
+        data-ai-input
+        rows="1"
+        placeholder="מה תרצו למצוא?"
+        aria-label="כתיבת הודעה למומחה של שילו"
+      ></textarea>
+      <button type="submit" class="shilo-ai__send" data-ai-send aria-label="שליחת ההודעה">
+        <svg class="icon" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
+          <path d="M22 2 11 13"/>
+          <path d="M22 2 15 22l-4-9-9-4z"/>
+        </svg>
+      </button>
+    </form>
+  </div>
+</div>
+
+<script>
+  (function () {
+    'use strict';
+
+    var root = document.querySelector('[data-shilo-ai]');
+    if (!root) return;
+
+    var endpointBase = (root.getAttribute('data-endpoint') || '').trim().replace(/\/+$/, '');
+    if (!endpointBase) return;
+    var endpoint = endpointBase + '/chat';
+
+    var launcher = root.querySelector('[data-ai-launcher]');
+    var panel = root.querySelector('[data-ai-panel]');
+    var closeBtn = root.querySelector('[data-ai-close]');
+    var resetBtn = root.querySelector('[data-ai-reset]');
+    var messagesEl = root.querySelector('[data-ai-messages]');
+    var form = root.querySelector('[data-ai-form]');
+    var input = root.querySelector('[data-ai-input]');
+    var sendBtn = root.querySelector('[data-ai-send]');
+
+    var STORAGE_KEY = 'shilo-assistant';
+    var MAX_MESSAGES = 20;
+    var STARTERS = [
+      'מה מתאים לקידוח בבטון?',
+      'ציוד לאיטום מרפסת',
+      'מברגה לשימוש ביתי'
+    ];
+
+    var history = loadHistory();
+    var busy = false;
+    var typingEl = null;
+    var emptyStateEl = null;
+    var lastFocused = null;
+
+    /* ---------- storage ---------- */
+
+    /*
+     * localStorage ולא sessionStorage.
+     *
+     * sessionStorage מת עם הלשונית. בפועל זה אומר שלקוח שסגר את הדפדפן,
+     * או שפתח את החנות מלשונית חדשה, חוזר לשיחה ריקה — ומאבד את ההמלצות
+     * שקיבל. אצל קונה שמשווה מוצרים לאורך כמה ימים זה בדיוק המקרה השכיח.
+     *
+     * localStorage שורד סגירת דפדפן ומשותף ללשוניות של אותו מקור, ולכן
+     * השיחה ממשיכה מאיפה שהיא נקטעה. אין כאן מידע אישי מעבר למה שהלקוח
+     * הקליד בעצמו, והכול נשאר במכשיר שלו — לא נשלח ולא נשמר אצלנו.
+     *
+     * הגישה עטופה ב-try: בגלישה פרטית בספארי ובחסימת אחסון של צד שלישי
+     * עצם הקריאה ל-localStorage זורקת, והווידג'ט חייב להמשיך לעבוד
+     * מהזיכרון בלבד.
+     */
+    function loadHistory() {
+      try {
+        var parsed = JSON.parse(localStorage.getItem(STORAGE_KEY));
+        if (!Array.isArray(parsed)) return [];
+        return parsed.filter(function (m) {
+          return m && (m.role === 'user' || m.role === 'assistant') && typeof m.content === 'string';
+        }).slice(-MAX_MESSAGES);
+      } catch (err) {
+        return [];
+      }
+    }
+
+    /* כפתור "שיחה חדשה" רלוונטי רק כשיש שיחה למחוק */
+    function syncResetButton() {
+      if (resetBtn) resetBtn.hidden = !history.length;
+    }
+
+    function saveHistory() {
+      history = history.slice(-MAX_MESSAGES);
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(history));
+      } catch (err) { /* storage full / blocked — keep going in memory */ }
+      /* כאן ולא ב-renderTranscript בלבד: הודעה בודדת נוספת לתמליל בלי
+         ציור מחדש, ובלי זה הכפתור היה מופיע רק בפתיחה הבאה של החלון */
+      syncResetButton();
+    }
+
+    function clearHistory() {
+      history = [];
+      try {
+        localStorage.removeItem(STORAGE_KEY);
+      } catch (err) { /* חסימת אחסון — הניקוי בזיכרון כבר קרה */ }
+      renderTranscript();
+    }
+
+    /* ---------- rendering (textContent only — never innerHTML with API data) ---------- */
+
+    function scrollToEnd() {
+      messagesEl.scrollTop = messagesEl.scrollHeight;
+    }
+
+    function addBubble(role, text) {
+      var el = document.createElement('div');
+      el.className = 'shilo-ai__msg shilo-ai__msg--' + (role === 'user' ? 'user' : 'bot');
+      var p = document.createElement('p');
+      p.className = 'shilo-ai__msg-text';
+      p.textContent = text;
+      el.appendChild(p);
+      messagesEl.appendChild(el);
+      scrollToEnd();
+      return el;
+    }
+
+    function formatPrice(product) {
+      try {
+        var amount = product.priceRange.minVariantPrice.amount;
+        var n = parseFloat(amount);
+        if (!isFinite(n)) return '';
+        return '₪' + n.toLocaleString('he-IL', { minimumFractionDigits: 0, maximumFractionDigits: 2 });
+      } catch (err) {
+        return '';
+      }
+    }
+
+    function addProducts(bubble, products) {
+      var valid = products.filter(function (p) {
+        return p && typeof p.handle === 'string' && p.handle && typeof p.title === 'string';
+      }).slice(0, 6);
+      if (!valid.length) return;
+
+      var wrap = document.createElement('div');
+      wrap.className = 'shilo-ai__products';
+
+      valid.forEach(function (p) {
+        var card = document.createElement('a');
+        card.className = 'shilo-ai__product';
+        card.href = '/products/' + encodeURIComponent(p.handle);
+
+        var imgUrl = p.featuredImage && typeof p.featuredImage.url === 'string' ? p.featuredImage.url : '';
+        if (/^https:\/\//.test(imgUrl)) {
+          var img = document.createElement('img');
+          img.className = 'shilo-ai__product-img';
+          img.src = imgUrl;
+          img.alt = '';
+          img.loading = 'lazy';
+          img.width = 54;
+          img.height = 54;
+          card.appendChild(img);
+        } else {
+          var ph = document.createElement('span');
+          ph.className = 'shilo-ai__product-img shilo-ai__product-img--empty';
+          ph.setAttribute('aria-hidden', 'true');
+          ph.textContent = '🛠';
+          card.appendChild(ph);
+        }
+
+        var info = document.createElement('span');
+        info.className = 'shilo-ai__product-info';
+
+        var title = document.createElement('span');
+        title.className = 'shilo-ai__product-title';
+        title.textContent = p.title;
+        info.appendChild(title);
+
+        if (typeof p.vendor === 'string' && p.vendor) {
+          var vendor = document.createElement('span');
+          vendor.className = 'shilo-ai__product-vendor';
+          vendor.textContent = p.vendor;
+          info.appendChild(vendor);
+        }
+
+        var price = formatPrice(p);
+        if (price) {
+          var priceEl = document.createElement('span');
+          priceEl.className = 'shilo-ai__product-price';
+          priceEl.textContent = price;
+          info.appendChild(priceEl);
+        }
+
+        if (p.availableForSale === false) {
+          var oos = document.createElement('span');
+          oos.className = 'shilo-ai__product-oos';
+          oos.textContent = 'אזל מהמלאי';
+          info.appendChild(oos);
+        }
+
+        card.appendChild(info);
+        wrap.appendChild(card);
+      });
+
+      bubble.appendChild(wrap);
+      scrollToEnd();
+    }
+
+    function addAssistantMessage(text, products) {
+      var bubble = addBubble('assistant', text);
+      if (Array.isArray(products)) addProducts(bubble, products);
+      return bubble;
+    }
+
+    function showTyping() {
+      hideTyping();
+      typingEl = document.createElement('div');
+      typingEl.className = 'shilo-ai__msg shilo-ai__msg--bot';
+      var dots = document.createElement('span');
+      dots.className = 'shilo-ai__typing';
+      dots.setAttribute('aria-hidden', 'true');
+      for (var i = 0; i < 3; i++) dots.appendChild(document.createElement('i'));
+      var sr = document.createElement('span');
+      sr.style.cssText = 'position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);';
+      sr.textContent = 'המומחה מקליד…';
+      typingEl.appendChild(dots);
+      typingEl.appendChild(sr);
+      messagesEl.appendChild(typingEl);
+      scrollToEnd();
+    }
+
+    function hideTyping() {
+      if (typingEl && typingEl.parentNode) typingEl.parentNode.removeChild(typingEl);
+      typingEl = null;
+    }
+
+    function showError() {
+      var bubble = addBubble('assistant', 'אופס, משהו השתבש בדרך אל המומחה. אפשר לנסות שוב בעוד רגע.');
+      var retry = document.createElement('button');
+      retry.type = 'button';
+      retry.className = 'shilo-ai__retry';
+      retry.textContent = 'לנסות שוב';
+      retry.addEventListener('click', function () {
+        if (busy) return;
+        if (bubble.parentNode) bubble.parentNode.removeChild(bubble);
+        request();
+      });
+      bubble.appendChild(retry);
+      scrollToEnd();
+    }
+
+    /* ---------- empty state ---------- */
+
+    function renderEmptyState() {
+      emptyStateEl = document.createElement('div');
+
+      var intro = document.createElement('p');
+      intro.className = 'shilo-ai__intro';
+      intro.textContent = 'שלום! אני המומחה של שילו. ספרו לי מה אתם צריכים — או התחילו מאחת השאלות:';
+      emptyStateEl.appendChild(intro);
+
+      var chips = document.createElement('div');
+      chips.className = 'shilo-ai__chips';
+      STARTERS.forEach(function (starter) {
+        var chip = document.createElement('button');
+        chip.type = 'button';
+        chip.className = 'shilo-ai__chip';
+        chip.textContent = starter;
+        chip.addEventListener('click', function () {
+          send(starter);
+        });
+        chips.appendChild(chip);
+      });
+      emptyStateEl.appendChild(chips);
+      messagesEl.appendChild(emptyStateEl);
+    }
+
+    function removeEmptyState() {
+      if (emptyStateEl && emptyStateEl.parentNode) emptyStateEl.parentNode.removeChild(emptyStateEl);
+      emptyStateEl = null;
+    }
+
+    function renderTranscript() {
+      messagesEl.textContent = '';
+      emptyStateEl = null;
+      syncResetButton();
+      if (!history.length) {
+        renderEmptyState();
+        return;
+      }
+      history.forEach(function (m) {
+        if (m.role === 'user') {
+          addBubble('user', m.content);
+        } else {
+          addAssistantMessage(m.content, m.products);
+        }
+      });
+    }
+
+    /* ---------- network ---------- */
+
+    function setBusy(state) {
+      busy = state;
+      sendBtn.disabled = state;
+    }
+
+    function request() {
+      setBusy(true);
+      showTyping();
+
+      var payload = {
+        messages: history.map(function (m) {
+          return { role: m.role, content: m.content };
+        }),
+        source: 'site'
+      };
+
+      fetch(endpoint, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      })
+        .then(function (res) {
+          if (!res.ok) throw new Error('HTTP ' + res.status);
+          return res.json();
+        })
+        .then(function (data) {
+          hideTyping();
+          setBusy(false);
+          var reply = data && typeof data.reply === 'string' ? data.reply : '';
+          var products = data && Array.isArray(data.products) ? data.products : [];
+          if (!reply && !products.length) throw new Error('empty reply');
+          addAssistantMessage(reply, products);
+          history.push({ role: 'assistant', content: reply, products: products });
+          saveHistory();
+        })
+        .catch(function () {
+          hideTyping();
+          setBusy(false);
+          showError();
+        });
+    }
+
+    function send(text) {
+      var clean = (text || '').trim();
+      if (!clean || busy) return;
+      removeEmptyState();
+      addBubble('user', clean);
+      history.push({ role: 'user', content: clean });
+      saveHistory();
+      request();
+    }
+
+    /* ---------- open / close + focus management ---------- */
+
+    function isMobileSheet() {
+      return window.matchMedia('(max-width: 749px)').matches;
+    }
+
+    function openPanel() {
+      lastFocused = document.activeElement;
+      renderTranscript();
+      panel.hidden = false;
+      root.classList.add('shilo-ai--open');
+      launcher.setAttribute('aria-expanded', 'true');
+      if (isMobileSheet()) document.body.style.overflow = 'hidden';
+      scrollToEnd();
+      input.focus();
+      document.addEventListener('keydown', onKeydown);
+    }
+
+    function closePanel() {
+      panel.hidden = true;
+      root.classList.remove('shilo-ai--open');
+      launcher.setAttribute('aria-expanded', 'false');
+      document.body.style.overflow = '';
+      document.removeEventListener('keydown', onKeydown);
+      if (lastFocused && typeof lastFocused.focus === 'function' && document.contains(lastFocused)) {
+        lastFocused.focus();
+      } else {
+        launcher.focus();
+      }
+    }
+
+    function onKeydown(event) {
+      if (event.key === 'Escape' && !panel.hidden) {
+        event.stopPropagation();
+        closePanel();
+        return;
+      }
+      /*
+       * מלכודת פוקוס: הפאנל מוכרז aria-modal, ולכן Tab אסור לו לצאת ממנו —
+       * קורא מסך שהפוקוס שלו זולג לדף שמאחורי "המודאל" מאבד את ההקשר.
+       */
+      if (event.key === 'Tab' && !panel.hidden) {
+        var focusables = panel.querySelectorAll(
+          'button, [href], input, textarea, [tabindex]:not([tabindex="-1"])'
+        );
+        if (focusables.length === 0) return;
+        var first = focusables[0];
+        var last = focusables[focusables.length - 1];
+        if (event.shiftKey && document.activeElement === first) {
+          event.preventDefault();
+          last.focus();
+        } else if (!event.shiftKey && document.activeElement === last) {
+          event.preventDefault();
+          first.focus();
+        }
+      }
+    }
+
+    launcher.addEventListener('click', openPanel);
+    closeBtn.addEventListener('click', closePanel);
+
+    /*
+     * מאשרים לפני מחיקה. השיחה נשמרת בדיוק כדי שלא תלך לאיבוד, ולחיצה
+     * בטעות על כפתור בכותרת לא אמורה למחוק אותה. אחרי הניקוי המיקוד חוזר
+     * לשדה הקלט — המשתמש כבר שם, מתחיל לכתוב.
+     */
+    if (resetBtn) {
+      resetBtn.addEventListener('click', function () {
+        if (busy || !history.length) return;
+        if (!window.confirm('למחוק את השיחה הנוכחית ולהתחיל מחדש?')) return;
+        clearHistory();
+        input.focus();
+      });
+    }
+
+    /*
+     * הניקוי של השדה קורה רק אחרי ש-send קיבל את ההודעה: אם העוזר עדיין עונה
+     * (busy), ההודעה נשארת בשדה במקום להימחק לחלל — המשתמש שולח שוב כשיתפנה.
+     */
+    function submitFromInput() {
+      var value = input.value;
+      if (!value.trim() || busy) return;
+      input.value = '';
+      input.style.height = '';
+      send(value);
+    }
+
+    form.addEventListener('submit', function (event) {
+      event.preventDefault();
+      submitFromInput();
+      input.focus();
+    });
+
+    input.addEventListener('keydown', function (event) {
+      if (event.key === 'Enter' && !event.shiftKey) {
+        event.preventDefault();
+        submitFromInput();
+      }
+    });
+
+    input.addEventListener('input', function () {
+      input.style.height = 'auto';
+      input.style.height = Math.min(input.scrollHeight, 120) + 'px';
+    });
+  })();
+</script>

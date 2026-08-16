@@ -427,15 +427,19 @@ summary::-webkit-details-marker { display: none; }
   box-shadow: none;
 }
 
+/* --color-accent-ink, not --color-accent: the plain accent is 4.47:1 on the soft
+   wash and 4.06:1 on the tint, both short of AA. The hover shade reads the same
+   at a glance and clears it on both, so the hover here is carried by the
+   background shift alone. */
 .btn--quiet {
   --btn-bg: var(--color-accent-soft);
-  --btn-color: var(--color-accent);
+  --btn-color: var(--color-accent-ink);
   --btn-border: transparent;
   --btn-shadow: none;
 }
 .btn--quiet:hover {
   --btn-bg: var(--color-accent-tint);
-  --btn-color: var(--color-accent-hover);
+  --btn-color: var(--color-accent-ink);
   box-shadow: none;
 }
 
@@ -529,7 +533,8 @@ summary::-webkit-details-marker { display: none; }
 .badge--new { background: var(--color-ink); color: #fff; }
 .badge--offer { background: var(--color-highlight); color: #3D2600; }
 .badge--outline { background: var(--color-surface); border: 1px solid var(--color-border); color: var(--color-text-muted); }
-.badge--soft { background: var(--color-accent-soft); color: var(--color-accent); }
+/* Badges are 0.76rem — small text, so the full 4.5:1 applies. See --color-accent-ink. */
+.badge--soft { background: var(--color-accent-soft); color: var(--color-accent-ink); }
 
 .chip {
   display: inline-flex;
@@ -601,10 +606,13 @@ summary::-webkit-details-marker { display: none; }
 
 .price--on-sale .price__current { color: var(--color-sale); }
 
+/* The wash is derived from the accent, so the ink is too. Pairing --color-sale
+   with it read 4.47:1 and also let two independent theme settings drift into an
+   unreadable combination; both sides of this badge now move together. */
 .price__save {
   font-size: 0.78em;
   font-weight: 700;
-  color: var(--color-sale);
+  color: var(--color-accent-ink);
   background: var(--color-accent-soft);
   padding: 0.1rem 0.45rem;
   border-radius: var(--radius-pill);
@@ -730,9 +738,53 @@ summary::-webkit-details-marker { display: none; }
   align-items: flex-start;
   gap: 0.35rem;
   pointer-events: none;
+  /* Stop short of the importer seal in the opposite corner:
+     0.6rem inset + 52px seal + 0.6rem inset. */
+  max-inline-size: calc(100% - 4.6rem);
+}
+
+/* Long merchant tag labels truncate instead of running under the seal.
+   display: block because text-overflow is inert on the badge's inline-flex box. */
+.product-card__badges .badge {
+  display: block;
+  max-inline-size: 100%;
+  /* Wrap instead of clipping. This rule used to be `overflow: hidden` with
+     `text-overflow: ellipsis`, and at 200% text size 170px of "אזל מהמלאי" was
+     squeezed into 89px and the rest thrown away - a 1.4.4 failure, because
+     resizing the text lost content. The squeeze is structural: the cap above is
+     calc(100% - 4.6rem), so the seal reservation doubles with the root font while
+     the card's 100% stays put, narrowing the box exactly as the text grows.
+     Wrapping absorbs that; "אזל מהמלאי" breaks over two lines intact.
+     Deliberately no overflow-wrap - a short unbreakable token like "-24%" should
+     spill a few pixels visibly rather than be split into "-2" and "4%", which
+     would read as a different number. Visible overflow loses nothing. */
+  white-space: normal;
+}
+
+/* Official-importer seal (snippets/vendor-badge.liquid). The seal artwork is
+   a round sticker, so no frame of ours — just a soft lift off the photo. */
+.vendor-badge {
+  inline-size: var(--vendor-badge-size, 52px);
+  block-size: var(--vendor-badge-size, 52px);
+  object-fit: contain;
+  pointer-events: none;
+  filter: drop-shadow(0 1px 3px rgba(var(--color-ink-rgb), 0.18));
+}
+
+/* Opposite corner from the sale/new badges, above the hover image swap. */
+.product-card__importer {
+  position: absolute;
+  inset-block-start: 0.6rem;
+  inset-inline-end: 0.6rem;
+  z-index: 2;
 }
 
 .product-card__quick-add {
+  /* Positioned even in the in-flow (touch/mobile) state: the title anchor's
+     ::after overlay covers the whole card at z-index 1, so the button must sit
+     above it in every context or taps navigate instead of adding to cart. */
+  position: relative;
+  z-index: 3;
   padding: 0 0.7rem 0.7rem;
 }
 
@@ -956,6 +1008,14 @@ summary::-webkit-details-marker { display: none; }
 .field__input::placeholder, .field__textarea::placeholder,
 .input::placeholder { color: var(--color-text-muted); opacity: 0.8; }
 
+/* Email/phone inputs carry dir="ltr" so the value reads left-to-right, but
+   direction also decides where text STARTS — left, while the Hebrew fields
+   beside them start at the right. Pull the text back to the far edge (`end`
+   resolves to right inside an LTR element) so every field in a form starts on
+   the same side. Scoped to .field so the quick-order SKU input, which wants
+   text-align: start, is left alone. */
+.field .field__input[dir="ltr"] { text-align: end; }
+
 .select-wrap { position: relative; }
 .select-wrap .icon-chevron {
   position: absolute;
@@ -1053,14 +1113,13 @@ summary::-webkit-details-marker { display: none; }
 }
 .qty__input::-webkit-outer-spin-button, .qty__input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
 
-/* The stepper is a single control, so the focus ring belongs on the whole
-   group rather than on the bare number in the middle. Without the wrapper
-   rule a keyboard user reaching the field would see nothing at all. */
-.qty__input:focus { outline: none; }
-.qty:focus-within {
-  outline: 2px solid var(--color-ink);
-  outline-offset: 2px;
-  border-radius: var(--radius-base);
+/* This field used to be `outline: none` with nothing put back, so tabbing into the
+   quantity — on the product page, in the cart and in the cart drawer — showed no
+   focus indicator at all (WCAG 2.4.7). The offset is negative because .qty sets
+   overflow: hidden, which would clip the global 2px-outset ring. */
+.qty__input:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: -2px;
 }
 
 .qty--sm .qty__btn { inline-size: 34px; }
@@ -1078,6 +1137,12 @@ summary::-webkit-details-marker { display: none; }
   transition: opacity var(--duration-base) ease;
 }
 .overlay.is-open { opacity: 1; pointer-events: auto; }
+
+/* global.js toggles this on <body> while a drawer is open so the page behind
+   can't scroll. The html rule hardens the lock for iOS Safari, where locking
+   body alone is unreliable (harmless where :has() is unsupported). */
+body.scroll-locked { overflow: hidden; }
+html:has(body.scroll-locked) { overflow: hidden; }
 
 .drawer {
   position: fixed;
@@ -1140,6 +1205,16 @@ summary::-webkit-details-marker { display: none; }
   opacity: 0;
 }
 .modal.is-open { visibility: visible; opacity: 1; transition: opacity var(--duration-base) ease; }
+
+/* A closed modal still spans the whole viewport at z-index 110, so it has to be
+   taken out of hit-testing as well as out of sight. `visibility: hidden` above is
+   not enough on its own: any descendant that sets `visibility: visible`
+   explicitly overrides the ancestor and becomes clickable again, and the product
+   zoom's active frame does exactly that. The result was a closed dialog silently
+   swallowing clicks aimed at the page beneath it — on the product page it ate four
+   of the eight controls in the accessibility menu, so a visitor who cannot use a
+   keyboard could not switch on high contrast at all. */
+.modal:not(.is-open) { pointer-events: none; }
 
 .modal__content {
   position: relative;
@@ -1453,10 +1528,13 @@ summary::-webkit-details-marker { display: none; }
 
 .variant-pill input { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
 
+/* The selected variant's label is the one piece of text in this pill, so it takes
+   the readable accent ink rather than the accent itself — see --color-accent-ink.
+   The border stays the full accent: it is a boundary, judged at 3:1, not 4.5:1. */
 .variant-pill.is-selected, .variant-pill:has(input:checked) {
   border-color: var(--color-accent);
   background: var(--color-accent-soft);
-  color: var(--color-accent);
+  color: var(--color-accent-ink);
   box-shadow: 0 0 0 3px rgba(var(--color-accent-rgb), 0.12);
 }
 
@@ -1484,7 +1562,7 @@ summary::-webkit-details-marker { display: none; }
      hiding only the header inside it would print a blank band that tall. */
   .site-header-wrapper,
   .site-header,
-  .site-footer,
+  .footer,
   .contact-dock,
   .drawer,
   .overlay,
