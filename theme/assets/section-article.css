@@ -9,15 +9,28 @@
 /* ---------- Hero image ---------- */
 .article-hero { padding-block-start: clamp(1rem, 2vw, 1.75rem); }
 
+/* The hero is a product shot, not a photograph. At 21:9 across a 1,376px
+   container, `cover` cropped a square photo down to a horizontal sliver and
+   blew that sliver up to fill 590px of screen — a charger arriving the size of
+   a car. Contain shows the whole object, the cap stops it dominating the
+   article it introduces, and white matches the cut-out background the photos
+   already have. */
 .article-hero__media {
-  aspect-ratio: 16 / 9;
+  /* An explicit height rather than a ratio with a max-height on top of it:
+     the two together left the box at its full 16:9 height, so a contained
+     product floated in the middle of an enormous white field and read as
+     badly placed. A fixed band centres the object in a frame the size of a
+     header rather than the size of the article. */
+  block-size: clamp(200px, 34vw, 380px);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-card);
-  background: var(--color-surface-sunken);
+  background: var(--color-surface);
 }
 
-@media (min-width: 750px) {
-  .article-hero__media { aspect-ratio: 21 / 9; }
+.article-hero__media > img {
+  object-fit: contain;
+  object-position: center;
+  padding: clamp(0.75rem, 2vw, 1.25rem);
 }
 
 /* ---------- Header ---------- */
