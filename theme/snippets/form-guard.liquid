@@ -1,0 +1,75 @@
+{%- comment -%}
+  Stops a form being POSTed twice.
+
+  The newsletter box is a plain Shopify {% form 'customer' %} with no JavaScript
+  behind it, so a double click fires two POSTs before the page has navigated
+  away. Shopify de-duplicates the customer record, which is why the admin shows
+  one row, but with double opt-in switched on it re-sends "אישור לקבלת תוכן
+  שיווקי" every time a still-PENDING address is submitted again. The visitor gets
+  the same mail twice and nothing in the store looks wrong.
+
+  Guarding it here rather than in newsletter.liquid covers every posting form on
+  the site with one rule: contact, request-a-price, back-in-stock and the blog
+  comment box all mail somebody on submit and all had the same hole.
+
+  Three deliberate details:
+
+  - `event.defaultPrevented` bails out when another handler has already claimed
+    the submit. Those are the AJAX forms (add to cart, quick order); they never
+    navigate, so locking them would leave the button dead after one use. This
+    listener is on document, so it runs after the element-level handlers and
+    sees their preventDefault.
+
+  - The buttons are disabled inside setTimeout, not straight away. A submit
+    button that is disabled while the event is still being handled can drop its
+    own name/value from the payload, which would break any form that reads it.
+
+  - pageshow releases the lock, because a back navigation restores the page from
+    the bfcache with the DOM exactly as it was left, disabled button included.
+{%- endcomment -%}
+<script>
+  (function () {
+    'use strict';
+
+    var LOCK = 'data-submitting';
+
+    function submitButtons(form) {
+      return Array.prototype.slice.call(
+        form.querySelectorAll('button[type="submit"], input[type="submit"], button:not([type])')
+      );
+    }
+
+    document.addEventListener('submit', function (event) {
+      if (event.defaultPrevented) return;
+
+      var form = event.target;
+      if (!form || form.tagName !== 'FORM') return;
+      if ((form.getAttribute('method') || 'get').toLowerCase() !== 'post') return;
+
+      if (form.hasAttribute(LOCK)) {
+        event.preventDefault();
+        event.stopImmediatePropagation();
+        return;
+      }
+
+      form.setAttribute(LOCK, '');
+      setTimeout(function () {
+        submitButtons(form).forEach(function (button) {
+          button.disabled = true;
+          button.setAttribute('aria-busy', 'true');
+        });
+      }, 0);
+    });
+
+    window.addEventListener('pageshow', function (event) {
+      if (!event.persisted) return;
+      Array.prototype.forEach.call(document.querySelectorAll('form[' + LOCK + ']'), function (form) {
+        form.removeAttribute(LOCK);
+        submitButtons(form).forEach(function (button) {
+          button.disabled = false;
+          button.removeAttribute('aria-busy');
+        });
+      });
+    });
+  })();
+</script>

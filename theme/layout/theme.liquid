@@ -484,5 +484,7 @@
       overwriting one side with the other — diff them.
     {%- endcomment -%}
     {% if settings.assistant_enabled and settings.assistant_url != blank %}{% render 'ai-assistant' %}{% endif %}
+
+    {% render 'form-guard' %}
   </body>
 </html>
